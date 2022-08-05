@@ -1,0 +1,81 @@
+﻿<UserControl x:Class="MetaParser.WPF.Views.NavView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:MetaParser.WPF.Views"
+             xmlns:vm="clr-namespace:MetaParser.WPF.ViewModels"
+             xmlns:ext="clr-namespace:MetaParser.WPF.Extensions"
+             xmlns:models="clr-namespace:MetaParser.Models;assembly=MetaParser"
+             xmlns:cvt="clr-namespace:MetaParser.WPF.Converters"
+             xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
+             xmlns:root="clr-namespace:MetaParser.WPF"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.Resources>
+        <cvt:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
+        <DataTemplate DataType="{x:Type vm:NavFollowViewModel}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition />
+                    <RowDefinition />
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Right">Target Name:</TextBlock>
+                <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding TargetName, UpdateSourceTrigger=PropertyChanged}" Margin="2,0,0,0" />
+
+                <TextBlock Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Right">Target Id:</TextBlock>
+                <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding TargetId, UpdateSourceTrigger=PropertyChanged}" Margin="2,2,0,0" />
+            </Grid>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:NavNodeListViewModel}">
+            <StackPanel>
+                <Border BorderThickness="1" BorderBrush="{Binding ElementName=lstNavNodes, Path=BorderBrush}">
+                    <DockPanel>
+                        <ToolBarTray DockPanel.Dock="Top" IsLocked="True">
+                            <ToolBar Band="1" BandIndex="1" Loaded="ToolBar_Loaded">
+                                <Button Command="{Binding AddCommand}" ToolTip="Add New Nav Node" Content="{StaticResource AddIcon}" />
+                                <Button Command="{Binding RemoveCommand}" ToolTip="Remove Selected Nav Node" Content="{StaticResource RemoveIcon}" />
+                                <Separator />
+                                <Button Command="{Binding CutCommand}" ToolTip="Cut Nav Node (Ctrl+X)" Content="{StaticResource CutIcon}" />
+                                <Button Command="{Binding CopyCommand}" ToolTip="Copy Nav Node (Ctrl+C)" Content="{StaticResource CopyIcon}" />
+                                <Button Command="{Binding PasteCommand}" ToolTip="Paste Nav Node (Ctrl+V)" Content="{StaticResource PasteIcon}" />
+                            </ToolBar>
+                        </ToolBarTray>
+                        <ListBox ItemsSource="{Binding NavNodes}" Height="75" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled" SelectedItem="{Binding SelectedNode}" Name="lstNavNodes">
+                            <b:Interaction.Behaviors>
+                                <root:ScrollIntoViewBehavior />
+                            </b:Interaction.Behaviors>
+                            <ListBox.InputBindings>
+                                <KeyBinding Command="{Binding RemoveCommand}" Key="Delete" />
+                                <KeyBinding Command="{Binding CutCommand}" Key="X" Modifiers="Ctrl" />
+                                <KeyBinding Command="{Binding CopyCommand}" Key="C" Modifiers="Ctrl" />
+                                <KeyBinding Command="{Binding PasteCommand}" Key="V" Modifiers="Ctrl" />
+                            </ListBox.InputBindings>
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Display}" TextTrimming="CharacterEllipsis" ToolTipService.ToolTip="{Binding Display}" />
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </DockPanel>
+                </Border>
+
+                <GroupBox Header="Node" Visibility="{Binding SelectedNode, Converter={StaticResource NullToVisibilityConverter}}">
+                    <StackPanel>
+                        <ComboBox ItemsSource="{ext:EnumBindingSource EnumType=models:NavNodeType}" SelectedItem="{Binding SelectedNodeType, UpdateSourceTrigger=PropertyChanged}" Margin="2" />
+                        <local:NavNodeView DataContext="{Binding SelectedNode}" Margin="2" />
+                    </StackPanel>
+                </GroupBox>
+            </StackPanel>
+        </DataTemplate>
+    </UserControl.Resources>
+    <StackPanel>
+        <ComboBox ItemsSource="{ext:EnumBindingSource EnumType=models:NavType}" SelectedItem="{Binding Type, UpdateSourceTrigger=PropertyChanged}" Margin="2" />
+        <ContentControl Content="{Binding NavViewModel}" Margin="2,0,0,0" />
+    </StackPanel>
+</UserControl>

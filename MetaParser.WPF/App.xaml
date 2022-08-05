@@ -1,0 +1,69 @@
+﻿<Application x:Class="MetaParser.WPF.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:MetaParser.WPF"
+             xmlns:cvt="clr-namespace:MetaParser.WPF.Converters"
+             xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/MetaParser.WPF;component/Icons.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <cvt:BoolToAsteriskConverter x:Key="BoolToAsteriskConverter" />
+
+            <!-- Styles -->
+            <Style TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+                <Style.Triggers>
+                    <Trigger Property="Validation.HasError" Value="True">
+                        <Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self}, Path=(Validation.Errors)[0].ErrorContent}" />
+                        <Setter Property="Background">
+                            <Setter.Value>
+                                <SolidColorBrush Color="Salmon" Opacity="0.5" />
+                            </Setter.Value>
+                        </Setter>
+                        <Setter Property="BorderThickness" Value="2" />
+                        <Setter Property="BorderBrush" Value="Red" />
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+
+            <Style TargetType="{x:Type xctk:WatermarkTextBox}" x:Key="ErrorTemplate">
+                <Style.Triggers>
+                    <Trigger Property="Validation.HasError" Value="True">
+                        <Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self}, Path=(Validation.Errors)[0].ErrorContent}" />
+                        <Setter Property="Background">
+                            <Setter.Value>
+                                <SolidColorBrush Color="Salmon" Opacity="0.5" />
+                            </Setter.Value>
+                        </Setter>
+                        <Setter Property="BorderThickness" Value="2" />
+                        <Setter Property="BorderBrush" Value="Red" />
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+
+            <!-- Global Theme -->
+            <SolidColorBrush x:Key="ListBoxSelectedItemBorderBrush" Color="LightGray" />
+            <SolidColorBrush x:Key="ListBoxSelectedItemBackgroundBrush" Color="DarkGray" Opacity="0.8" />
+            <SolidColorBrush x:Key="ListBoxSelectedActiveItemBorderBrush" Color="Blue" />
+            <SolidColorBrush x:Key="ListBoxSelectedActiveItemBackgroundBrush" Color="LightBlue" />
+            <SolidColorBrush x:Key="ListBoxMouseOverItemBackgroundBrush" Color="LightBlue" Opacity="0.5" />
+            <SolidColorBrush x:Key="WindowBackgroundBrush" Color="White" />
+            <Style TargetType="TreeViewItem">
+                <Style.Triggers>
+                    <MultiTrigger>
+                        <MultiTrigger.Conditions>
+                            <Condition Property="IsSelected" Value="True" />
+                            <Condition Property="IsSelectionActive" Value="True" />
+                        </MultiTrigger.Conditions>
+                        <MultiTrigger.Setters>
+                            <Setter Property="Background" Value="Transparent" />
+                        </MultiTrigger.Setters>
+                    </MultiTrigger>
+                </Style.Triggers>
+            </Style>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

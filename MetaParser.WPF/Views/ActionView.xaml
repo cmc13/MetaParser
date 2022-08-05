@@ -1,0 +1,294 @@
+﻿<UserControl x:Class="MetaParser.WPF.Views.ActionView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:MetaParser.WPF.Views"
+             xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+             xmlns:models="clr-namespace:MetaParser.Models;assembly=MetaParser"
+             xmlns:ext="clr-namespace:MetaParser.WPF.Extensions"
+             xmlns:cvt="clr-namespace:MetaParser.WPF.Converters"
+             xmlns:dd="urn:gong-wpf-dragdrop"
+             xmlns:vr="clr-namespace:MetaParser.WPF.ValidationRules"
+             xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
+             xmlns:root="clr-namespace:MetaParser.WPF"
+             xmlns:vm="clr-namespace:MetaParser.WPF.ViewModels"
+             xmlns:sys="clr-namespace:System;assembly=System.Core"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.Resources>
+        <cvt:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
+        <cvt:EnumToDescriptionConverter x:Key="EnumToDescriptionConverter" />
+
+        <local:ActionDataTemplateSelector x:Key="ActionDataTemplateSelector">
+            <local:ActionDataTemplateSelector.DefaultTemplate>
+                <DataTemplate />
+            </local:ActionDataTemplateSelector.DefaultTemplate>
+            <local:ActionDataTemplateSelector.ExpressionTemplate>
+                <DataTemplate DataType="{x:Type vm:ExpressionActionViewModel}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Right">Expression:</TextBlock>
+                        <TextBox Grid.Column="1" Text="{Binding Expression, UpdateSourceTrigger=PropertyChanged}" Margin="2,0,0,0" />
+                        <Button Grid.Column="2" Margin="2,0,0,0" Command="{Binding LaunchExpressionHelpCommand}" ToolTip="VTank Expression Reference">
+                            <Image Source="../Assets/Icons/WebFile_16x.png" />
+                        </Button>
+                    </Grid>
+                </DataTemplate>
+            </local:ActionDataTemplateSelector.ExpressionTemplate>
+            <local:ActionDataTemplateSelector.StringValueTemplate>
+                <DataTemplate DataType="{x:Type vm:ActionViewModel}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Grid.Column="0" Text="{Binding Type, StringFormat={}{0}:, Converter={StaticResource EnumToDescriptionConverter}}" VerticalAlignment="Center" HorizontalAlignment="Right" />
+                        <TextBox Grid.Column="1" Text="{Binding Data, UpdateSourceTrigger=PropertyChanged}" Margin="2,0,0,0" />
+                    </Grid>
+                </DataTemplate>
+            </local:ActionDataTemplateSelector.StringValueTemplate>
+            <local:ActionDataTemplateSelector.SetVTOptionTemplate>
+                <DataTemplate DataType="{x:Type vm:SetVTOptionActionViewModel}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition />
+                            <RowDefinition />
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Right">Option:</TextBlock>
+                        <ComboBox Grid.Row="0" Grid.Column="1" Text="{Binding Option, UpdateSourceTrigger=PropertyChanged}" Margin="2,0,0,0" IsEditable="True" ItemsSource="{x:Static models:VTankOptions.Options}" />
+
+                        <TextBlock Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Right">Value:</TextBlock>
+                        <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}" Margin="2,2,0,0" />
+                    </Grid>
+                </DataTemplate>
+            </local:ActionDataTemplateSelector.SetVTOptionTemplate>
+            <local:ActionDataTemplateSelector.GetVTOptionTemplate>
+                <DataTemplate DataType="{x:Type vm:GetVTOptionActionViewModel}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition />
+                            <RowDefinition />
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Right">Option:</TextBlock>
+                        <ComboBox Grid.Row="0" Grid.Column="1" Text="{Binding Option, UpdateSourceTrigger=PropertyChanged}" Margin="2,0,0,0" IsEditable="True" ItemsSource="{x:Static models:VTankOptions.Options}" />
+
+                        <TextBlock Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Right">Variable:</TextBlock>
+                        <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Variable, UpdateSourceTrigger=PropertyChanged}" Margin="2,2,0,0" />
+                    </Grid>
+                </DataTemplate>
+            </local:ActionDataTemplateSelector.GetVTOptionTemplate>
+            <local:ActionDataTemplateSelector.CallStateTemplate>
+                <DataTemplate DataType="{x:Type vm:CallStateActionViewModel}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition />
+                            <RowDefinition />
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Right">Call State:</TextBlock>
+                        <ComboBox Grid.Row="0" Grid.Column="1" Text="{Binding CallState, UpdateSourceTrigger=PropertyChanged}" ItemsSource="{Binding Meta.StateList}" IsEditable="True" Margin="2,0,0,0" />
+
+                        <TextBlock Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Right">Return State:</TextBlock>
+                        <ComboBox Grid.Row="1" Grid.Column="1" Text="{Binding ReturnState, UpdateSourceTrigger=PropertyChanged}" ItemsSource="{Binding Meta.StateList}" IsEditable="True" Margin="2,2,0,0" />
+                    </Grid>
+                </DataTemplate>
+            </local:ActionDataTemplateSelector.CallStateTemplate>
+            <local:ActionDataTemplateSelector.WatchdogSetTemplate>
+                <DataTemplate DataType="{x:Type vm:WatchdogSetActionViewModel}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition />
+                            <RowDefinition />
+                            <RowDefinition />
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Right">State:</TextBlock>
+                        <ComboBox Grid.Row="0" Grid.Column="1" Text="{Binding State, UpdateSourceTrigger=PropertyChanged}" ItemsSource="{Binding Meta.StateList}" IsEditable="True" Margin="2,0,0,0" />
+
+                        <TextBlock Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Right">Range:</TextBlock>
+                        <xctk:DoubleUpDown Grid.Row="1" Grid.Column="1" Value="{Binding Range, UpdateSourceTrigger=PropertyChanged}" Minimum="0" Maximum="10000" Increment="0.01" Margin="2,2,0,0" />
+
+                        <TextBlock Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Right">Time:</TextBlock>
+                        <xctk:DoubleUpDown Grid.Row="2" Grid.Column="1" Value="{Binding Time, UpdateSourceTrigger=PropertyChanged}" Minimum="0" Increment="1" Margin="2,2,0,0" />
+                    </Grid>
+                </DataTemplate>
+            </local:ActionDataTemplateSelector.WatchdogSetTemplate>
+            <local:ActionDataTemplateSelector.DestroyViewTemplate>
+                <DataTemplate DataType="{x:Type vm:DestroyViewActionViewModel}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Right">View Name:</TextBlock>
+                        <TextBox Grid.Column="1" Text="{Binding ViewName, UpdateSourceTrigger=PropertyChanged}" Margin="2,0,0,0" />
+                    </Grid>
+                </DataTemplate>
+            </local:ActionDataTemplateSelector.DestroyViewTemplate>
+            <local:ActionDataTemplateSelector.CreateViewTemplate>
+                <DataTemplate DataType="{x:Type vm:CreateViewActionViewModel}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition />
+                            <RowDefinition />
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Right">View Name:</TextBlock>
+                        <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding ViewName, UpdateSourceTrigger=PropertyChanged}" Margin="2,0,0,0" />
+
+                        <TextBlock Grid.Row="1" Grid.Column="0" VerticalAlignment="Top" HorizontalAlignment="Right">View Definition:</TextBlock>
+                        <Border Grid.Row="1" Grid.Column="1" BorderBrush="{Binding ElementName=txtXmlDefinition, Path=BorderBrush}" BorderThickness="1">
+                            <DockPanel>
+                                <ToolBarTray DockPanel.Dock="Top" IsLocked="True">
+                                    <ToolBar Band="1" BandIndex="1" ToolBar.OverflowMode="Never" Loaded="ToolBar_Loaded">
+                                        <Button Command="{Binding MinifyXMLCommand}" ToolTip="Remove Whitespace">
+                                            <Image Source="../Assets/Icons/Minimize_16x.png" />
+                                        </Button>
+                                        <Button Command="{Binding PrettifyXMLCommand}" ToolTip="Format XML">
+                                            <Image Source="../Assets/Icons/FormatDocument_16x.png" />
+                                        </Button>
+                                    </ToolBar>
+                                </ToolBarTray>
+                                <TextBox AcceptsReturn="True" AcceptsTab="True" Height="100" Margin="2,2,0,0" Name="txtXmlDefinition" BorderThickness="0" FontFamily="Consolas" ScrollViewer.VerticalScrollBarVisibility="Auto" TextWrapping="Wrap">
+                                    <TextBox.Text>
+                                        <Binding Path="ViewDefinition"
+                                 UpdateSourceTrigger="PropertyChanged"
+                                 Mode="TwoWay"
+                                 NotifyOnValidationError="True">
+                                            <Binding.ValidationRules>
+                                                <vr:IsValidViewDefinitionValidationRule />
+                                            </Binding.ValidationRules>
+                                        </Binding>
+                                    </TextBox.Text>
+                                </TextBox>
+                            </DockPanel>
+                        </Border>
+                    </Grid>
+                </DataTemplate>
+            </local:ActionDataTemplateSelector.CreateViewTemplate>
+            <local:ActionDataTemplateSelector.AllTemplate>
+                <DataTemplate DataType="{x:Type vm:AllActionViewModel}">
+                    <StackPanel>
+                        <Border BorderThickness="1" BorderBrush="{Binding ElementName=lstActions, Path=BorderBrush}">
+                            <DockPanel>
+                                <ToolBarTray DockPanel.Dock="Top" IsLocked="True">
+                                    <ToolBar Band="1" BandIndex="1" ToolBar.OverflowMode="Never" Loaded="ToolBar_Loaded">
+                                        <Button Command="{Binding AddCommand}" ToolTip="Add New Action" Content="{StaticResource AddIcon}" />
+                                        <Button Command="{Binding RemoveCommand}" ToolTip="Remove Selected Action" Content="{StaticResource RemoveIcon}" />
+                                        <Button Command="{Binding MoveUpCommand}" ToolTip="Move Selected Action Up" Content="{StaticResource MoveUpIcon}" />
+                                        <Button Command="{Binding MoveDownCommand}" ToolTip="Move Selected Action Down" Content="{StaticResource MoveDownIcon}" />
+                                        <Separator />
+                                        <Button Command="{Binding CutCommand}" ToolTip="Cut Selected Action" Content="{StaticResource CutIcon}" />
+                                        <Button Command="{Binding CopyCommand}" ToolTip="Copy Selected Action" Content="{StaticResource CopyIcon}" />
+                                        <Button Command="{Binding PasteCommand}" ToolTip="Paste Selected Action" Content="{StaticResource PasteIcon}" />
+                                        <Separator />
+                                        <Button Command="{Binding WrapCommand}" ToolTip="Wrap in 'Do All' Block">
+                                            <Image Source="../Assets/Icons/All.png" Style="{StaticResource DisabledImageStyle}" />
+                                        </Button>
+                                        <Button Command="{Binding UnwrapCommand}" ToolTip="Unwrap">
+                                            <Image Source="../Assets/Icons/Release_16x.png" Style="{StaticResource DisabledImageStyle}" />
+                                        </Button>
+                                    </ToolBar>
+                                </ToolBarTray>
+                                <ListBox ItemsSource="{Binding ActionList}" SelectedItem="{Binding SelectedAction}" ScrollViewer.HorizontalScrollBarVisibility="Disabled" Height="75" dd:DragDrop.DropHandler="{Binding}" dd:DragDrop.IsDragSource="True" dd:DragDrop.IsDropTarget="True" Name="lstActions" BorderThickness="0">
+                                    <b:Interaction.Behaviors>
+                                        <root:ScrollIntoViewBehavior />
+                                    </b:Interaction.Behaviors>
+                                    <ListBox.InputBindings>
+                                        <KeyBinding Command="{Binding RemoveCommand}" Key="Delete" />
+                                        <KeyBinding Command="{Binding CutCommand}" Key="X" Modifiers="Ctrl" />
+                                        <KeyBinding Command="{Binding CopyCommand}" Key="C" Modifiers="Ctrl" />
+                                        <KeyBinding Command="{Binding PasteCommand}" Key="V" Modifiers="Ctrl" />
+                                    </ListBox.InputBindings>
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Display}" TextTrimming="CharacterEllipsis" ToolTipService.ToolTip="{Binding Display}" />
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                            </DockPanel>
+                        </Border>
+                        <GroupBox Header="{Binding SelectedAction.Type, StringFormat=Edit {0} Action}" Visibility="{Binding SelectedAction, Converter={StaticResource NullToVisibilityConverter}}">
+                            <StackPanel>
+                                <ComboBox ItemsSource="{ext:EnumBindingSource EnumType={x:Type models:ActionType}}" SelectedItem="{Binding SelectedActionType}" Margin="2" />
+                                <local:ActionView DataContext="{Binding SelectedAction}" Margin="2" />
+                            </StackPanel>
+                        </GroupBox>
+                    </StackPanel>
+                </DataTemplate>
+            </local:ActionDataTemplateSelector.AllTemplate>
+            <local:ActionDataTemplateSelector.SetStateTemplate>
+                <DataTemplate DataType="{x:Type vm:ActionViewModel}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Grid.Column="0" Text="{Binding Type, StringFormat={}{0}:, Converter={StaticResource EnumToDescriptionConverter}}" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                        <ComboBox Grid.Column="1" Text="{Binding Data, UpdateSourceTrigger=PropertyChanged}" IsEditable="True" ItemsSource="{Binding Meta.StateList}" Margin="2,0,0,0" />
+                    </Grid>
+                </DataTemplate>
+            </local:ActionDataTemplateSelector.SetStateTemplate>
+            <local:ActionDataTemplateSelector.LoadNavTemplate>
+                <DataTemplate DataType="{x:Type vm:LoadEmbeddedNavRouteActionViewModel}">
+                    <DockPanel>
+                        <Grid DockPanel.Dock="Top">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <xctk:WatermarkTextBox Grid.Column="0" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}">
+                                <xctk:WatermarkTextBox.Watermark>
+                                    <TextBlock>[None]</TextBlock>
+                                </xctk:WatermarkTextBox.Watermark>
+                            </xctk:WatermarkTextBox>
+                            <Button Grid.Column="1" Command="{Binding LoadNavCommand}">
+                                <StackPanel Orientation="Horizontal">
+                                    <Image Source="../Assets/Icons/ImportFile_16x.png" />
+                                    <TextBlock>Load</TextBlock>
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+
+                        <local:NavView DataContext="{Binding Nav}" />
+                    </DockPanel>
+                </DataTemplate>
+            </local:ActionDataTemplateSelector.LoadNavTemplate>
+        </local:ActionDataTemplateSelector>
+    </UserControl.Resources>
+    <Grid Margin="0,2,0,0">
+        <ContentControl Content="{Binding}" ContentTemplateSelector="{StaticResource ActionDataTemplateSelector}" />
+    </Grid>
+</UserControl>

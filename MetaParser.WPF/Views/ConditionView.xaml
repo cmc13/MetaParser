@@ -1,0 +1,492 @@
+﻿<UserControl x:Class="MetaParser.WPF.Views.ConditionView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:MetaParser.WPF.Views"
+             xmlns:ext="clr-namespace:MetaParser.WPF.Extensions"
+             xmlns:models="clr-namespace:MetaParser.Models;assembly=MetaParser"
+             xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+             xmlns:cvt="clr-namespace:MetaParser.WPF.Converters"
+             xmlns:dd="urn:gong-wpf-dragdrop"
+             xmlns:vr="clr-namespace:MetaParser.WPF.ValidationRules"
+             xmlns:vm="clr-namespace:MetaParser.WPF.ViewModels"
+             xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
+             xmlns:root="clr-namespace:MetaParser.WPF"
+             xmlns:fx="http://gu.se/Geometry"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.Resources>
+        <cvt:ConditionTypeToMaximumValueConverter x:Key="ConditionTypeToMaximumValueConverter" />
+        <cvt:ConditionTypeToMinimumValueConverter x:Key="ConditionTypeToMinimumValueConverter" />
+        <cvt:NullToVisibilityConverter x:Key="NullToVisibilityConverter"/>
+        <cvt:EnumToDescriptionConverter x:Key="EnumToDescriptionConverter" />
+        <cvt:LandBlockConverter x:Key="LandBlockConverter" />
+        <cvt:DivideConverter x:Key="DivideConverter" />
+        <cvt:CoordinateConverter x:Key="CoordinateConverter" />
+        <cvt:AllConverter x:Key="AllConverter" />
+        <cvt:ExponentialConverter x:Key="ExponentialConverter" />
+
+    </UserControl.Resources>
+    <Grid Margin="0,2,0,0">
+        <ContentControl Content="{Binding}">
+            <ContentControl.ContentTemplateSelector>
+                <local:ConditionDataTemplateSelector>
+                    <local:ConditionDataTemplateSelector.DefaultTemplate>
+                        <DataTemplate />
+                    </local:ConditionDataTemplateSelector.DefaultTemplate>
+                    <local:ConditionDataTemplateSelector.BurdenPercentGETemplate>
+                        <DataTemplate DataType="{x:Type vm:ConditionViewModel}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="{Binding Type, StringFormat={}{0}:, Converter={StaticResource EnumToDescriptionConverter}}" VerticalAlignment="Center" />
+                                <DockPanel Grid.Column="1" Margin="2,0,0,0">
+                                    <xctk:IntegerUpDown DockPanel.Dock="Left"
+                                                        Value="{Binding Data, UpdateSourceTrigger=PropertyChanged}"
+                                                        Minimum="{Binding Type, Converter={StaticResource ConditionTypeToMinimumValueConverter}}"
+                                                        Maximum="{Binding Type, Converter={StaticResource ConditionTypeToMaximumValueConverter}}"
+                                                        Width="75" />
+                                    <Slider Value="{Binding Data, UpdateSourceTrigger=PropertyChanged}"
+                                            Minimum="{Binding Type, Converter={StaticResource ConditionTypeToMinimumValueConverter}}"
+                                            Maximum="{Binding Type, Converter={StaticResource ConditionTypeToMaximumValueConverter}}"
+                                            SmallChange="1" LargeChange="10" VerticalAlignment="Center" Margin="2,0,0,0" />
+                                </DockPanel>
+                            </Grid>
+                        </DataTemplate>
+                    </local:ConditionDataTemplateSelector.BurdenPercentGETemplate>
+                    <local:ConditionDataTemplateSelector.ExpressionTemplate>
+                        <DataTemplate DataType="{x:Type vm:ExpressionConditionViewModel}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" VerticalAlignment="Center">Expression:</TextBlock>
+                                <TextBox Grid.Column="1" Text="{Binding Expression, UpdateSourceTrigger=PropertyChanged}" Margin="2,0,0,0" />
+                                <Button Grid.Column="2" Margin="2,0,0,0" Command="{Binding LaunchExpressionHelpCommand}" ToolTip="VTank Expression Reference">
+                                    <Image Source="../Assets/Icons/WebFile_16x.png" />
+                                </Button>
+                            </Grid>
+                        </DataTemplate>
+                    </local:ConditionDataTemplateSelector.ExpressionTemplate>
+                    <local:ConditionDataTemplateSelector.DistanceTemplate>
+                        <DataTemplate DataType="{x:Type vm:ConditionViewModel}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" VerticalAlignment="Center">Distance:</TextBlock>
+                                <DockPanel Grid.Column="1" Margin="2,0,0,0">
+                                    <xctk:DoubleUpDown DockPanel.Dock="Left" Width="100" Value="{Binding Distance, UpdateSourceTrigger=PropertyChanged}" Minimum="0" Maximum="65535" Increment="0.01" />
+                                    <Slider Value="{Binding Distance, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource ExponentialConverter}}" Minimum="0" Maximum="16" SmallChange="0.1" LargeChange="1" IsSnapToTickEnabled="False" Margin="2,0,0,0" />
+                                </DockPanel>
+                            </Grid>
+                        </DataTemplate>
+                    </local:ConditionDataTemplateSelector.DistanceTemplate>
+                    <local:ConditionDataTemplateSelector.ItemCountTemplate>
+                        <DataTemplate DataType="{x:Type vm:ItemCountConditionViewModel}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition />
+                                    <RowDefinition />
+                                    <RowDefinition />
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Right">Item Name:</TextBlock>
+                                <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding ItemName, UpdateSourceTrigger=PropertyChanged}" Margin="2" />
+
+                                <TextBlock Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Right">Count:</TextBlock>
+                                <DockPanel Grid.Row="1" Grid.Column="1" Margin="2">
+                                    <xctk:IntegerUpDown DockPanel.Dock="Left" Value="{Binding Count, UpdateSourceTrigger=PropertyChanged}" Width="100" />
+                                    <Slider Value="{Binding Count, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource ExponentialConverter}}" Maximum="32" Minimum="0" IsSnapToTickEnabled="False" Margin="2,0,0,0" />
+                                </DockPanel>
+                            </Grid>
+                        </DataTemplate>
+                    </local:ConditionDataTemplateSelector.ItemCountTemplate>
+                    <local:ConditionDataTemplateSelector.ChatMessageTemplate>
+                        <DataTemplate DataType="{x:Type vm:ConditionViewModel}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="{Binding Type, StringFormat={}{0}:, Converter={StaticResource EnumToDescriptionConverter}}" VerticalAlignment="Center" />
+                                <xctk:WatermarkTextBox Grid.Column="1" Margin="2,0,0,0" Style="{StaticResource ErrorTemplate}">
+                                    <xctk:WatermarkTextBox.Watermark>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Image Source="../Assets/Icons/RegularExpression_16x.png" />
+                                            <TextBlock Foreground="LightGray">Regex</TextBlock>
+                                        </StackPanel>
+                                    </xctk:WatermarkTextBox.Watermark>
+                                    <xctk:WatermarkTextBox.Text>
+                                        <Binding Path="Data"
+                                 UpdateSourceTrigger="PropertyChanged"
+                                 NotifyOnValidationError="True">
+                                            <Binding.ValidationRules>
+                                                <vr:IsValidRegexValidationRule />
+                                            </Binding.ValidationRules>
+                                        </Binding>
+                                    </xctk:WatermarkTextBox.Text>
+                                </xctk:WatermarkTextBox>
+                            </Grid>
+                        </DataTemplate>
+                    </local:ConditionDataTemplateSelector.ChatMessageTemplate>
+                    <local:ConditionDataTemplateSelector.ChatMessageCaptureTemplate>
+                        <DataTemplate DataType="{x:Type vm:ChatMessageCaptureConditionViewModel}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition />
+                                    <RowDefinition />
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Right">Pattern:</TextBlock>
+                                <xctk:WatermarkTextBox Grid.Row="0" Grid.Column="1" Margin="2" Style="{StaticResource ErrorTemplate}">
+                                    <xctk:WatermarkTextBox.Watermark>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Image Source="../Assets/Icons/RegularExpression_16x.png" />
+                                            <TextBlock Foreground="LightGray">Regex</TextBlock>
+                                        </StackPanel>
+                                    </xctk:WatermarkTextBox.Watermark>
+                                    <xctk:WatermarkTextBox.Text>
+                                        <Binding Path="Pattern"
+                                 UpdateSourceTrigger="PropertyChanged"
+                                 NotifyOnValidationError="True">
+                                            <Binding.ValidationRules>
+                                                <vr:IsValidRegexValidationRule />
+                                            </Binding.ValidationRules>
+                                        </Binding>
+                                    </xctk:WatermarkTextBox.Text>
+                                </xctk:WatermarkTextBox>
+
+                                <TextBlock Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Right">Color:</TextBlock>
+                                <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Color, UpdateSourceTrigger=PropertyChanged}" Margin="2" />
+                            </Grid>
+                        </DataTemplate>
+                    </local:ConditionDataTemplateSelector.ChatMessageCaptureTemplate>
+                    <local:ConditionDataTemplateSelector.MonsterCountWithinDistanceTemplate>
+                        <DataTemplate DataType="{x:Type vm:MonsterCountWithinDistanceConditionViewModel}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition />
+                                    <RowDefinition />
+                                    <RowDefinition />
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Right">Monster Name:</TextBlock>
+                                <xctk:WatermarkTextBox Grid.Row="0" Grid.Column="1" Margin="2,0,0,0" Style="{StaticResource ErrorTemplate}">
+                                    <xctk:WatermarkTextBox.Watermark>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Image Source="../Assets/Icons/RegularExpression_16x.png" />
+                                            <TextBlock Foreground="LightGray">Regex</TextBlock>
+                                        </StackPanel>
+                                    </xctk:WatermarkTextBox.Watermark>
+                                    <xctk:WatermarkTextBox.Text>
+                                        <Binding Path="MonsterNameRx"
+                                 UpdateSourceTrigger="PropertyChanged"
+                                 NotifyOnValidationError="True">
+                                            <Binding.ValidationRules>
+                                                <vr:IsValidRegexValidationRule />
+                                            </Binding.ValidationRules>
+                                        </Binding>
+                                    </xctk:WatermarkTextBox.Text>
+                                </xctk:WatermarkTextBox>
+
+                                <TextBlock Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Right">Count:</TextBlock>
+                                <xctk:IntegerUpDown Grid.Row="1" Grid.Column="1" Value="{Binding Count, UpdateSourceTrigger=PropertyChanged}" Minimum="0" Maximum="10000" Margin="2,2,0,0" />
+
+                                <TextBlock Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Right">Distance:</TextBlock>
+                                <xctk:DoubleUpDown Grid.Row="2" Grid.Column="1" Value="{Binding Distance, UpdateSourceTrigger=PropertyChanged}" Minimum="0" Maximum="10000" Margin="2,2,0,0" />
+                            </Grid>
+                        </DataTemplate>
+                    </local:ConditionDataTemplateSelector.MonsterCountWithinDistanceTemplate>
+                    <local:ConditionDataTemplateSelector.MonstersWithPriorityWithinDistanceTemplate>
+                        <DataTemplate DataType="{x:Type vm:MonstersWithPriorityWithinDistanceConditionViewModel}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition />
+                                    <RowDefinition />
+                                    <RowDefinition />
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Right">Priority</TextBlock>
+                                <xctk:IntegerUpDown Grid.Row="0" Grid.Column="1" Value="{Binding Priority, UpdateSourceTrigger=PropertyChanged}" Minimum="0" Maximum="100" Margin="2,0,0,0" />
+
+                                <TextBlock Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Right">Count</TextBlock>
+                                <xctk:IntegerUpDown Grid.Row="1" Grid.Column="1" Value="{Binding Count, UpdateSourceTrigger=PropertyChanged}" Minimum="0" Maximum="10000" Margin="2,2,0,0" />
+
+                                <TextBlock Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Right">Distance</TextBlock>
+                                <xctk:DoubleUpDown Grid.Row="2" Grid.Column="1" Value="{Binding Distance, UpdateSourceTrigger=PropertyChanged}" Minimum="0" Maximum="10000" Margin="2,2,0,0" />
+                            </Grid>
+                        </DataTemplate>
+                    </local:ConditionDataTemplateSelector.MonstersWithPriorityWithinDistanceTemplate>
+                    <local:ConditionDataTemplateSelector.NotTemplate>
+                        <DataTemplate DataType="{x:Type vm:NotConditionViewModel}">
+                            <StackPanel Margin="2,0,0,0">
+                                <ComboBox ItemsSource="{ext:EnumBindingSource EnumType={x:Type models:ConditionType}}" SelectedItem="{Binding CurrentConditionType}" />
+                                <local:ConditionView DataContext="{Binding InnerCondition}" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </local:ConditionDataTemplateSelector.NotTemplate>
+                    <local:ConditionDataTemplateSelector.TimeLeftOnSpellGETemplate>
+                        <DataTemplate DataType="{x:Type vm:TimeLeftOnSpellGEConditionViewModel}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition />
+                                    <RowDefinition />
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Right">Spell Id:</TextBlock>
+                                <Grid Grid.Row="0" Grid.Column="1" Margin="2,0,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="100" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <xctk:IntegerUpDown Grid.Column="0" Value="{Binding SpellId, UpdateSourceTrigger=PropertyChanged}" Minimum="0" />
+                                    <ComboBox Grid.Column="1"
+                                              ItemsSource="{x:Static models:Spells.SpellList}"
+                                              SelectedValuePath="Key"
+                                              SelectedValue="{Binding SpellId, UpdateSourceTrigger=PropertyChanged}">
+                                        <ComboBox.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <VirtualizingStackPanel />
+                                            </ItemsPanelTemplate>
+                                        </ComboBox.ItemsPanel>
+                                        <ComboBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="{Binding Value}" />
+                                                    <TextBlock Text=" (" />
+                                                    <TextBlock Text="{Binding Key}" />
+                                                    <TextBlock Text=")" />
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </ComboBox.ItemTemplate>
+                                    </ComboBox>
+                                </Grid>
+
+                                <TextBlock Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Right">Seconds:</TextBlock>
+                                <DockPanel Grid.Row="1" Grid.Column="1" Margin="2">
+                                    <xctk:IntegerUpDown DockPanel.Dock="Left" Value="{Binding Seconds, UpdateSourceTrigger=PropertyChanged}" Minimum="0" Maximum="65535" Width="100" />
+                                    <Slider Minimum="0" Maximum="16" SmallChange="0.1" LargeChange="1" IsSnapToTickEnabled="False" Value="{Binding Seconds, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource ExponentialConverter}}" Margin="2,0,0,0" />
+                                </DockPanel>
+                            </Grid>
+                        </DataTemplate>
+                    </local:ConditionDataTemplateSelector.TimeLeftOnSpellGETemplate>
+                    <local:ConditionDataTemplateSelector.MultipleTemplate>
+                        <DataTemplate DataType="{x:Type vm:MultipleConditionViewModel}">
+                            <StackPanel>
+                                <Border BorderThickness="1" BorderBrush="{Binding ElementName=lstConditions, Path=BorderBrush}">
+                                    <DockPanel>
+                                        <ToolBarTray DockPanel.Dock="Top" IsLocked="True">
+                                            <ToolBar Band="1" BandIndex="1" Loaded="ToolBar_Loaded" Background="Transparent">
+                                                <Button Command="{Binding AddCommand}" ToolTip="Add New Condition" Content="{StaticResource AddIcon}" />
+                                                <Button Command="{Binding RemoveCommand}" ToolTip="Remove Selected Condition" Content="{StaticResource RemoveIcon}" />
+                                                <Button Command="{Binding MoveUpCommand}" ToolTip="Move Selected Condition Up" Content="{StaticResource MoveUpIcon}" />
+                                                <Button Command="{Binding MoveDownCommand}" ToolTip="Move Selected Condition Down" Content="{StaticResource MoveDownIcon}" />
+                                                <Separator />
+                                                <Button Command="{Binding CutCommand}" ToolTip="Cut Selected Condition" Content="{StaticResource CutIcon}" />
+                                                <Button Command="{Binding CopyCommand}" ToolTip="Copy Selected Condition" Content="{StaticResource CopyIcon}" />
+                                                <Button Command="{Binding PasteCommand}" ToolTip="Paste Selected Condition" Content="{StaticResource PasteIcon}" />
+                                                <Separator />
+                                                <Button Command="{Binding WrapInAllCommand}" ToolTip="Wrap in 'All' Block">
+                                                    <Image Source="../Assets/Icons/All.png" Style="{StaticResource DisabledImageStyle}" />
+                                                </Button>
+                                                <Button Command="{Binding WrapInAnyCommand}" ToolTip="Wrap in 'Any' Block">
+                                                    <Image Source="../Assets/Icons/Any.png" Style="{StaticResource DisabledImageStyle}" />
+                                                </Button>
+                                                <Button Command="{Binding InvertCommand}" ToolTip="Invert">
+                                                    <Image Source="../Assets/Icons/Invert_16x.png" Style="{StaticResource DisabledImageStyle}" />
+                                                </Button>
+                                                <Button Command="{Binding UnwrapCommand}" ToolTip="Unwrap">
+                                                    <Image Source="../Assets/Icons/Release_16x.png" Style="{StaticResource DisabledImageStyle}" />
+                                                </Button>
+                                            </ToolBar>
+                                        </ToolBarTray>
+                                        <ListBox ItemsSource="{Binding ConditionList}"
+                                                 SelectedItem="{Binding SelectedCondition}"
+                                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                                 Height="75"
+                                                 dd:DragDrop.DropHandler="{Binding}"
+                                                 dd:DragDrop.IsDragSource="True"
+                                                 dd:DragDrop.IsDropTarget="True"
+                                                 BorderThickness="0"
+                                                 Name="lstConditions">
+                                            <b:Interaction.Behaviors>
+                                                <root:ScrollIntoViewBehavior />
+                                            </b:Interaction.Behaviors>
+                                            <ListBox.InputBindings>
+                                                <KeyBinding Command="{Binding RemoveCommand}" Key="Delete" />
+                                                <KeyBinding Command="{Binding CutCommand}" Key="X" Modifiers="Ctrl" />
+                                                <KeyBinding Command="{Binding CopyCommand}" Key="C" Modifiers="Ctrl" />
+                                                <KeyBinding Command="{Binding PasteCommand}" Key="V" Modifiers="Ctrl" />
+                                            </ListBox.InputBindings>
+                                            <ListBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock Text="{Binding Display}" TextTrimming="CharacterEllipsis" ToolTipService.ToolTip="{Binding Display}" />
+                                                </DataTemplate>
+                                            </ListBox.ItemTemplate>
+                                        </ListBox>
+                                    </DockPanel>
+                                </Border>
+                                <GroupBox Header="{Binding SelectedCondition.Type, StringFormat=Edit {0} Condition}"
+                                          Visibility="{Binding SelectedCondition, Converter={StaticResource NullToVisibilityConverter}}">
+                                    <StackPanel>
+                                        <ComboBox ItemsSource="{ext:EnumBindingSource EnumType={x:Type models:ConditionType}}" SelectedItem="{Binding SelectedConditionType}" />
+                                        <local:ConditionView DataContext="{Binding SelectedCondition}" />
+                                    </StackPanel>
+                                </GroupBox>
+                            </StackPanel>
+                        </DataTemplate>
+                    </local:ConditionDataTemplateSelector.MultipleTemplate>
+                    <local:ConditionDataTemplateSelector.LandBlockTemplate>
+                        <DataTemplate DataType="{x:Type vm:ConditionViewModel}">
+                            <Grid KeyUp="Grid_KeyUp">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <xctk:WatermarkTextBox Grid.Column="0" Style="{StaticResource ErrorTemplate}" x:Name="txtLandblock" GotFocus="txtLandblock_GotFocus">
+                                        <xctk:WatermarkTextBox.Watermark>
+                                            <TextBlock>FFFF0000</TextBlock>
+                                        </xctk:WatermarkTextBox.Watermark>
+                                        <xctk:WatermarkTextBox.Text>
+                                            <Binding Path="Data"
+                                     UpdateSourceTrigger="PropertyChanged"
+                                     Converter="{StaticResource LandBlockConverter}"
+                                     ConverterParameter="False"
+                                     StringFormat="X8">
+                                                <Binding.ValidationRules>
+                                                    <vr:RegexValidationRule Regex="[0-9a-fA-F]{1,8}" />
+                                                </Binding.ValidationRules>
+                                            </Binding>
+                                        </xctk:WatermarkTextBox.Text>
+                                    </xctk:WatermarkTextBox>
+                                    
+                                    <Button Grid.Column="1" Command="{Binding ToggleMapCommand}" ToolTip="Toggle Map">
+                                        <Image Source="../Assets/Icons/Map_16x.png" />
+                                    </Button>
+                                </Grid>
+                                <Popup x:Name="popMap"
+                                       PlacementTarget="{Binding RelativeSource={RelativeSource AncestorType=Grid}}"
+                                       Placement="Bottom"
+                                       Opened="popMap_Opened"
+                                       Closed="popMap_Closed">
+                                    <Popup.IsOpen>
+                                        <MultiBinding Converter="{StaticResource AllConverter}" ConverterParameter="True">
+                                            <Binding Path="ShowMap" Mode="OneWay" />
+                                            <Binding RelativeSource="{RelativeSource AncestorType=Window}" Path="IsActive" Mode="OneWay" />
+                                        </MultiBinding>
+                                    </Popup.IsOpen>
+                                    <DockPanel>
+                                        <ToolBarTray IsLocked="True" DockPanel.Dock="Top" ToolBar.OverflowMode="Never" Loaded="ToolBar_Loaded">
+                                            <ToolBar Band="1" BandIndex="1">
+                                                <Button Command="fx:ZoomCommands.Increase" CommandTarget="{Binding ElementName=zoom}" ToolTip="Zoom In">
+                                                    <Image Source="../Assets/Icons/ZoomIn_16x.png" Style="{StaticResource DisabledImageStyle}" />
+                                                </Button>
+                                                <Button Command="fx:ZoomCommands.Decrease" CommandTarget="{Binding ElementName=zoom}" ToolTip="Zoom Out">
+                                                    <Image Source="../Assets/Icons/ZoomOut_16x.png" Style="{StaticResource DisabledImageStyle}" />
+                                                </Button>
+                                                <Button Command="fx:ZoomCommands.None" CommandTarget="{Binding ElementName=zoom}" ToolTip="Reset">
+                                                    <Image Source="../Assets/Icons/ZoomOriginalSize_16x.png" Style="{StaticResource DisabledImageStyle}" />
+                                                </Button>
+                                            </ToolBar>
+                                        </ToolBarTray>
+                                        <fx:Zoombox x:Name="zoom" IsManipulationEnabled="True">
+                                            <Canvas x:Name="cvsMap"
+                                                    Height="{Binding RelativeSource={RelativeSource Self}, Path=Width}"
+                                                    Width="{Binding RelativeSource={RelativeSource AncestorType=Grid}, Path=ActualWidth}"
+                                                    MouseMove="Canvas_MouseMove"
+                                                    PreviewMouseLeftButtonDown="Image_MouseLeftButtonDown"
+                                                    RenderTransformOrigin="0.5,0.5">
+                                                <Canvas.ToolTip>
+                                                    <ToolTip Content="{Binding HoverLandblock, Converter={StaticResource LandBlockConverter}}" />
+                                                </Canvas.ToolTip>
+                                                <Canvas.Background>
+                                                    <ImageBrush Stretch="Fill" ImageSource="../Assets/derethmap.png" />
+                                                </Canvas.Background>
+                                                <Ellipse Stroke="Yellow" Width="10" Height="10">
+                                                    <Ellipse.Fill>
+                                                        <SolidColorBrush Color="White" Opacity="0.5" />
+                                                    </Ellipse.Fill>
+                                                    <Canvas.Left>
+                                                        <MultiBinding Converter="{StaticResource CoordinateConverter}" ConverterParameter="x">
+                                                            <Binding Path="Data" />
+                                                            <Binding RelativeSource="{RelativeSource Self}" Path="Width" />
+                                                            <Binding RelativeSource="{RelativeSource AncestorType=Canvas}" Path="ActualWidth" />
+                                                        </MultiBinding>
+                                                    </Canvas.Left>
+                                                    <Canvas.Bottom>
+                                                        <MultiBinding Converter="{StaticResource CoordinateConverter}" ConverterParameter="y">
+                                                            <Binding Path="Data" />
+                                                            <Binding RelativeSource="{RelativeSource Self}" Path="Height" />
+                                                            <Binding RelativeSource="{RelativeSource AncestorType=Canvas}" Path="ActualHeight" />
+                                                        </MultiBinding>
+                                                    </Canvas.Bottom>
+                                                </Ellipse>
+                                            </Canvas>
+                                        </fx:Zoombox>
+                                    </DockPanel>
+                                </Popup>
+                            </Grid>
+                        </DataTemplate>
+                    </local:ConditionDataTemplateSelector.LandBlockTemplate>
+                    <local:ConditionDataTemplateSelector.LandCellTemplate>
+                        <DataTemplate DataType="{x:Type vm:ConditionViewModel}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Grid.Column="0" VerticalAlignment="Center">LandCell:</TextBlock>
+                                <xctk:WatermarkTextBox Grid.Column="1" Margin="2,0,0,0">
+                                    <xctk:WatermarkTextBox.Watermark>
+                                        <TextBlock Foreground="LightGray">FFFFFFFF</TextBlock>
+                                    </xctk:WatermarkTextBox.Watermark>
+                                    <xctk:WatermarkTextBox.Text>
+                                        <Binding Path="Data"
+                                                 UpdateSourceTrigger="PropertyChanged"
+                                                 Converter="{StaticResource LandBlockConverter}"
+                                                 ConverterParameter="False"
+                                                 StringFormat="X8">
+                                            <Binding.ValidationRules>
+                                                <vr:RegexValidationRule Regex="[0-9a-fA-F]{1,8}" />
+                                            </Binding.ValidationRules>
+                                        </Binding>
+                                    </xctk:WatermarkTextBox.Text>
+                                </xctk:WatermarkTextBox>
+                            </Grid>
+                        </DataTemplate>
+                    </local:ConditionDataTemplateSelector.LandCellTemplate>
+                </local:ConditionDataTemplateSelector>
+            </ContentControl.ContentTemplateSelector>
+        </ContentControl>
+    </Grid>
+</UserControl>

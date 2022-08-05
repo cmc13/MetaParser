@@ -1,0 +1,139 @@
+﻿<Window x:Class="MetaParser.WPF.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:MetaParser.WPF"
+        xmlns:vm="clr-namespace:MetaParser.WPF.ViewModels"
+        xmlns:view="clr-namespace:MetaParser.WPF.Views"
+        xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
+        xmlns:cvt="clr-namespace:MetaParser.WPF.Converters"
+        xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+        mc:Ignorable="d" Background="{StaticResource WindowBackgroundBrush}"
+        Height="450" Width="800">
+    
+    <Window.DataContext>
+        <vm:MainViewModel />
+    </Window.DataContext>
+
+    <Window.Title>
+        <MultiBinding StringFormat="MetaEditor - {0}{1}">
+            <Binding Path="FileNameDisplay" TargetNullValue="New File" />
+            <Binding Path="MetaViewModel.IsDirty" Converter="{StaticResource BoolToAsteriskConverter}"  />
+        </MultiBinding>
+    </Window.Title>
+    
+    <Window.Resources>
+        <RoutedUICommand x:Key="fileExitCommand" Text="E_xit">
+            <RoutedUICommand.InputGestures>
+                <KeyGesture>Alt+F4</KeyGesture>
+            </RoutedUICommand.InputGestures>
+        </RoutedUICommand>
+        <cvt:IndexingConverter x:Key="IndexingConverter" />
+        <cvt:CompactFilePathConverter x:Key="CompactFilePathConverter" />
+        <cvt:EscapeAccessTextConverter x:Key="EscapeAccessTextConverter" />
+        <cvt:NumberToAccessTextConverter x:Key="NumberToAccessTextConverter" />
+    </Window.Resources>
+
+    <Window.CommandBindings>
+        <CommandBinding Command="{StaticResource fileExitCommand}" Executed="CommandBinding_Executed" />
+    </Window.CommandBindings>
+    
+    <b:Interaction.Triggers>
+        <b:EventTrigger EventName="Closing">
+            <b:InvokeCommandAction Command="{Binding ClosingCommand}" PassEventArgsToCommand="True" />
+        </b:EventTrigger>
+    </b:Interaction.Triggers>
+
+    <Window.InputBindings>
+        <KeyBinding Key="N" Modifiers="Ctrl" Command="{Binding NewFileCommand}" />
+        <KeyBinding Key="O" Modifiers="Ctrl" Command="{Binding OpenFileCommand}" />
+        <KeyBinding Key="S" Modifiers="Ctrl" Command="{Binding SaveFileCommand}" />
+        <KeyBinding Key="S" Modifiers="Ctrl+Shift" Command="{Binding SaveFileAsCommand}" />
+        <KeyBinding Key="I" Modifiers="Ctrl" Command="{Binding ImportFileCommand}" />
+    </Window.InputBindings>
+
+    <xctk:BusyIndicator IsBusy="{Binding IsBusy}" BusyContent="{Binding BusyStatus}">
+        <DockPanel>
+            <Menu DockPanel.Dock="Top">
+                <MenuItem Header="_File">
+                    <MenuItem Header="_New Meta File" Command="{Binding NewFileCommand}" InputGestureText="Ctrl+N" Icon="{StaticResource NewFileIcon}" />
+                    <MenuItem Header="_Open Meta File..." Command="{Binding OpenFileCommand}" InputGestureText="Ctrl+O" Icon="{StaticResource OpenFileIcon}" />
+                    <MenuItem Header="_Import Meta File" Command="{Binding ImportFileCommand}" InputGestureText="Ctrl+I" Icon="{StaticResource ImportFileIcon}" />
+                    <Separator />
+                    <MenuItem Command="{Binding SaveFileCommand}" InputGestureText="Ctrl+S" Icon="{StaticResource SaveIcon}">
+                        <MenuItem.Header>
+                            <AccessText Text="{Binding FileNameDisplay, Converter={StaticResource EscapeAccessTextConverter}, StringFormat=_Save {0}, Mode=OneWay}" />
+                        </MenuItem.Header>
+                    </MenuItem>
+                    <MenuItem Command="{Binding SaveFileAsCommand}" InputGestureText="Ctrl+Shift+S" Icon="{StaticResource SaveAsIcon}">
+                        <MenuItem.Header>
+                            <AccessText Text="{Binding FileNameDisplay, Converter={StaticResource EscapeAccessTextConverter}, StringFormat=Save {0} _As..., Mode=OneWay}" />
+                        </MenuItem.Header>
+                    </MenuItem>
+                    <Separator />
+                    <MenuItem Header="Recent _Files" ItemsSource="{Binding RecentFiles, Converter={StaticResource IndexingConverter}}" Icon="{StaticResource HistoryIcon}">
+                        <MenuItem.ItemContainerStyle>
+                            <Style TargetType="MenuItem">
+                                <Setter Property="HeaderTemplate">
+                                    <Setter.Value>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal">
+                                                <AccessText Text="{Binding Key, Converter={StaticResource NumberToAccessTextConverter}}" />
+                                                <TextBlock Text="{Binding Value, Converter={StaticResource CompactFilePathConverter}}" Margin="3,0,0,0" />
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                                <Setter Property="Command" Value="{Binding RelativeSource={RelativeSource AncestorType=Menu}, Path=DataContext.OpenRecentFileCommand}" />
+                                <Setter Property="CommandParameter" Value="{Binding Value}" />
+                            </Style>
+                        </MenuItem.ItemContainerStyle>
+                    </MenuItem>
+                    <Separator />
+                    <MenuItem Command="{StaticResource fileExitCommand}" InputGestureText="Alt+F4" Icon="{StaticResource CloseIcon}" />
+                </MenuItem>
+            </Menu>
+
+            <ToolBarTray DockPanel.Dock="Top" IsLocked="True">
+                <ToolBar Band="1" BandIndex="1" Loaded="ToolBar_Loaded" Background="Transparent">
+                    <Button Command="{Binding NewFileCommand}" ToolTip="New File (Ctrl+N)" Content="{StaticResource NewFileIcon}" />
+                    <Button Command="{Binding OpenFileCommand}" ToolTip="Open File... (Ctrl+O)" Content="{StaticResource OpenFileIcon}" />
+                    <Button Command="{Binding ImportFileCommand}" ToolTip="Import File (Ctrl+I)" Content="{StaticResource ImportFileIcon}" />
+                    <Button Command="{Binding SaveFileCommand}" ToolTip="Save File (Ctrl+S)" Content="{StaticResource SaveIcon}" />
+                    <Button Command="{Binding SaveFileAsCommand}" ToolTip="Save File As... (Ctrl+Shift+S)" Content="{StaticResource SaveAsIcon}" />
+                    <Separator />
+                    <Button Command="{Binding MetaViewModel.CutCommand}" ToolTip="Cut Rule" Content="{StaticResource CutIcon}" />
+                    <Button Command="{Binding MetaViewModel.CopyCommand}" ToolTip="Copy Rule" Content="{StaticResource CopyIcon}" />
+                    <Button Command="{Binding MetaViewModel.PasteCommand}" ToolTip="Paste Rule" Content="{StaticResource PasteIcon}" />
+                    <Separator />
+                    <Button Command="{Binding MetaViewModel.AddCommand}" ToolTip="Add New Rule" Content="{StaticResource AddIcon}" />
+                    <Button Command="{Binding MetaViewModel.RemoveCommand}" ToolTip="Remove Selected Rule" Content="{StaticResource RemoveIcon}" />
+                    <Button Command="{Binding MetaViewModel.MoveUpCommand}" ToolTip="Move Rule Up" Content="{StaticResource MoveUpIcon}" />
+                    <Button Command="{Binding MetaViewModel.MoveDownCommand}" ToolTip="Move Rule Down" Content="{StaticResource MoveDownIcon}" />
+                    <Separator />
+                    <Button Command="{Binding MetaViewModel.ValidateCommand}" ToolTip="Validate Meta">
+                        <Image Source="Assets/Icons/ValidateDocument_16x.png" Style="{StaticResource DisabledImageStyle}" />
+                    </Button>
+                    <Separator />
+                    <ComboBox ItemsSource="{Binding MetaViewModel.StateList}" SelectedItem="{Binding MetaViewModel.SelectedState}" MinWidth="75">
+                        <ComboBox.Style>
+                            <Style TargetType="ComboBox">
+                                <Setter Property="IsEnabled" Value="True" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding RelativeSource={RelativeSource Self}, Path=ItemsSource.Count}" Value="0">
+                                        <Setter Property="IsEnabled" Value="False" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ComboBox.Style>
+                    </ComboBox>
+                </ToolBar>
+            </ToolBarTray>
+
+            <Grid>
+                <view:MetaView DataContext="{Binding MetaViewModel}" Foreground="Black" />
+            </Grid>
+        </DockPanel>
+    </xctk:BusyIndicator>
+</Window>

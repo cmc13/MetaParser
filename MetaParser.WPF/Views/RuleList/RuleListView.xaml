@@ -1,0 +1,206 @@
+﻿<UserControl x:Class="MetaParser.WPF.Views.RuleList.RuleListView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
+             xmlns:local="clr-namespace:MetaParser.WPF.Views.RuleList"
+             xmlns:root="clr-namespace:MetaParser.WPF"
+             xmlns:cvt="clr-namespace:MetaParser.WPF.Converters"
+             xmlns:vm="clr-namespace:MetaParser.WPF.ViewModels"
+             xmlns:vra ="clr-namespace:MetaParser.WPF.Views.RuleList.Action"
+             xmlns:vrc="clr-namespace:MetaParser.WPF.Views.RuleList.Condition"
+             mc:Ignorable="d"
+             d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.Resources>
+        <cvt:IsValidToBrushConverter x:Key="IsValidToBrushConverter" />
+        <cvt:ToArrayConverter x:Key="ToArrayConverter" />
+
+        <Style x:Key="TreeViewItemStyle" TargetType="TreeViewItem">
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+
+        <ControlTemplate x:Key="TreeViewTemplate" TargetType="TreeView">
+            <Border BorderThickness="0" Background="Transparent">
+                <ItemsPresenter />
+            </Border>
+        </ControlTemplate>
+    </UserControl.Resources>
+    
+    <StackPanel Orientation="Vertical">
+        <ContentControl Content="{Binding Condition}">
+            <ContentControl.ContentTemplateSelector>
+                <vrc:ConditionListItemDataTemplateSelector>
+                    <vrc:ConditionListItemDataTemplateSelector.DefaultTemplate>
+                        <DataTemplate DataType="{x:Type vm:ConditionViewModel}">
+                            <TextBlock Text="{Binding Display}" TextTrimming="CharacterEllipsis" Foreground="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Foreground}" />
+                        </DataTemplate>
+                    </vrc:ConditionListItemDataTemplateSelector.DefaultTemplate>
+                    <vrc:ConditionListItemDataTemplateSelector.MultipleTemplate>
+                        <DataTemplate DataType="{x:Type vm:MultipleConditionViewModel}">
+                            <TreeView ItemsSource="{Binding Converter={StaticResource ToArrayConverter}}" ItemContainerStyle="{StaticResource TreeViewItemStyle}" Template="{StaticResource TreeViewTemplate}">
+                                <b:Interaction.Behaviors>
+                                    <root:BindableSelectedItemBehavior SelectedItem="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=DataContext.Meta.SelectedTreeCondition, Mode=OneWayToSource}" />
+                                </b:Interaction.Behaviors>
+                                <TreeView.Resources>
+                                    <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="Transparent" />
+                                    <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="Transparent" />
+                                    <HierarchicalDataTemplate DataType="{x:Type vm:MultipleConditionViewModel}" ItemsSource="{Binding ConditionList}">
+                                        <TextBlock TextTrimming="CharacterEllipsis" Foreground="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Foreground}">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Text" Value="{Binding Display, Mode=OneWay}" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=TreeViewItem}, Path=IsExpanded}" Value="True">
+                                                            <Setter Property="Text" Value="{Binding Type, Mode=OneWay}" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                    </HierarchicalDataTemplate>
+                                    <HierarchicalDataTemplate DataType="{x:Type vm:ConditionViewModel}">
+                                        <TextBlock Text="{Binding Display}" TextTrimming="CharacterEllipsis" Foreground="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Foreground}" />
+                                    </HierarchicalDataTemplate>
+                                </TreeView.Resources>
+                            </TreeView>
+                        </DataTemplate>
+                    </vrc:ConditionListItemDataTemplateSelector.MultipleTemplate>
+                </vrc:ConditionListItemDataTemplateSelector>
+            </ContentControl.ContentTemplateSelector>
+        </ContentControl>
+
+        <ContentControl Content="{Binding Action}">
+            <ContentControl.ContentTemplateSelector>
+                <vra:ActionListItemDataTemplateSelector>
+                    <vra:ActionListItemDataTemplateSelector.DefaultTemplate>
+                        <DataTemplate DataType="{x:Type vm:ActionViewModel}">
+                            <TextBlock Text="{Binding Display}" TextTrimming="CharacterEllipsis" Foreground="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Foreground}">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsValid}" Value="False">
+                                                <Setter Property="Foreground" Value="Red" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </DataTemplate>
+                    </vra:ActionListItemDataTemplateSelector.DefaultTemplate>
+                    <vra:ActionListItemDataTemplateSelector.SetStateTemplate>
+                        <DataTemplate DataType="{x:Type vm:ActionViewModel}">
+                            <TextBlock>
+                        <Run Text="{Binding Type, Mode=OneWay}" />
+                        <Run Text=": " />
+                        <Hyperlink Command="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=DataContext.Meta.GoToStateCommand}" CommandParameter="{Binding Data}">
+                            <Run Text="{Binding Data}" />
+                        </Hyperlink>
+                            </TextBlock>
+                        </DataTemplate>
+                    </vra:ActionListItemDataTemplateSelector.SetStateTemplate>
+                    <vra:ActionListItemDataTemplateSelector.CallStateTemplate>
+                        <DataTemplate DataType="{x:Type vm:CallStateActionViewModel}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock>
+                            <Run Text="Call:" />
+                            <Hyperlink Command="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=DataContext.Meta.GoToStateCommand}" CommandParameter="{Binding CallState}">
+                                <Run Text="{Binding CallState}" />
+                            </Hyperlink>
+                                </TextBlock>
+                                <TextBlock Margin="3,0,0,0">
+                            <Run Text="Return To:" />
+                            <Hyperlink Command="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=DataContext.Meta.GoToStateCommand}" CommandParameter="{Binding ReturnState}">
+                                <Run Text="{Binding ReturnState}" />
+                            </Hyperlink>
+                                </TextBlock>
+                            </StackPanel>
+                        </DataTemplate>
+                    </vra:ActionListItemDataTemplateSelector.CallStateTemplate>
+                    <vra:ActionListItemDataTemplateSelector.MultipleActionTemplate>
+                        <DataTemplate DataType="{x:Type vm:AllActionViewModel}">
+                            <TreeView ItemsSource="{Binding Converter={StaticResource ToArrayConverter}}" ItemContainerStyle="{StaticResource TreeViewItemStyle}" Template="{StaticResource TreeViewTemplate}">
+                                <b:Interaction.Behaviors>
+                                    <root:BindableSelectedItemBehavior SelectedItem="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=DataContext.Meta.SelectedTreeAction, Mode=OneWayToSource}" />
+                                </b:Interaction.Behaviors>
+                                <TreeView.Resources>
+                                    <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="Transparent" />
+                                    <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="Transparent" />
+                                    <HierarchicalDataTemplate DataType="{x:Type vm:AllActionViewModel}" ItemsSource="{Binding ActionList}">
+                                        <TextBlock TextTrimming="CharacterEllipsis" Foreground="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Foreground}">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Text" Value="{Binding Display, Mode=OneWay}" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=TreeViewItem}, Path=IsExpanded}" Value="True">
+                                                            <Setter Property="Text" Value="{Binding Type, Mode=OneWay}" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                    </HierarchicalDataTemplate>
+                                    <HierarchicalDataTemplate DataType="{x:Type vm:ActionViewModel}">
+                                        <TextBlock Text="{Binding Display}" TextTrimming="CharacterEllipsis" Foreground="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Foreground}" />
+                                    </HierarchicalDataTemplate>
+                                    <HierarchicalDataTemplate DataType="{x:Type vm:LoadEmbeddedNavRouteActionViewModel}" ItemsSource="{Binding Nav.NavViewModel, Converter={StaticResource ToArrayConverter}}">
+                                        <TextBlock Text="{Binding Display}" TextTrimming="CharacterEllipsis" Foreground="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Foreground}" />
+                                    </HierarchicalDataTemplate>
+                                    <DataTemplate DataType="{x:Type vm:NavFollowViewModel}">
+                                        <TextBlock Text="{Binding Display}" Foreground="{Binding RelativeSource={RelativeSource AncestorType=TreeView}, Path=Foreground}" />
+                                    </DataTemplate>
+                                    <HierarchicalDataTemplate DataType="{x:Type vm:NavNodeListViewModel}" ItemsSource="{Binding NavNodes}">
+                                        <TextBlock Text="{Binding NavNodes.Count, StringFormat={}{0} Nodes}" Foreground="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Foreground}" />
+                                    </HierarchicalDataTemplate>
+                                    <DataTemplate DataType="{x:Type vm:NavNodeViewModel}">
+                                        <TextBlock Text="{Binding Display}" Foreground="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Foreground}" />
+                                    </DataTemplate>
+                                </TreeView.Resources>
+                            </TreeView>
+                        </DataTemplate>
+                    </vra:ActionListItemDataTemplateSelector.MultipleActionTemplate>
+                    <vra:ActionListItemDataTemplateSelector.SetWatchdogTemplate>
+                        <DataTemplate DataType="{x:Type vm:WatchdogSetActionViewModel}">
+                            <TextBlock>
+                        <Run Text="{Binding Type, Mode=OneWay}" />
+                        <Run Text=":" />
+                        <Run Text="{Binding Range, Mode=OneWay, StringFormat={}{0}m}" />
+                        <Run Text="{Binding Time, Mode=OneWay, StringFormat={}{0}s}" />
+                        <Run Text="=>" />
+                            <Hyperlink Command="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=DataContext.Meta.GoToStateCommand}" CommandParameter="{Binding State}">
+                                <Run Text="{Binding State, Mode=OneWay}" />
+                            </Hyperlink>
+                            </TextBlock>
+                        </DataTemplate>
+                    </vra:ActionListItemDataTemplateSelector.SetWatchdogTemplate>
+                    <vra:ActionListItemDataTemplateSelector.LoadNavTemplate>
+                        <DataTemplate DataType="{x:Type vm:LoadEmbeddedNavRouteActionViewModel}">
+                            <TreeView ItemsSource="{Binding Converter={StaticResource ToArrayConverter}}" ItemContainerStyle="{StaticResource TreeViewItemStyle}" Template="{StaticResource TreeViewTemplate}">
+                                <b:Interaction.Behaviors>
+                                    <root:BindableSelectedItemBehavior SelectedItem="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=DataContext.Meta.SelectedTreeNavNode, Mode=OneWayToSource}" />
+                                </b:Interaction.Behaviors>
+                                <TreeView.Resources>
+                                    <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="Transparent" />
+                                    <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="Transparent" />
+                                    <HierarchicalDataTemplate DataType="{x:Type vm:LoadEmbeddedNavRouteActionViewModel}" ItemsSource="{Binding Nav.NavViewModel, Converter={StaticResource ToArrayConverter}}">
+                                        <TextBlock Text="{Binding Display}" TextTrimming="CharacterEllipsis" Foreground="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Foreground}" />
+                                    </HierarchicalDataTemplate>
+                                    <DataTemplate DataType="{x:Type vm:NavFollowViewModel}">
+                                        <TextBlock Text="{Binding Display}" Foreground="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Foreground}" />
+                                    </DataTemplate>
+                                    <HierarchicalDataTemplate DataType="{x:Type vm:NavNodeListViewModel}" ItemsSource="{Binding NavNodes}">
+                                        <TextBlock Text="{Binding NavNodes.Count, StringFormat={}{0} Nodes}" Foreground="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Foreground}" />
+                                    </HierarchicalDataTemplate>
+                                    <DataTemplate DataType="{x:Type vm:NavNodeViewModel}">
+                                        <TextBlock Text="{Binding Display}" Foreground="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Foreground}" />
+                                    </DataTemplate>
+                                </TreeView.Resources>
+                            </TreeView>
+                        </DataTemplate>
+                    </vra:ActionListItemDataTemplateSelector.LoadNavTemplate>
+                </vra:ActionListItemDataTemplateSelector>
+            </ContentControl.ContentTemplateSelector>
+        </ContentControl>
+    </StackPanel>
+</UserControl>

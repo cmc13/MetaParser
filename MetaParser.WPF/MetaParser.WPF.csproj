@@ -1,0 +1,162 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <ApplicationIcon>C:\Users\Cole\source\repos\MetaParser\MetaParser.WPF\Assets\Icons\Alloy_Cogwheel_Icon.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Assets\derethmap.png" />
+    <None Remove="Assets\Icons\Add_16x.png" />
+    <None Remove="Assets\Icons\All.png" />
+    <None Remove="Assets\Icons\Alloy_Cogwheel_Icon.ico" />
+    <None Remove="Assets\Icons\Any.png" />
+    <None Remove="Assets\Icons\checkmark.ico" />
+    <None Remove="Assets\Icons\Close_16x.png" />
+    <None Remove="Assets\Icons\Copy_16x.png" />
+    <None Remove="Assets\Icons\Cut_16x.png" />
+    <None Remove="Assets\Icons\error.ico" />
+    <None Remove="Assets\Icons\FormatDocument_16x.png" />
+    <None Remove="Assets\Icons\History_16x.png" />
+    <None Remove="Assets\Icons\ImportFile_16x.png" />
+    <None Remove="Assets\Icons\Invert_16x.png" />
+    <None Remove="Assets\Icons\Map_16x.png" />
+    <None Remove="Assets\Icons\Minimize_16x.png" />
+    <None Remove="Assets\Icons\MoveDown_16x.png" />
+    <None Remove="Assets\Icons\MoveUp_16x.png" />
+    <None Remove="Assets\Icons\NewFile_16x.png" />
+    <None Remove="Assets\Icons\OpenFile_16x.png" />
+    <None Remove="Assets\Icons\Paste_16x.png" />
+    <None Remove="Assets\Icons\RegularExpression_16x.png" />
+    <None Remove="Assets\Icons\Release_16x.png" />
+    <None Remove="Assets\Icons\Remove_16x.png" />
+    <None Remove="Assets\Icons\SaveAs_16x.png" />
+    <None Remove="Assets\Icons\Save_16x.png" />
+    <None Remove="Assets\Icons\ValidateDocument_16x.png" />
+    <None Remove="Assets\Icons\WebFile_16x.png" />
+    <None Remove="Assets\Icons\ZoomIn_16x.png" />
+    <None Remove="Assets\Icons\ZoomOriginalSize_16x.png" />
+    <None Remove="Assets\Icons\ZoomOut_16x.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\Icons\WebFile_16x.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\Icons\Invert_16x.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Gu.Wpf.Geometry" Version="2.2.8" />
+    <PackageReference Include="Microsoft.Toolkit.Mvvm" Version="7.1.2" />
+    <PackageReference Include="Extended.Wpf.Toolkit" Version="4.3.0" />
+    <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.39" />
+    <PackageReference Include="gong-wpf-dragdrop" Version="3.1.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MetaParser\MetaParser.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\derethmap.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Icons\Add_16x.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Icons\All.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Icons\Alloy_Cogwheel_Icon.ico">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Icons\Any.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Icons\checkmark.ico">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Icons\Close_16x.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Icons\Copy_16x.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Icons\Cut_16x.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Icons\error.ico">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Icons\FormatDocument_16x.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Icons\History_16x.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Icons\ImportFile_16x.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Icons\Map_16x.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Icons\Minimize_16x.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Icons\MoveDown_16x.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Icons\MoveUp_16x.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Icons\NewFile_16x.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Icons\OpenFile_16x.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Icons\Paste_16x.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Icons\RegularExpression_16x.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Icons\Release_16x.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Icons\Remove_16x.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Icons\SaveAs_16x.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Icons\Save_16x.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Icons\ValidateDocument_16x.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Icons\ZoomIn_16x.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Icons\ZoomOriginalSize_16x.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Icons\ZoomOut_16x.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Assets\VTankView.xsd">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

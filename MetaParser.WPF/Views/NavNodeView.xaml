@@ -1,0 +1,222 @@
+﻿<UserControl x:Class="MetaParser.WPF.Views.NavNodeView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:MetaParser.WPF.Views"
+             xmlns:vm="clr-namespace:MetaParser.WPF.ViewModels"
+             xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+             xmlns:ext="clr-namespace:MetaParser.WPF.Extensions"
+             xmlns:models="clr-namespace:MetaParser.Models;assembly=MetaParser"
+             xmlns:sys="clr-namespace:System;assembly=netstandard"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.Resources>
+        <DataTemplate DataType="{x:Type vm:NavNodeViewModel}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="2" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="2" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <xctk:DoubleUpDown Grid.Row="0" Grid.Column="0" Value="{Binding AbsY, UpdateSourceTrigger=PropertyChanged}" />
+                <ComboBox Grid.Row="0" Grid.Column="1" SelectedValue="{Binding YDirection, UpdateSourceTrigger=PropertyChanged}">
+                    <sys:String>N</sys:String>
+                    <sys:String>S</sys:String>
+                </ComboBox>
+
+                <xctk:DoubleUpDown Grid.Row="0" Grid.Column="3" Value="{Binding AbsX, UpdateSourceTrigger=PropertyChanged}" />
+                <ComboBox Grid.Row="0" Grid.Column="4" SelectedValue="{Binding XDirection, UpdateSourceTrigger=PropertyChanged}">
+                    <sys:String>E</sys:String>
+                    <sys:String>W</sys:String>
+                </ComboBox>
+
+                <TextBlock Grid.Row="0" Grid.Column="6" VerticalAlignment="Center" HorizontalAlignment="Right">Z:</TextBlock>
+                <xctk:DoubleUpDown Grid.Row="0" Grid.Column="7" Value="{Binding Z}" Margin="2,0,0,0" />
+            </Grid>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:NavNodeChatViewModel}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                
+                <TextBlock Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Right">Chat:</TextBlock>
+                <TextBox Grid.Column="1" Text="{Binding Chat, UpdateSourceTrigger=PropertyChanged}" Margin="2,0,0,0" />
+            </Grid>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:NavNodePauseViewModel}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Right">Pause (ms):</TextBlock>
+                <xctk:DoubleUpDown Grid.Column="1" Value="{Binding Pause}" Minimum="0" Margin="2,0,0,0" />
+            </Grid>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:NavNodeRecallViewModel}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Right">Recall Spell:</TextBlock>
+                <ComboBox Grid.Column="1" ItemsSource="{ext:EnumBindingSource EnumType=models:RecallSpellId}" SelectedItem="{Binding SpellId, UpdateSourceTrigger=PropertyChanged}" Margin="2,0,0,0" />
+            </Grid>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:NavNodeOpenVendorViewModel}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <Grid.RowDefinitions>
+                    <RowDefinition />
+                    <RowDefinition />
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Right">Vendor Name:</TextBlock>
+                <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding VendorName, UpdateSourceTrigger=PropertyChanged}" Margin="2,0,0,0" />
+
+                <TextBlock Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Right">Vendor Id:</TextBlock>
+                <xctk:IntegerUpDown Grid.Row="1" Grid.Column="1" Value="{Binding VendorId, UpdateSourceTrigger=PropertyChanged}" Margin="2,2,0,0" />
+            </Grid>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:NavNodePortalViewModel}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <Grid.RowDefinitions>
+                    <RowDefinition />
+                    <RowDefinition />
+                    <RowDefinition />
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Right">Object Name:</TextBlock>
+                <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding ObjectName, UpdateSourceTrigger=PropertyChanged}" Margin="2,0,0,0" />
+
+                <TextBlock Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Right">Object Class:</TextBlock>
+                <ComboBox Grid.Row="1" Grid.Column="1" ItemsSource="{ext:EnumBindingSource EnumType=models:ObjectClass}" SelectedItem="{Binding ObjectClass, UpdateSourceTrigger=PropertyChanged}" Margin="2,3,0,0" />
+
+                <TextBlock Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Right">Target Coords:</TextBlock>
+                <Grid Grid.Row="2" Grid.Column="1" Margin="2,2,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="2" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="2" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <xctk:DoubleUpDown Grid.Row="0" Grid.Column="0" Value="{Binding AbsTargetY, UpdateSourceTrigger=PropertyChanged}" />
+                    <ComboBox Grid.Row="0" Grid.Column="1" SelectedValue="{Binding TargetYDirection, UpdateSourceTrigger=PropertyChanged}">
+                        <sys:String>N</sys:String>
+                        <sys:String>S</sys:String>
+                    </ComboBox>
+
+                    <xctk:DoubleUpDown Grid.Row="0" Grid.Column="3" Value="{Binding AbsTargetX, UpdateSourceTrigger=PropertyChanged}" />
+                    <ComboBox Grid.Row="0" Grid.Column="4" SelectedValue="{Binding TargetXDirection, UpdateSourceTrigger=PropertyChanged}">
+                        <sys:String>E</sys:String>
+                        <sys:String>W</sys:String>
+                    </ComboBox>
+
+                    <TextBlock Grid.Row="0" Grid.Column="6" VerticalAlignment="Center" HorizontalAlignment="Right">Z:</TextBlock>
+                    <xctk:DoubleUpDown Grid.Row="0" Grid.Column="6" Value="{Binding Z}" Margin="2,0,0,0" />
+                </Grid>
+            </Grid>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:NavNodeNPCChatViewModel}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <Grid.RowDefinitions>
+                    <RowDefinition />
+                    <RowDefinition />
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Right">Object Name:</TextBlock>
+                <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding ObjectName, UpdateSourceTrigger=PropertyChanged}" Margin="2,0,0,0" />
+
+                <TextBlock Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Right">Target Coords:</TextBlock>
+                <Grid Grid.Row="1" Grid.Column="1" Margin="2,2,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="2" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="2" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <xctk:DoubleUpDown Grid.Row="0" Grid.Column="0" Value="{Binding AbsTargetY, UpdateSourceTrigger=PropertyChanged}" />
+                    <ComboBox Grid.Row="0" Grid.Column="1" SelectedValue="{Binding TargetYDirection, UpdateSourceTrigger=PropertyChanged}">
+                        <sys:String>N</sys:String>
+                        <sys:String>S</sys:String>
+                    </ComboBox>
+
+                    <xctk:DoubleUpDown Grid.Row="0" Grid.Column="3" Value="{Binding AbsTargetX, UpdateSourceTrigger=PropertyChanged}" />
+                    <ComboBox Grid.Row="0" Grid.Column="4" SelectedValue="{Binding TargetXDirection, UpdateSourceTrigger=PropertyChanged}">
+                        <sys:String>E</sys:String>
+                        <sys:String>W</sys:String>
+                    </ComboBox>
+
+                    <TextBlock Grid.Row="0" Grid.Column="6" VerticalAlignment="Center" HorizontalAlignment="Right">Z:</TextBlock>
+                    <xctk:DoubleUpDown Grid.Row="0" Grid.Column="7" Value="{Binding Z}" Margin="2,0,0,0" />
+                </Grid>
+            </Grid>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:NavNodeJumpViewModel}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <Grid.RowDefinitions>
+                    <RowDefinition />
+                    <RowDefinition />
+                    <RowDefinition />
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Right">Heading:</TextBlock>
+                <DockPanel Grid.Row="0" Grid.Column="1" Margin="2,0,0,0">
+                    <xctk:DoubleUpDown DockPanel.Dock="Left" Width="75" Value="{Binding Heading, UpdateSourceTrigger=PropertyChanged}" Minimum="0" Maximum="360" />
+                    <Slider Value="{Binding Heading, UpdateSourceTrigger=PropertyChanged}" Minimum="0" Maximum="360" SmallChange="5" LargeChange="30" VerticalAlignment="Center" Margin="2,0,0,0" />
+                </DockPanel>
+
+                <CheckBox Grid.Row="1" Grid.Column="1" IsChecked="{Binding Shift}" Margin="2,2,0,0">Shift</CheckBox>
+
+                <TextBlock Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Right">Delay (ms):</TextBlock>
+                <DockPanel Grid.Row="2" Grid.Column="1" Margin="2,2,0,0">
+                    <xctk:DoubleUpDown DockPanel.Dock="Left" Width="75" Value="{Binding Delay, UpdateSourceTrigger=PropertyChanged}" Minimum="0" Maximum="10000" />
+                    <Slider Value="{Binding Delay, UpdateSourceTrigger=PropertyChanged}" Minimum="0" Maximum="10000" SmallChange="100" LargeChange="1000" VerticalAlignment="Center" Margin="2,0,0,0" />
+                </DockPanel>
+            </Grid>
+        </DataTemplate>
+    </UserControl.Resources>
+    <Grid>
+        <ContentControl Content="{Binding}" />
+    </Grid>
+</UserControl>

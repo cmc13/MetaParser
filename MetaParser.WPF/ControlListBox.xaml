@@ -1,0 +1,36 @@
+﻿<UserControl x:Class="MetaParser.WPF.ControlListBox"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:MetaParser.WPF"
+             mc:Ignorable="d" 
+             Name="uc"
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Border BorderBrush="{Binding ElementName=lstItems, Path=BorderBrush}" BorderThickness="1">
+        <DockPanel>
+            <ToolBarTray DockPanel.Dock="Top" IsLocked="True">
+                <ToolBar Band="1" BandIndex="1" ToolBar.OverflowMode="Never" Loaded="ToolBar_Loaded">
+                    <Button Command="{Binding AddCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" ToolTip="Add New Action" Content="{StaticResource AddIcon}" />
+                    <Button Command="{Binding RemoveCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" ToolTip="Remove Selected Action" Content="{StaticResource RemoveIcon}" />
+                    <Button Command="{Binding MoveDownCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" ToolTip="Move Selected Action Up" Content="{StaticResource MoveUpIcon}" />
+                    <Button Command="{Binding MoveUpCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" ToolTip="Move Selected Action Down" Content="{StaticResource MoveDownIcon}" />
+                    <Separator />
+                    <Button Command="{Binding CutCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" ToolTip="Cut Selected Action" Content="{StaticResource CutIcon}" />
+                    <Button Command="{Binding CopyCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" ToolTip="Copy Selected Action" Content="{StaticResource CopyIcon}" />
+                    <Button Command="{Binding PasteCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" ToolTip="Paste Selected Action" Content="{StaticResource PasteIcon}" />
+                    <Separator />
+                </ToolBar>
+            </ToolBarTray>
+
+            <ListBox Name="lstItems" ItemsSource="{Binding ItemsSource, RelativeSource={RelativeSource AncestorType=UserControl}}" SelectedItem="{Binding SelectedItem, RelativeSource={RelativeSource AncestorType=UserControl}}" BorderThickness="0">
+                <ListBox.InputBindings>
+                    <KeyBinding Command="{Binding RemoveCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" Key="Delete" />
+                    <KeyBinding Command="{Binding CutCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" Key="X" Modifiers="Ctrl" />
+                    <KeyBinding Command="{Binding CopyCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" Key="C" Modifiers="Ctrl" />
+                    <KeyBinding Command="{Binding PasteCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" Key="V" Modifiers="Ctrl" />
+                </ListBox.InputBindings>
+            </ListBox>
+        </DockPanel> 
+    </Border>
+</UserControl>
