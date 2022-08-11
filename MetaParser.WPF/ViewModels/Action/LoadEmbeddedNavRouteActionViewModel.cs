@@ -30,7 +30,7 @@ namespace MetaParser.WPF.ViewModels
                     CheckFileExists = true,
                     CheckPathExists = true,
                     Multiselect = false,
-                    Filter = "Nav Route Files (*.nav)|*.nav"
+                    Filter = "Nav Route Files (*.nav)|*.nav|Metaf Nav Files (*.af)|*.af"
                 };
 
                 var result = ofd.ShowDialog();
@@ -39,7 +39,10 @@ namespace MetaParser.WPF.ViewModels
                     var nav = new NavRoute();
                     using var fs = File.OpenRead(ofd.FileName);
                     using var reader = new StreamReader(fs);
-                    await navReader.ReadNavAsync(reader, nav).ConfigureAwait(false);
+                    if (Path.GetExtension(ofd.FileName).ToLower() == ".af")
+                        await new MetafNavReader().ReadNavAsync(reader, nav);
+                    else
+                        await navReader.ReadNavAsync(reader, nav).ConfigureAwait(false);
 
                     ((EmbeddedNavRouteMetaAction)Action).Data = (Path.GetFileName(ofd.FileName), nav);
                     Nav = new NavRouteViewModel(nav);

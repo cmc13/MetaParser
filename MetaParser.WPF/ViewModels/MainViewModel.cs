@@ -171,7 +171,7 @@ namespace MetaParser.WPF.ViewModels
 
                 var ofd = new OpenFileDialog()
                 {
-                    Filter = "Meta Files (*.met)|*.met|MiMB Files (*.xml)|*.xml",
+                    Filter = "Meta Files (*.met)|*.met|MiMB Files (*.xml)|*.xml|Metaf files (*.af)|*.af",
                     Multiselect = false,
                     Title = "Open Meta File..."
                 };
@@ -309,6 +309,7 @@ namespace MetaParser.WPF.ViewModels
                 var m = Path.GetExtension(fileName).ToLower() switch
                 {
                     ".xml" => await Formatters.XMLMetaReader.ReadMetaAsync(fs).ConfigureAwait(false),
+                    ".af" => await Formatters.MetafReader.ReadMetaAsync(fs).ConfigureAwait(false),
                     _ => await Formatters.DefaultMetaReader.ReadMetaAsync(fs).ConfigureAwait(false)
                 };
 

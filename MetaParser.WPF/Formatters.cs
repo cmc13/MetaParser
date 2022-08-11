@@ -4,10 +4,12 @@ namespace MetaParser.WPF
 {
     public static class Formatters
     {
-        public static readonly INavReader NavReader = new DefaultNavReader();
-        public static INavWriter NavWriter = new DefaultNavWriter();
-        public static IMetaWriter MetaWriter = new DefaultMetaWriter(NavWriter);
-        public static DefaultMetaReader DefaultMetaReader => new DefaultMetaReader(NavReader);
-        public static IMetaReader XMLMetaReader => new XMLMetaReader(NavReader);
+        public static INavReader NavReader { get; } = new DefaultNavReader();
+        public static INavWriter NavWriter { get; } = new DefaultNavWriter();
+        public static IMetaWriter MetaWriter { get; } = new DefaultMetaWriter(NavWriter);
+        public static DefaultMetaReader DefaultMetaReader { get; } = new DefaultMetaReader(NavReader);
+        public static IMetaReader XMLMetaReader { get; } = new XMLMetaReader(NavReader);
+        public static IMetaReader MetafReader { get; } = new MetafReader();
+        public static INavReader MetafNavReader { get; } = new MetafNavReader();
     }
 }
