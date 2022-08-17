@@ -103,9 +103,9 @@
                     <Button Command="{Binding SaveFileCommand}" ToolTip="Save File (Ctrl+S)" Content="{StaticResource SaveIcon}" />
                     <Button Command="{Binding SaveFileAsCommand}" ToolTip="Save File As... (Ctrl+Shift+S)" Content="{StaticResource SaveAsIcon}" />
                     <Separator />
-                    <Button Command="{Binding MetaViewModel.CutCommand}" ToolTip="Cut Rule" Content="{StaticResource CutIcon}" />
-                    <Button Command="{Binding MetaViewModel.CopyCommand}" ToolTip="Copy Rule" Content="{StaticResource CopyIcon}" />
-                    <Button Command="{Binding MetaViewModel.PasteCommand}" ToolTip="Paste Rule" Content="{StaticResource PasteIcon}" />
+                    <Button Command="{Binding MetaViewModel.CutCommand}" ToolTip="Cut Rule (Ctrl+X)" Content="{StaticResource CutIcon}" />
+                    <Button Command="{Binding MetaViewModel.CopyCommand}" ToolTip="Copy Rule (Ctrl+C)" Content="{StaticResource CopyIcon}" />
+                    <Button Command="{Binding MetaViewModel.PasteCommand}" ToolTip="Paste Rule (Ctrl+V)" Content="{StaticResource PasteIcon}" />
                     <Separator />
                     <Button Command="{Binding MetaViewModel.AddCommand}" ToolTip="Add New Rule" Content="{StaticResource AddIcon}" />
                     <Button Command="{Binding MetaViewModel.RemoveCommand}" ToolTip="Remove Selected Rule" Content="{StaticResource RemoveIcon}" />

@@ -25,41 +25,52 @@ namespace MetaParser.WPF.ViewModels
             {
                 var doc = LoadXML();
                 
-                ViewDefinition = doc.OuterXml;
+                if (doc != null)
+                    ViewDefinition = doc.OuterXml;
             });
 
             PrettifyXMLCommand = new(() =>
             {
                 var doc = LoadXML();
 
-                var settings = new XmlWriterSettings
+                if (doc != null)
                 {
-                    Indent = true,
-                    IndentChars = "  ",
-                    NewLineChars = Environment.NewLine,
-                    NewLineHandling = NewLineHandling.Replace
-                };
+                    var settings = new XmlWriterSettings
+                    {
+                        Indent = true,
+                        IndentChars = "  ",
+                        NewLineChars = Environment.NewLine,
+                        NewLineHandling = NewLineHandling.Replace
+                    };
 
-                using var writer = new EncodingStringWriter(null);
-                using var writer2 = XmlWriter.Create(writer, settings);
-                doc.Save(writer2);
+                    using var writer = new EncodingStringWriter(null);
+                    using var writer2 = XmlWriter.Create(writer, settings);
+                    doc.Save(writer2);
 
-                ViewDefinition = writer.ToString();
+                    ViewDefinition = writer.ToString();
+                }
             });
         }
 
         private XmlDocument LoadXML()
         {
-            var bytes = Encoding.UTF8.GetBytes(ViewDefinition);
-            using var ms = new MemoryStream(bytes);
-            ms.Flush();
-            ms.Position = 0;
+            try
+            {
+                var bytes = Encoding.UTF8.GetBytes(ViewDefinition);
+                using var ms = new MemoryStream(bytes);
+                ms.Flush();
+                ms.Position = 0;
 
-            var doc = new XmlDocument();
-            doc.PreserveWhitespace = false;
-            doc.Load(ms);
+                var doc = new XmlDocument();
+                doc.PreserveWhitespace = false;
+                doc.Load(ms);
 
-            return doc;
+                return doc;
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         public string ViewName

@@ -1,11 +1,16 @@
 ﻿using MetaParser.Models;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace MetaParser.WPF.ViewModels
 {
     public class SetVTOptionActionViewModel : ActionViewModel
     {
         public SetVTOptionActionViewModel(SetVTOptionMetaAction action, MetaViewModel meta) : base(action, meta)
-        { }
+        {
+        }
+
+        public IEnumerable<string> Options => System.Enum.GetValues<VTankOptions>().Select(o => o.GetDescription());
 
         public string Option
         {

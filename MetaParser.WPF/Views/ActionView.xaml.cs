@@ -22,5 +22,18 @@ namespace MetaParser.WPF.Views
                     overflowGrid.Visibility = Visibility.Collapsed;
             }
         }
+
+        private void ComboBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                var cmb = sender as ComboBox;
+                var p = cmb.Parent as FrameworkElement;
+                var txt = p.FindName("txtValue") as TextBox;
+                var be = txt.GetBindingExpression(TextBox.TextProperty);
+                be.UpdateSource();
+            }
+            catch { }
+        }
     }
 }

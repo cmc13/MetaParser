@@ -91,14 +91,23 @@ namespace MetaParser.WPF.MetaValidation
                 }
                 if (action is CreateViewMetaAction vwa)
                 {
-                    foreach (var state in XElement.Parse(vwa.ViewDefinition)
-                        .Descendants("control")
-                        .Where(x => x.Attribute("type").Value == "button")
-                        .Select(x => x.Attribute("setstate")?.Value)
-                        .Where(v => v != null && !states.Contains(v))
-                        .Distinct())
+                    XElement xml = null;
+                    try
                     {
-                        yield return state;
+                        xml = XElement.Parse(vwa.ViewDefinition);
+                    }
+                    catch { }
+                    if (xml != null)
+                    {
+                        foreach (var state in xml
+                            .Descendants("control")
+                            .Where(x => x.Attribute("type").Value == "button")
+                            .Select(x => x.Attribute("setstate")?.Value)
+                            .Where(v => v != null && !states.Contains(v))
+                            .Distinct())
+                        {
+                            yield return state;
+                        }
                     }
                 }
                 if (action.Type == ActionType.ChatCommand && action is MetaAction<string> cca)
@@ -174,6 +183,91 @@ namespace MetaParser.WPF.MetaValidation
             foreach (var r in meta.Rules.Where(r => HasEmptyAction(r.Action)))
             {
                 yield return new MetaValidationResult(meta, r, $"Empty multiple action detected");
+            }
+        }
+    }
+
+    public class VTankOptionValidator : IMetaValidator
+    {
+        public IEnumerable<MetaValidationResult> ValidateMeta(Meta meta)
+        {
+            string InvalidVTankOption(MetaAction c)
+            {
+                if (c is AllMetaAction mc)
+                {
+                    foreach (var a in mc.Data)
+                    {
+                        var op = InvalidVTankOption(a);
+                        if (op != null)
+                            return op;
+                    }
+                }
+                else if (c is SetVTOptionMetaAction sc)
+                {
+                    if (!VTankOptionsExtensions.TryParse(sc.Option, out _))
+                    {
+                        return sc.Option;
+                    }
+                }
+                else if (c is GetVTOptionMetaAction gc)
+                {
+                    if (!VTankOptionsExtensions.TryParse(gc.Option, out _))
+                    {
+                        return gc.Option;
+                    }
+                }
+
+                return null;
+            }
+
+            foreach (var rule in meta.Rules)
+            {
+                var opt = InvalidVTankOption(rule.Action);
+                if (opt != null)
+                {
+                    if (rule.Action is AllMetaAction)
+                    {
+                        yield return new(meta, rule, $"Rule action contains an invalid/unknown VTank option name: {opt}");
+                    }
+                    else
+                    {
+                        yield return new(meta, rule, $"Invalid/unknown VTank option name: {opt}");
+                    }
+                }
+            }
+        }
+    }
+
+    public class VTankOptionValueValidator : IMetaValidator
+    {
+        public IEnumerable<MetaValidationResult> ValidateMeta(Meta meta)
+        {
+            IEnumerable<(string op, string vv)> GetInvalidOptionValues(MetaAction action)
+            {
+                if (action is AllMetaAction am)
+                {
+                    foreach (var ac in am.Data)
+                    {
+                        foreach (var result in GetInvalidOptionValues(ac))
+                            yield return result;
+                    }
+                }
+                else if (action is SetVTOptionMetaAction so)
+                {
+                    if (VTankOptionsExtensions.TryParse(so.Option, out var opt))
+                    {
+                        if (!opt.IsValidValue(so.Value))
+                            yield return (so.Option, so.Value);
+                    }
+                }
+            }
+
+            foreach (var rule in meta.Rules)
+            {
+                foreach (var result in GetInvalidOptionValues(rule.Action))
+                {
+                    yield return new MetaValidationResult(meta, rule, $"Invalid value for {result.op} option: {result.vv}");
+                }
             }
         }
     }

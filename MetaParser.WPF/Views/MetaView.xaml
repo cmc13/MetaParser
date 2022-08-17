@@ -346,6 +346,12 @@
                     </ToggleButton>
                 </Grid>
             </StatusBarItem>
+            <StatusBarItem>
+                <TextBlock Text="{Binding Rules.Count, StringFormat={}{0} Rules}" />
+            </StatusBarItem>
+            <StatusBarItem>
+                <TextBlock Text="{Binding StateList.Count, StringFormat={}{0} States}" />
+            </StatusBarItem>
         </StatusBar>
     </Grid>
 </UserControl>

@@ -125,7 +125,7 @@ namespace MetaParser.WPF.ViewModels
                 if (SelectedRule != null)
                 {
                     var idx = Rules.IndexOf(SelectedRule);
-                    for (var i = idx + 1;  i < Rules.Count; ++i)
+                    for (var i = idx + 1; i < Rules.Count; ++i)
                     {
                         if (Rules[i].State == SelectedRule.State)
                             return true;
@@ -226,6 +226,9 @@ namespace MetaParser.WPF.ViewModels
                 }
             }
         }
+
+        public string RuleCountString => $"{Rules.Count} Rule" + (Rules.Count != 1 ? "s" : "");
+        public string StateListCountString => $"{StateList.Count()} State" + (StateList.Count() != 1 ? "s" : "");
 
         private void Rules_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {

@@ -47,36 +47,36 @@ namespace MetaParser.Formatting
         };
         private static readonly Dictionary<string, Regex> ConditionListRegex = new()
         {
-            { "NoMobsInDist", new(@"^\s*(?<arg>" + DOUBLE_REGEX + @")", RegexOptions.Compiled) },
-            { "Expr", ConditionStringRegex },
-            { "ChatCapture", new(@"^\s*{(?<arg1>[^}]*)}\s*{(?<arg2>[^}]*)}\s*(~~.*)?", RegexOptions.Compiled) },
-            { "ChatMatch", ConditionStringRegex },
-            { "MobsInDist_Priority", new(@"^\s*(?<arg1>\d+)\s*(?<arg2>" + DOUBLE_REGEX + @")\s*(?<arg3>\d+)\s*(~~.*)?", RegexOptions.Compiled) },
-            { "DistToRteGE", new(@"^\s*(?<arg>" + DOUBLE_REGEX + @")\s*(~~.*)?", RegexOptions.Compiled) },
-            { "PSecsInStateGE", ConditionIntRegex },
-            { "SecsInStateGE", ConditionIntRegex },
-            { "BuPercentGE", ConditionIntRegex },
-            { "MainSlotsLE", ConditionIntRegex },
-            { "ItemCountLE", ItemCountRegex },
-            { "ItemCountGE", ItemCountRegex },
-            { "CellE", LandCellRegex },
-            { "BlockE", LandCellRegex },
-            { "MobsInDist_Name", new(@"^\s*(?<arg1>\d+)\s*(?<arg2>" + DOUBLE_REGEX + @")\s*{(?<arg3>[^}]*)}\s*(~~.*)?", RegexOptions.Compiled) },
-            { "SecsOnSpellGE", new(@"\s*(?<arg1>\d+)\s*(?<arg2>\d+)\s*(~~.*)?", RegexOptions.Compiled) }
+            { "NoMobsInDist",           new(@"^\s*(?<arg>" + DOUBLE_REGEX + @")", RegexOptions.Compiled) },
+            { "Expr",                   ConditionStringRegex },
+            { "ChatCapture",            new(@"^\s*{(?<arg1>[^}]*)}\s*{(?<arg2>[^}]*)}\s*(~~.*)?", RegexOptions.Compiled) },
+            { "ChatMatch",              ConditionStringRegex },
+            { "MobsInDist_Priority",    new(@"^\s*(?<arg1>\d+)\s*(?<arg2>" + DOUBLE_REGEX + @")\s*(?<arg3>\d+)\s*(~~.*)?", RegexOptions.Compiled) },
+            { "DistToRteGE",            new(@"^\s*(?<arg>" + DOUBLE_REGEX + @")\s*(~~.*)?", RegexOptions.Compiled) },
+            { "PSecsInStateGE",         ConditionIntRegex },
+            { "SecsInStateGE",          ConditionIntRegex },
+            { "BuPercentGE",            ConditionIntRegex },
+            { "MainSlotsLE",            ConditionIntRegex },
+            { "ItemCountLE",            ItemCountRegex },
+            { "ItemCountGE",            ItemCountRegex },
+            { "CellE",                  LandCellRegex },
+            { "BlockE",                 LandCellRegex },
+            { "MobsInDist_Name",        new(@"^\s*(?<arg1>\d+)\s*(?<arg2>" + DOUBLE_REGEX + @")\s*{(?<arg3>[^}]*)}\s*(~~.*)?", RegexOptions.Compiled) },
+            { "SecsOnSpellGE",          new(@"\s*(?<arg1>\d+)\s*(?<arg2>\d+)\s*(~~.*)?", RegexOptions.Compiled) }
         };
         private static readonly Dictionary<string, Regex> ActionListRegex = new()
         {
-            { "EmbedNav", new(@"\s*(?<navRef>\S*)\s*{(?<navName>)[^}]*}\s*(~~.*)?", RegexOptions.Compiled) },
-            { "Chat", ConditionStringRegex },
-            { "SetState", ConditionStringRegex },
-            { "ChatExpr", ConditionStringRegex },
-            { "DoExpr", ConditionStringRegex },
-            { "SetOpt", OptionRegex },
-            { "GetOpt", OptionRegex },
-            { "CallState", OptionRegex },
-            { "DestroyView", ConditionStringRegex },
-            { "CreateView", OptionRegex },
-            { "SetWatchdog", new(@"^\s*(?<arg1>" + DOUBLE_REGEX + @")\s*(?<arg2>\d+)\s*{(?<arg3>[^}]*)}\s*(~~.*)?", RegexOptions.Compiled) }
+            { "EmbedNav",       new(@"\s*(?<navRef>\S*)\s*{(?<navName>)[^}]*}\s*(~~.*)?", RegexOptions.Compiled) },
+            { "Chat",           ConditionStringRegex },
+            { "SetState",       ConditionStringRegex },
+            { "ChatExpr",       ConditionStringRegex },
+            { "DoExpr",         ConditionStringRegex },
+            { "SetOpt",         OptionRegex },
+            { "GetOpt",         OptionRegex },
+            { "CallState",      OptionRegex },
+            { "DestroyView",    ConditionStringRegex },
+            { "CreateView",     OptionRegex },
+            { "SetWatchdog",    new(@"^\s*(?<arg1>" + DOUBLE_REGEX + @")\s*(?<arg2>\d+)\s*{(?<arg3>[^}]*)}\s*(~~.*)?", RegexOptions.Compiled) }
         };
 
         private static readonly Dictionary<string, ConditionType> ConditionList = new()
@@ -269,50 +269,6 @@ namespace MetaParser.Formatting
             }
         }
 
-        private async IAsyncEnumerable<Rule> ParseStateAsync(IAsyncEnumerator<string> enumerator, string state, Dictionary<string, NavRoute> navReferences)
-        {
-            // Parse Rules
-            while (enumerator.Current != null && !StateNavRegex.IsMatch(enumerator.Current))
-            {
-                // skip whitespace
-                while (EmptyLineRegex.IsMatch(enumerator.Current) && await enumerator.MoveNextAsync().ConfigureAwait(false)) { }
-
-                if (enumerator.Current == null || StateNavRegex.IsMatch(enumerator.Current))
-                    break;
-
-                var m = IfRegex.Match(enumerator.Current);
-                if (!m.Success)
-                    throw new MetaParserException("Invalid state definition");
-
-                // Parse Condition
-                var c = await ParseConditionAsync(enumerator.Current.Substring(m.Index + m.Length), enumerator);
-                if (c == null)
-                    throw new MetaParserException("Invalid condition definition");
-
-                // skip whitespace
-                while (EmptyLineRegex.IsMatch(enumerator.Current) && await enumerator.MoveNextAsync().ConfigureAwait(false)) { }
-
-                if (enumerator.Current == null || StateNavRegex.IsMatch(enumerator.Current))
-                    break;
-
-                m = DoRegex.Match(enumerator.Current);
-                if (!m.Success)
-                    throw new MetaParserException("Invalid state definition");
-
-                // Parse Action
-                var a = await ParseActionAsync(enumerator.Current.Substring(m.Index + m.Length), enumerator, navReferences);
-                if (a == null)
-                    throw new MetaParserException("Invalid action definition");
-
-                yield return new()
-                {
-                    Condition = c,
-                    Action = a,
-                    State = state
-                };
-            }
-        }
-
         private NavNode ParseNavNode(string line)
         {
             var m = Regex.Match(line, @"^\s*(?<nodeType>\S+)");
@@ -360,7 +316,7 @@ namespace MetaParser.Formatting
                     m = NavNodeRegex[m.Groups["nodeType"].Value].Match(line);
                     if (!m.Success)
                         throw new MetaParserException("Invalid nav chat definition");
-                    return new NavNodeChat(){ Point = pt, Data = m.Groups["chat"].Value };
+                    return new NavNodeChat() { Point = pt, Data = m.Groups["chat"].Value };
 
                 case "vnd":
                     m = NavNodeRegex[m.Groups["nodeType"].Value].Match(line);
@@ -424,6 +380,50 @@ namespace MetaParser.Formatting
 
                 default:
                     throw new MetaParserException($"Invalid nav node type: {m.Groups["nodeType"].Value}");
+            }
+        }
+
+        private async IAsyncEnumerable<Rule> ParseStateAsync(IAsyncEnumerator<string> enumerator, string state, Dictionary<string, NavRoute> navReferences)
+        {
+            // Parse Rules
+            while (enumerator.Current != null && !StateNavRegex.IsMatch(enumerator.Current))
+            {
+                // skip whitespace
+                while (EmptyLineRegex.IsMatch(enumerator.Current) && await enumerator.MoveNextAsync().ConfigureAwait(false)) { }
+
+                if (enumerator.Current == null || StateNavRegex.IsMatch(enumerator.Current))
+                    break;
+
+                var m = IfRegex.Match(enumerator.Current);
+                if (!m.Success)
+                    throw new MetaParserException("Invalid state definition");
+
+                // Parse Condition
+                var c = await ParseConditionAsync(enumerator.Current.Substring(m.Index + m.Length), enumerator);
+                if (c == null)
+                    throw new MetaParserException("Invalid condition definition");
+
+                // skip whitespace
+                while (EmptyLineRegex.IsMatch(enumerator.Current) && await enumerator.MoveNextAsync().ConfigureAwait(false)) { }
+
+                if (enumerator.Current == null || StateNavRegex.IsMatch(enumerator.Current))
+                    break;
+
+                m = DoRegex.Match(enumerator.Current);
+                if (!m.Success)
+                    throw new MetaParserException("Invalid state definition");
+
+                // Parse Action
+                var a = await ParseActionAsync(enumerator.Current.Substring(m.Index + m.Length), enumerator, navReferences);
+                if (a == null)
+                    throw new MetaParserException("Invalid action definition");
+
+                yield return new()
+                {
+                    Condition = c,
+                    Action = a,
+                    State = state
+                };
             }
         }
 
