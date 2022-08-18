@@ -1,4 +1,5 @@
-﻿using MetaParser.WPF.Services;
+﻿using GongSolutions.Wpf.DragDrop;
+using MetaParser.WPF.Services;
 using Microsoft.Toolkit.Mvvm.ComponentModel;
 using Microsoft.Toolkit.Mvvm.Input;
 using Microsoft.Win32;
@@ -6,7 +7,9 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -14,13 +17,13 @@ using System.Windows;
 namespace MetaParser.WPF.ViewModels
 {
     public class MainViewModel
-        : ObservableRecipient
+        : ObservableRecipient, IDropTarget
     {
-        private class SimpleDisposable : System.IDisposable
+        private class SimpleDisposable : IDisposable
         {
-            private readonly System.Action dispAction;
+            private readonly Action dispAction;
 
-            public SimpleDisposable(System.Action dispAction)
+            public SimpleDisposable(Action dispAction)
             {
                 this.dispAction = dispAction;
             }
@@ -183,6 +186,8 @@ namespace MetaParser.WPF.ViewModels
                 }
                 else if (fileSystemService.DirectoryExists(@"C:\Games\VirindiPlugins\VirindiTank\"))
                     ofd.InitialDirectory = @"C:\Games\VirindiPlugins\VirindiTank\";
+                else
+                    ofd.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
 
                 var result = ofd.ShowDialog();
                 if (result.HasValue && result.Value == true)
@@ -207,6 +212,8 @@ namespace MetaParser.WPF.ViewModels
                 }
                 else if (fileSystemService.DirectoryExists(@"C:\Games\VirindiPlugins\VirindiTank\"))
                     ofd.InitialDirectory = @"C:\Games\VirindiPlugins\VirindiTank\";
+                else
+                    ofd.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
 
                 var result = ofd.ShowDialog();
                 if (result.HasValue && result == true)
@@ -306,12 +313,12 @@ namespace MetaParser.WPF.ViewModels
             try
             {
                 using var fs = fileSystemService.OpenFileForReadAccess(fileName);
-                var m = Path.GetExtension(fileName).ToLower() switch
+                var m = await (Path.GetExtension(fileName).ToLower() switch
                 {
-                    ".xml" => await Formatters.XMLMetaReader.ReadMetaAsync(fs).ConfigureAwait(false),
-                    ".af" => await Formatters.MetafReader.ReadMetaAsync(fs).ConfigureAwait(false),
-                    _ => await Formatters.DefaultMetaReader.ReadMetaAsync(fs).ConfigureAwait(false)
-                };
+                    ".xml" => Formatters.XMLMetaReader.ReadMetaAsync(fs),
+                    ".af" => Formatters.MetafReader.ReadMetaAsync(fs),
+                    _ => Formatters.DefaultMetaReader.ReadMetaAsync(fs)
+                }).ConfigureAwait(false);
 
                 FileName = fileName;
                 MetaViewModel = new(m);
@@ -385,6 +392,31 @@ namespace MetaParser.WPF.ViewModels
             {
                 IsBusy = false;
             });
+        }
+
+        public void DragOver(IDropInfo dropInfo)
+        {
+            if (dropInfo.Data is DataObject obj && obj.GetDataPresent(DataFormats.FileDrop))
+                dropInfo.Effects = DragDropEffects.Move;
+            else
+                dropInfo.NotHandled = true;
+        }
+
+        public async void Drop(IDropInfo dropInfo)
+        {
+            if (dropInfo.Data is DataObject obj && obj.GetDataPresent(DataFormats.FileDrop))
+            {
+                var files = (string[])obj.GetData(DataFormats.FileDrop);
+                var file = files?.FirstOrDefault(f => Regex.IsMatch(Path.GetExtension(f), @"^(\.xml|\.met|\.af)$"));
+                if (file != null)
+                {
+                    if (await DirtyCheck().ConfigureAwait(false))
+                        return;
+                    await OpenFile(file).ConfigureAwait(false);
+                }
+            }
+            else
+                dropInfo.NotHandled = true;
         }
     }
 }

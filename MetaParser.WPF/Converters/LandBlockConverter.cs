@@ -34,6 +34,7 @@ namespace MetaParser.WPF.Converters
                     var i = (int)u;
                     return i;
                 }
+                catch (OverflowException) { }
                 catch (FormatException) { }
                 catch (ArgumentOutOfRangeException) { }
             }

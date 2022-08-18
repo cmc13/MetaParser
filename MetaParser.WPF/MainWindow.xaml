@@ -9,6 +9,7 @@
         xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
         xmlns:cvt="clr-namespace:MetaParser.WPF.Converters"
         xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+        xmlns:dd="urn:gong-wpf-dragdrop"
         mc:Ignorable="d" Background="{StaticResource WindowBackgroundBrush}"
         Height="450" Width="800">
     
@@ -54,7 +55,7 @@
     </Window.InputBindings>
 
     <xctk:BusyIndicator IsBusy="{Binding IsBusy}" BusyContent="{Binding BusyStatus}">
-        <DockPanel>
+        <DockPanel dd:DragDrop.IsDropTarget="True" dd:DragDrop.DropHandler="{Binding}">
             <Menu DockPanel.Dock="Top">
                 <MenuItem Header="_File">
                     <MenuItem Header="_New Meta File" Command="{Binding NewFileCommand}" InputGestureText="Ctrl+N" Icon="{StaticResource NewFileIcon}" />

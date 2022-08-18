@@ -1,144 +1,211 @@
 ﻿using System;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
 namespace MetaParser.Models
 {
+    public class BoolOption : ValidationAttribute
+    {
+        private static readonly Regex r = new(@"^(true|false|\d+)$", RegexOptions.Compiled);
+
+        public override bool IsValid(object value)
+        {
+            if (value is string str)
+            {
+                if (bool.TryParse(str, out _) || r.IsMatch(str))
+                    return true;
+            }
+
+            return false;
+        }
+    }
+
+    public class IntOption : ValidationAttribute
+    {
+        private static readonly Regex r = new(@"^\d+$", RegexOptions.Compiled);
+
+        public override bool IsValid(object value)
+        {
+            if (value is string str)
+            {
+                if (r.IsMatch(str) && int.TryParse(str, out _))
+                    return true;
+            }
+
+            return false;
+        }
+    }
+
+    public class DoubleOption : ValidationAttribute
+    {
+        private static readonly Regex r = new(@"^[+\-]?(([1-9]\d*\.|\d?\.)(\d+([eE][+\-]?[0-9]+)|[0-9]+)|([1-9]\d*|0))$", RegexOptions.Compiled);
+
+        public override bool IsValid(object value)
+        {
+            if (value is string str)
+            {
+                if (r.IsMatch(str) && double.TryParse(str, out _))
+                    return true;
+            }
+
+            return false;
+        }
+    }
+
+    public class BuffProfileOption : ValidationAttribute
+    {
+        private static readonly Regex r = new(@"^[BPSAFLC]*$", RegexOptions.Compiled);
+
+        public override bool IsValid(object value)
+        {
+            if (value is string str)
+            {
+                if (r.IsMatch(str))
+                {
+                    // Check if any characters appear more than once
+                    return str.GroupBy(c => c).Select(g => new { ch = g.Key, count = g.Count() }).All(a => a.count < 2);
+                }
+            }
+            return false;
+        }
+    }
+
     [TypeConverter(typeof(EnumDescriptionConverter))]
     public enum VTankOptions
     {
-        [RegularExpression(@"^(true|false)$")] AutoCram,
-        [RegularExpression(@"^(true|false)$")] AutoStack,
-        [RegularExpression(@"^(true|false)$")] RandomHelperBuffs,
-        [RegularExpression(@"^[+\-]?(([1-9]\d*\.|\d?\.)(\d+([eE][+\-]?[0-9]+)|[0-9]+)|([1-9]\d*|0))$")] RandomHelperIntervalSeconds,
-        [RegularExpression(@"^(true|false)$")] IdlePeaceMode,
-        [RegularExpression(@"^(true|false)$")] StopMacroOnDeath,
-        [RegularExpression(@"^(true|false)$")] RefillWornMana,
-        [RegularExpression(@"^\d+$")] [Description("RefillWornMana-Item-ManaPercent")] RefillWornMana_Item_ManaPercent,
-        [RegularExpression(@"^\d+$")] ManaStoneLootCount,
-        [RegularExpression(@"^\d+$")] ManaTankMinimumMana,
-        [RegularExpression(@"^(true|false)$")] ManaChargesWhenOff,
-        [RegularExpression(@"^(true|false)$")] AutoFellowManagement,
-        [RegularExpression(@"^(true|false)$")] DeleteGhostMonsters,
-        [RegularExpression(@"^\d+$")] GhostMonsterSpellAttemptCount,
-        [RegularExpression(@"^(true|false)$")] WhoYouGonnaCall,
-        [RegularExpression(@"^\d+$")] BlacklistMonsterAttemptCount,
-        [RegularExpression(@"^\d+$")] BlacklistMonsterTimeoutSeconds,
-        [RegularExpression(@"^(true|false)$")] DeleteGhostMonstersByHPTracker,
+        [BoolOption] AutoCram,
+        [BoolOption] AutoStack,
+        [BoolOption] RandomHelperBuffs,
+        [DoubleOption] RandomHelperIntervalSeconds,
+        [BoolOption] IdlePeaceMode,
+        [BoolOption] StopMacroOnDeath,
+        [BoolOption] RefillWornMana,
+        [IntOption] [Description("RefillWornMana-Item-ManaPercent")] RefillWornMana_Item_ManaPercent,
+        [IntOption] ManaStoneLootCount,
+        [IntOption] ManaTankMinimumMana,
+        [BoolOption] ManaChargesWhenOff,
+        [BoolOption] AutoFellowManagement,
+        [BoolOption] DeleteGhostMonsters,
+        [IntOption] GhostMonsterSpellAttemptCount,
+        [BoolOption] WhoYouGonnaCall,
+        [IntOption] BlacklistMonsterAttemptCount,
+        [IntOption] BlacklistMonsterTimeoutSeconds,
+        [BoolOption] DeleteGhostMonstersByHPTracker,
 
-        [RegularExpression(@"^\d+$")] GhostDeleteHPTrackerSeconds,
-        [RegularExpression(@"^(true|false)$")] GoToPeaceModeToUseKits,
-        [RegularExpression(@"^(true|false)$")] EnableMeta,
-        [RegularExpression(@"^\d+$")] DropToPeaceModeRetryCount,
-        [RegularExpression(@"^\d+$")] BlacklistCorpseOpenAttemptCount,
-        [RegularExpression(@"^\d+$")] BlacklistCorpseOpenTimeoutSeconds,
+        [IntOption] GhostDeleteHPTrackerSeconds,
+        [BoolOption] GoToPeaceModeToUseKits,
+        [BoolOption] EnableMeta,
+        [IntOption] DropToPeaceModeRetryCount,
+        [IntOption] BlacklistCorpseOpenAttemptCount,
+        [IntOption] BlacklistCorpseOpenTimeoutSeconds,
 
-        [RegularExpression(@"^\d+$")][Description("Recharge-Norm-HitP")] Recharge_Norm_HitP,
-        [RegularExpression(@"^\d+$")][Description("Recharge-Norm-Stam")] Recharge_Norm_Stam,
-        [RegularExpression(@"^\d+$")][Description("Recharge-Norm-Mana")] Recharge_Norm_Mana,
-        [RegularExpression(@"^\d+$")][Description("Recharge-NoTarg-HitP")] Recharge_NoTarg_HitP,
-        [RegularExpression(@"^\d+$")][Description("Recharge-NoTarg-Stam")] Recharge_NoTarg_Stam,
-        [RegularExpression(@"^\d+$")][Description("Recharge-NoTarg-Mana")] Recharge_NoTarg_Mana,
-        [RegularExpression(@"^\d+$")][Description("Recharge-Helper-HitP")] Recharge_Helper_HitP,
-        [RegularExpression(@"^\d+$")][Description("Recharge-Helper-Stam")] Recharge_Helper_Stam,
-        [RegularExpression(@"^\d+$")][Description("Recharge-Helper-Mana")] Recharge_Helper_Mana,
-        [RegularExpression(@"^(true|false)$")] DoHelp,
-        [RegularExpression(@"^[+\-]?(([1-9]\d*\.|\d?\.)(\d+([eE][+\-]?[0-9]+)|[0-9]+)|([1-9]\d*|0))$")] HelperDistanceHitP,
-        [RegularExpression(@"^[+\-]?(([1-9]\d*\.|\d?\.)(\d+([eE][+\-]?[0-9]+)|[0-9]+)|([1-9]\d*|0))$")] HelperDistanceStam,
-        [RegularExpression(@"^[+\-]?(([1-9]\d*\.|\d?\.)(\d+([eE][+\-]?[0-9]+)|[0-9]+)|([1-9]\d*|0))$")] HelperDistanceMana,
-        [RegularExpression(@"^(true|false)$")] CastDispelSelf,
-        [RegularExpression(@"^(true|false)$")] UseDispelItems,
-        [RegularExpression(@"^(true|false)$")] UseDispelDrum,
-        [RegularExpression(@"^(true|false)$")] UseHealersHeart,
-        [RegularExpression(@"^(true|false)$")] JumpOutWandCasting,
-        [RegularExpression(@"^[+\-]?(([1-9]\d*\.|\d?\.)(\d+([eE][+\-]?[0-9]+)|[0-9]+)|([1-9]\d*|0))$")] RechargeBoostTimeSeconds,
-        [RegularExpression(@"^\d+$")] RechargeBoostAmount,
-        [RegularExpression(@"^\d+$")] MinimumHealKitSuccessChance,
-        [RegularExpression(@"^(true|false)$")] UseKitsInMagicMode,
-        [RegularExpression(@"^[+\-]?(([1-9]\d*\.|\d?\.)(\d+([eE][+\-]?[0-9]+)|[0-9]+)|([1-9]\d*|0))$")] StaminaToHealthMultiplier,
-        [RegularExpression(@"^[+\-]?(([1-9]\d*\.|\d?\.)(\d+([eE][+\-]?[0-9]+)|[0-9]+)|([1-9]\d*|0))$")] ManaToHealthMultiplier,
-        [RegularExpression(@"^(true|false)$")] ClearLevelBoostFlagOnCast,
-        [RegularExpression(@"^\d+$")] IdleCraftCount_HealthKits,
-        [RegularExpression(@"^\d+$")] IdleCraftCount_StamKits,
-        [RegularExpression(@"^\d+$")] IdleCraftCount_ManaKits,
-        [RegularExpression(@"^\d+$")] IdleCraftCount_HealthFood,
-        [RegularExpression(@"^\d+$")] IdleCraftCount_StamFood,
-        [RegularExpression(@"^\d+$")] IdleCraftCount_ManaFood,
+        [IntOption][Description("Recharge-Norm-HitP")] Recharge_Norm_HitP,
+        [IntOption][Description("Recharge-Norm-Stam")] Recharge_Norm_Stam,
+        [IntOption][Description("Recharge-Norm-Mana")] Recharge_Norm_Mana,
+        [IntOption][Description("Recharge-NoTarg-HitP")] Recharge_NoTarg_HitP,
+        [IntOption][Description("Recharge-NoTarg-Stam")] Recharge_NoTarg_Stam,
+        [IntOption][Description("Recharge-NoTarg-Mana")] Recharge_NoTarg_Mana,
+        [IntOption][Description("Recharge-Helper-HitP")] Recharge_Helper_HitP,
+        [IntOption][Description("Recharge-Helper-Stam")] Recharge_Helper_Stam,
+        [IntOption][Description("Recharge-Helper-Mana")] Recharge_Helper_Mana,
+        [BoolOption] DoHelp,
+        [DoubleOption] HelperDistanceHitP,
+        [DoubleOption] HelperDistanceStam,
+        [DoubleOption] HelperDistanceMana,
+        [BoolOption] CastDispelSelf,
+        [BoolOption] UseDispelItems,
+        [BoolOption] UseDispelDrum,
+        [BoolOption] UseHealersHeart,
+        [BoolOption] JumpOutWandCasting,
+        [DoubleOption] RechargeBoostTimeSeconds,
+        [IntOption] RechargeBoostAmount,
+        [IntOption] MinimumHealKitSuccessChance,
+        [BoolOption] UseKitsInMagicMode,
+        [DoubleOption] StaminaToHealthMultiplier,
+        [DoubleOption] ManaToHealthMultiplier,
+        [BoolOption] ClearLevelBoostFlagOnCast,
+        [IntOption] IdleCraftCount_HealthKits,
+        [IntOption] IdleCraftCount_StamKits,
+        [IntOption] IdleCraftCount_ManaKits,
+        [IntOption] IdleCraftCount_HealthFood,
+        [IntOption] IdleCraftCount_StamFood,
+        [IntOption] IdleCraftCount_ManaFood,
 
-        [RegularExpression(@"^(true|false)$")] EnableCombat,
+        [BoolOption] EnableCombat,
         [RegularExpression(@"^1|2|3$")] DefaultMeleeAttackHeight,
-        [RegularExpression(@"^(true|false)$")] TargetLock,
+        [BoolOption] TargetLock,
         [RegularExpression(@"^1|2|3$")] TargetSelectMethod,
-        [RegularExpression(@"^[+\-]?(([1-9]\d*\.|\d?\.)(\d+([eE][+\-]?[0-9]+)|[0-9]+)|([1-9]\d*|0))$")] TargetSelectAngleRange,
+        [DoubleOption] TargetSelectAngleRange,
         [RegularExpression(@"^1|2|3$")] DebuffEachFirst,
-        [RegularExpression(@"^(true|false)$")] AutoAttackPower,
+        [BoolOption] AutoAttackPower,
         [RegularExpression(@"^1|2$")] DebuffSelectionMethod,
-        [RegularExpression(@"^(true|false)$")] UseRecklessness,
+        [BoolOption] UseRecklessness,
 
-        [RegularExpression(@"^\d+$")][Description("SpellDiffExcessThreshold-Hunt")] SpellDiffExcessThreshold_Hunt,
-        [RegularExpression(@"^[+\-]?(([1-9]\d*\.|\d?\.)(\d+([eE][+\-]?[0-9]+)|[0-9]+)|([1-9]\d*|0))$")] RingDistance,
-        [RegularExpression(@"^\d+$")] MinimumRingTargets,
-        [RegularExpression(@"^(true|false)$")] SwitchWandToDebuff,
-        [RegularExpression(@"^(true|false)$")] DoJiggle,
-        [RegularExpression(@"^(true|false)$")] UseArcs,
-        [RegularExpression(@"^[+\-]?(([1-9]\d*\.|\d?\.)(\d+([eE][+\-]?[0-9]+)|[0-9]+)|([1-9]\d*|0))$")] ArcRange,
-        [RegularExpression(@"^\d+$")] DebuffPrecastSeconds,
-        [RegularExpression(@"^(true|false)$")] SummonPets,
+        [IntOption][Description("SpellDiffExcessThreshold-Hunt")] SpellDiffExcessThreshold_Hunt,
+        [DoubleOption] RingDistance,
+        [IntOption] MinimumRingTargets,
+        [BoolOption] SwitchWandToDebuff,
+        [BoolOption] DoJiggle,
+        [BoolOption] UseArcs,
+        [DoubleOption] ArcRange,
+        [IntOption] DebuffPrecastSeconds,
+        [BoolOption] SummonPets,
         [RegularExpression(@"^0|1$")] PetRangeMode,
-        [RegularExpression(@"^[+\-]?(([1-9]\d*\.|\d?\.)(\d+([eE][+\-]?[0-9]+)|[0-9]+)|([1-9]\d*|0))$")] PetCustomRange,
-        [Description("PetRefillCount-Idle")] PetRefillCount_Idle,
-        [Description("PetRefillCount-Normal")] PetRefillCount_Normal,
-        [RegularExpression(@"^\d+$")] PetMonsterDensity,
+        [DoubleOption] PetCustomRange,
+        [IntOption][Description("PetRefillCount-Idle")] PetRefillCount_Idle,
+        [IntOption][Description("PetRefillCount-Normal")] PetRefillCount_Normal,
+        [IntOption] PetMonsterDensity,
 
-        [RegularExpression(@"^[+\-]?(([1-9]\d*\.|\d?\.)(\d+([eE][+\-]?[0-9]+)|[0-9]+)|([1-9]\d*|0))$")] AttackDistance,
-        [RegularExpression(@"^[+\-]?(([1-9]\d*\.|\d?\.)(\d+([eE][+\-]?[0-9]+)|[0-9]+)|([1-9]\d*|0))$")] AttackMinimumDistance,
-        [RegularExpression(@"^[+\-]?(([1-9]\d*\.|\d?\.)(\d+([eE][+\-]?[0-9]+)|[0-9]+)|([1-9]\d*|0))$")] ApproachDistance,
-        [RegularExpression(@"^[+\-]?(([1-9]\d*\.|\d?\.)(\d+([eE][+\-]?[0-9]+)|[0-9]+)|([1-9]\d*|0))$")][Description("CorpseApproachRange-Max")] CorpseApproachRange_Max,
-        [RegularExpression(@"^[+\-]?(([1-9]\d*\.|\d?\.)(\d+([eE][+\-]?[0-9]+)|[0-9]+)|([1-9]\d*|0))$")][Description("CorpseApproachRange-Min")] CorpseApproachRange_Min,
-        [RegularExpression(@"^[+\-]?(([1-9]\d*\.|\d?\.)(\d+([eE][+\-]?[0-9]+)|[0-9]+)|([1-9]\d*|0))$")] NavCloseStopRange,
-        [RegularExpression(@"^[+\-]?(([1-9]\d*\.|\d?\.)(\d+([eE][+\-]?[0-9]+)|[0-9]+)|([1-9]\d*|0))$")] NavFarStopRange,
-        [RegularExpression(@"^[+\-]?(([1-9]\d*\.|\d?\.)(\d+([eE][+\-]?[0-9]+)|[0-9]+)|([1-9]\d*|0))$")] UsePortalDistance,
-        [RegularExpression(@"^[+\-]?(([1-9]\d*\.|\d?\.)(\d+([eE][+\-]?[0-9]+)|[0-9]+)|([1-9]\d*|0))$")] DoorIDRange,
-        [RegularExpression(@"^[+\-]?(([1-9]\d*\.|\d?\.)(\d+([eE][+\-]?[0-9]+)|[0-9]+)|([1-9]\d*|0))$")] DoorOpenRange,
+        [DoubleOption] AttackDistance,
+        [DoubleOption] AttackMinimumDistance,
+        [DoubleOption] ApproachDistance,
+        [DoubleOption][Description("CorpseApproachRange-Max")] CorpseApproachRange_Max,
+        [DoubleOption][Description("CorpseApproachRange-Min")] CorpseApproachRange_Min,
+        [DoubleOption] NavCloseStopRange,
+        [DoubleOption] NavFarStopRange,
+        [DoubleOption] UsePortalDistance,
+        [DoubleOption] DoorIDRange,
+        [DoubleOption] DoorOpenRange,
 
-        [RegularExpression(@"^(true|false)$")] EnableNav,
-        [RegularExpression(@"^[+\-]?(([1-9]\d*\.|\d?\.)(\d+([eE][+\-]?[0-9]+)|[0-9]+)|([1-9]\d*|0))$")] CorpseCacheTimeoutMinutes,
-        [RegularExpression(@"^(true|false)$")] OpenDoors,
-        [RegularExpression(@"^\d+$")] DoorLockpickDiffExcessThreshold,
-        [RegularExpression(@"^(true|false)$")] NavPriorityBoost,
-        [RegularExpression(@"^(true|false)$")] FollowAroundCorners,
+        [BoolOption] EnableNav,
+        [DoubleOption] CorpseCacheTimeoutMinutes,
+        [BoolOption] OpenDoors,
+        [IntOption] DoorLockpickDiffExcessThreshold,
+        [BoolOption] NavPriorityBoost,
+        [BoolOption] FollowAroundCorners,
 
-        [RegularExpression(@"^(true|false)$")] EnableBuffing,
-        [Description("SpellDiffExcessThreshold-Buff")] SpellDiffExcessThreshold_Buff,
-        [RegularExpression(@"^(true|false)$")] IdleBuffTopoff,
-        [RegularExpression(@"^\d+$")] IdleBuffTopoffTimeSeconds,
-        [RegularExpression(@"^\d+$")] RebuffTimeRemainingSeconds,
-        [RegularExpression(@"^[BPSAFLC]*$")][Description("BuffProfile-Prots")] BuffProfile_Prots,
-        [RegularExpression(@"^[BPSAFLC]*$")][Description("BuffProfile-Banes")] BuffProfile_Banes,
-        [RegularExpression(@"^\d+$")] BuffCastRecast_Seconds,
-        [RegularExpression(@"^\d+$")] BuffCastRecastReset_Seconds,
+        [BoolOption] EnableBuffing,
+        [IntOption][Description("SpellDiffExcessThreshold-Buff")] SpellDiffExcessThreshold_Buff,
+        [BoolOption] IdleBuffTopoff,
+        [IntOption] IdleBuffTopoffTimeSeconds,
+        [IntOption] RebuffTimeRemainingSeconds,
+        [BuffProfileOption][Description("BuffProfile-Prots")] BuffProfile_Prots,
+        [BuffProfileOption][Description("BuffProfile-Banes")] BuffProfile_Banes,
+        [IntOption] BuffCastRecast_Seconds,
+        [IntOption] BuffCastRecastReset_Seconds,
 
-        [RegularExpression(@"^\d+$")] ArrowheadFletchDiffExcessThreshold,
-        [RegularExpression(@"^(true|false)$")] AutoCraftItems,
-        [RegularExpression(@"^(true|false)$")] SplitPeas,
-        [RegularExpression(@"^\d+$")][Description("SpellCompMin-Critical")] SpellCompMin_Critical,
-        [RegularExpression(@"^\d+$")][Description("SpellCompMin-Normal")] SpellCompMin_Normal,
-        [RegularExpression(@"^\d+$")][Description("SpellCompMin-Idle")] SpellCompMin_Idle,
+        [IntOption] ArrowheadFletchDiffExcessThreshold,
+        [BoolOption] AutoCraftItems,
+        [BoolOption] SplitPeas,
+        [IntOption][Description("SpellCompMin-Critical")] SpellCompMin_Critical,
+        [IntOption][Description("SpellCompMin-Normal")] SpellCompMin_Normal,
+        [IntOption][Description("SpellCompMin-Idle")] SpellCompMin_Idle,
         [RegularExpression(@"^0|1|2|3$")] UseSpecialAmmo,
 
-        [RegularExpression(@"^(true|false)$")] EnableLooting,
-        [RegularExpression(@"^(true|false)$")] ReadUnknownScrolls,
-        [RegularExpression(@"^(true|false)$")] LootAllCorpses,
-        [RegularExpression(@"^(true|false)$")] LootFellowCorpses,
-        [RegularExpression(@"^(true|false)$")] LootPriorityBoost,
-        [RegularExpression(@"^[+\-]?(([1-9]\d*\.|\d?\.)(\d+([eE][+\-]?[0-9]+)|[0-9]+)|([1-9]\d*|0))$")] CorpseItemAppearanceTimeoutSeconds,
-        [RegularExpression(@"^[+\-]?(([1-9]\d*\.|\d?\.)(\d+([eE][+\-]?[0-9]+)|[0-9]+)|([1-9]\d*|0))$")] CorpseItemIDTimeoutSeconds,
-        [RegularExpression(@"^(true|false)$")] CombineSalvage,
-        [RegularExpression(@"^(true|false)$")] LootOnlyRareCorpses,
-        [RegularExpression(@"^[+\-]?(([1-9]\d*\.|\d?\.)(\d+([eE][+\-]?[0-9]+)|[0-9]+)|([1-9]\d*|0))$")] CorpseOpenTimeoutSeconds,
-        [RegularExpression(@"^\d+$")] CorpseLootItemMaxAttempts
+        [BoolOption] EnableLooting,
+        [BoolOption] ReadUnknownScrolls,
+        [BoolOption] LootAllCorpses,
+        [BoolOption] LootFellowCorpses,
+        [BoolOption] LootPriorityBoost,
+        [DoubleOption] CorpseItemAppearanceTimeoutSeconds,
+        [DoubleOption] CorpseItemIDTimeoutSeconds,
+        [BoolOption] CombineSalvage,
+        [BoolOption] LootOnlyRareCorpses,
+        [DoubleOption] CorpseOpenTimeoutSeconds,
+        [IntOption] CorpseLootItemMaxAttempts
     }
 
     public static class VTankOptionsExtensions
@@ -183,27 +250,10 @@ namespace MetaParser.Models
             var fi = typeof(VTankOptions).GetField(option.ToString());
             if (fi != null)
             {
-                var regex = fi.GetCustomAttribute<RegularExpressionAttribute>();
-                if (regex != null)
+                var validationAttributes = fi.GetCustomAttributes<ValidationAttribute>();
+                if (validationAttributes != null && validationAttributes.Any(a => !a.IsValid(value)))
                 {
-                    var r = new Regex(regex.Pattern, RegexOptions.IgnoreCase);
-                    if (!r.IsMatch(value))
-                        return false;
-                }
-                else
-                {
-                    if (!double.TryParse(value, out _))
-                        return false;
-                }
-            }
-
-            if (option == VTankOptions.BuffProfile_Banes || option == VTankOptions.BuffProfile_Prots)
-            {
-                for (var i = 0; i < value.Length - 1; ++i)
-                {
-                    for (var j = 0; j < value.Length; ++j)
-                        if (value[i] == value[j])
-                            return false;
+                    return false;
                 }
             }
 
