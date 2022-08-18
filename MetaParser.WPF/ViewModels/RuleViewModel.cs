@@ -31,6 +31,8 @@ namespace MetaParser.WPF.ViewModels
 
             InvertConditionCommand = new(() =>
             {
+                if (condition != null)
+                    condition.PropertyChanged -= Condition_PropertyChanged;
                 if (condition.Condition is NotCondition nc)
                 {
                     condition = ConditionViewModelFactory.CreateViewModel(nc.Data);
@@ -47,10 +49,14 @@ namespace MetaParser.WPF.ViewModels
                     OnPropertyChanged(nameof(Condition));
                     OnPropertyChanged(nameof(SelectedConditionType));
                 }
+                if (condition != null)
+                    condition.PropertyChanged += Condition_PropertyChanged;
             });
 
             WrapConditionInAllCommand = new(() =>
             {
+                if (condition != null)
+                    condition.PropertyChanged -= Condition_PropertyChanged;
                 var allCond = Models.Condition.CreateCondition(ConditionType.All) as MultipleCondition;
                 allCond.Data.Add(Condition.Condition);
                 condition = ConditionViewModelFactory.CreateViewModel(allCond);
@@ -58,10 +64,13 @@ namespace MetaParser.WPF.ViewModels
                 OnPropertyChanged(nameof(Condition));
                 OnPropertyChanged(nameof(SelectedConditionType));
                 UnwrapConditionCommand.NotifyCanExecuteChanged();
+                condition.PropertyChanged += Condition_PropertyChanged;
             });
 
             WrapConditionInAnyCommand = new(() =>
             {
+                if (condition != null)
+                    condition.PropertyChanged -= Condition_PropertyChanged;
                 var anyCond = Models.Condition.CreateCondition(ConditionType.Any) as MultipleCondition;
                 anyCond.Data.Add(Condition.Condition);
                 condition = ConditionViewModelFactory.CreateViewModel(anyCond);
@@ -69,17 +78,20 @@ namespace MetaParser.WPF.ViewModels
                 OnPropertyChanged(nameof(Condition));
                 OnPropertyChanged(nameof(SelectedConditionType));
                 UnwrapConditionCommand.NotifyCanExecuteChanged();
+                condition.PropertyChanged += Condition_PropertyChanged;
             });
 
             UnwrapConditionCommand = new(() =>
             {
                 if (condition.Condition is MultipleCondition mc && mc.Data.Count == 1)
                 {
+                    condition.PropertyChanged -= Condition_PropertyChanged;
                     condition = ConditionViewModelFactory.CreateViewModel(mc.Data[0]);
                     IsDirty = true;
                     OnPropertyChanged(nameof(Condition));
                     OnPropertyChanged(nameof(SelectedConditionType));
                     UnwrapConditionCommand.NotifyCanExecuteChanged();
+                    condition.PropertyChanged += Condition_PropertyChanged;
                 }
             }, () => Condition is MultipleConditionViewModel mc && mc.ConditionList.Count == 1);
 
@@ -87,16 +99,25 @@ namespace MetaParser.WPF.ViewModels
             {
                 if (action.Action is AllMetaAction ama && ama.Data.Count == 1)
                 {
+                    action.PropertyChanged -= Action_PropertyChanged;
+                    action.StateChanged -= Action_StateChanged;
                     action = ActionViewModelFactory.CreateViewModel(ama.Data[0], Meta);
                     IsDirty = true;
                     OnPropertyChanged(nameof(Action));
                     OnPropertyChanged(nameof(SelectedActionType));
                     UnwrapActionCommand.NotifyCanExecuteChanged();
+                    action.StateChanged += Action_StateChanged;
+                    action.PropertyChanged += Action_PropertyChanged;
                 }
             }, () => Action is AllActionViewModel ama && ama.ActionList.Count == 1);
 
             WrapActionInAllCommand = new(() =>
             {
+                if (action != null)
+                {
+                    action.StateChanged -= Action_StateChanged;
+                    action.PropertyChanged -= Action_PropertyChanged;
+                }
                 var allCond = Models.MetaAction.CreateMetaAction(ActionType.Multiple) as AllMetaAction;
                 allCond.Data.Add(Action.Action);
                 action = ActionViewModelFactory.CreateViewModel(allCond, Meta);
@@ -104,6 +125,8 @@ namespace MetaParser.WPF.ViewModels
                 OnPropertyChanged(nameof(Action));
                 OnPropertyChanged(nameof(SelectedActionType));
                 UnwrapActionCommand.NotifyCanExecuteChanged();
+                action.StateChanged += Action_StateChanged;
+                action.PropertyChanged += Action_PropertyChanged;
             });
         }
 
@@ -122,6 +145,10 @@ namespace MetaParser.WPF.ViewModels
             if (e.PropertyName == nameof(ActionViewModel.IsDirty))
             {
                 OnPropertyChanged(nameof(IsDirty));
+            }
+            else if (e.PropertyName == nameof(ActionViewModel.IsValid))
+            {
+                OnPropertyChanged(nameof(IsValid));
             }
         }
 
@@ -177,6 +204,8 @@ namespace MetaParser.WPF.ViewModels
             set => base.IsDirty = value;
         }
 
+        public bool IsValid => Action.IsValid;
+
         public ConditionType SelectedConditionType
         {
             get => Condition.Type;
@@ -184,12 +213,15 @@ namespace MetaParser.WPF.ViewModels
             {
                 if (Condition.Type != value)
                 {
+                    if (condition != null)
+                        condition.PropertyChanged -= Condition_PropertyChanged;
                     Rule.Condition = Models.Condition.CreateCondition(value);
                     condition = ConditionViewModelFactory.CreateViewModel(Rule.Condition);
                     IsDirty = true;
                     OnPropertyChanged(nameof(Condition));
                     OnPropertyChanged(nameof(SelectedConditionType));
                     UnwrapConditionCommand.NotifyCanExecuteChanged();
+                    condition.PropertyChanged += Condition_PropertyChanged;
                 }
             }
         }
@@ -202,9 +234,11 @@ namespace MetaParser.WPF.ViewModels
                 if (Action.Type != value)
                 {
                     action.StateChanged -= Action_StateChanged;
+                    action.PropertyChanged -= Action_PropertyChanged;
                     Rule.Action = MetaAction.CreateMetaAction(value);
                     action = ActionViewModelFactory.CreateViewModel(Rule.Action, Meta);
                     action.StateChanged += Action_StateChanged;
+                    action.PropertyChanged += Action_PropertyChanged;
                     IsDirty = true;
                     OnPropertyChanged(nameof(Action));
                     OnPropertyChanged(nameof(SelectedActionType));

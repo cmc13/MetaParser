@@ -22,6 +22,7 @@ namespace MetaParser.WPF.ViewModels
                     ((SetVTOptionMetaAction)Action).Option = value;
                     OnPropertyChanged(nameof(Option));
                     OnPropertyChanged(nameof(Display));
+                    OnPropertyChanged(nameof(IsValid));
                     IsDirty = true;
                 }
             }
@@ -37,9 +38,12 @@ namespace MetaParser.WPF.ViewModels
                     ((SetVTOptionMetaAction)Action).Value = value;
                     OnPropertyChanged(nameof(Value));
                     OnPropertyChanged(nameof(Display));
+                    OnPropertyChanged(nameof(IsValid));
                     IsDirty = true;
                 }
             }
         }
+
+        public override bool IsValid => VTankOptionsExtensions.TryParse(Option, out var opt) && opt.IsValidValue(Value);
     }
 }
