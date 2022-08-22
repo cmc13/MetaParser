@@ -1,7 +1,6 @@
 ﻿using MetaParser.Models;
 using Microsoft.Toolkit.Mvvm.Input;
 using System;
-using System.Linq;
 
 namespace MetaParser.WPF.ViewModels
 {
@@ -33,22 +32,22 @@ namespace MetaParser.WPF.ViewModels
             {
                 if (condition != null)
                     condition.PropertyChanged -= Condition_PropertyChanged;
+
                 if (condition.Condition is NotCondition nc)
                 {
                     condition = ConditionViewModelFactory.CreateViewModel(nc.Data);
-                    IsDirty = true;
-                    OnPropertyChanged(nameof(Condition));
-                    OnPropertyChanged(nameof(SelectedConditionType));
                 }
                 else
                 {
                     var notCond = Models.Condition.CreateCondition(ConditionType.Not) as NotCondition;
                     notCond.Data = Condition.Condition;
                     condition = ConditionViewModelFactory.CreateViewModel(notCond);
-                    IsDirty = true;
-                    OnPropertyChanged(nameof(Condition));
-                    OnPropertyChanged(nameof(SelectedConditionType));
                 }
+
+                IsDirty = true;
+                OnPropertyChanged(nameof(Condition));
+                OnPropertyChanged(nameof(SelectedConditionType));
+
                 if (condition != null)
                     condition.PropertyChanged += Condition_PropertyChanged;
             });

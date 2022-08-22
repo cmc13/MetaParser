@@ -9,7 +9,7 @@ namespace MetaParser.WPF.ViewModels
         public GetVTOptionActionViewModel(GetVTOptionMetaAction action, MetaViewModel meta) : base(action, meta)
         { }
 
-        public IEnumerable<string> Options => System.Enum.GetValues<VTankOptions>().Select(o => o.GetDescription());
+        public IEnumerable<string> Options => System.Enum.GetValues<VTankOptions>().Select(o => o.GetDisplayName());
 
         public string Option
         {

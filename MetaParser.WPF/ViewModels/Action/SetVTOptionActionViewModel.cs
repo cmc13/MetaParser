@@ -10,7 +10,7 @@ namespace MetaParser.WPF.ViewModels
         {
         }
 
-        public IEnumerable<string> Options => System.Enum.GetValues<VTankOptions>().Select(o => o.GetDescription());
+        public IEnumerable<string> Options => System.Enum.GetValues<VTankOptions>().Select(o => o.GetDisplayName());
 
         public string Option
         {

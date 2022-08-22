@@ -12,6 +12,7 @@ namespace MetaParser.WPF.ViewModels
         private NavRouteViewModel nav;
         private string name;
         private readonly INavReader navReader = Formatters.NavReader;
+        private readonly INavReader metafNavReader = Formatters.MetafNavReader;
 
         public LoadEmbeddedNavRouteActionViewModel(EmbeddedNavRouteMetaAction action, MetaViewModel meta) : base(action, meta)
         {
@@ -40,7 +41,7 @@ namespace MetaParser.WPF.ViewModels
                     using var fs = File.OpenRead(ofd.FileName);
                     using var reader = new StreamReader(fs);
                     if (Path.GetExtension(ofd.FileName).ToLower() == ".af")
-                        await new MetafNavReader().ReadNavAsync(reader, nav);
+                        await metafNavReader.ReadNavAsync(reader, nav);
                     else
                         await navReader.ReadNavAsync(reader, nav).ConfigureAwait(false);
 
@@ -50,9 +51,9 @@ namespace MetaParser.WPF.ViewModels
             });
         }
 
-        public override string Display => $"{base.Display} ({Nav.Indicator})";
-
         public AsyncRelayCommand LoadNavCommand { get; }
+
+        public override string Display => $"{base.Display} ({Nav.Indicator})";
 
         public NavRouteViewModel Nav
         {
@@ -69,14 +70,6 @@ namespace MetaParser.WPF.ViewModels
                     IsDirty = true;
                     nav.PropertyChanged += Nav_PropertyChanged;
                 }
-            }
-        }
-
-        private void Nav_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == nameof(NavRouteViewModel.IsDirty))
-            {
-                OnPropertyChanged(nameof(IsDirty));
             }
         }
 
@@ -98,6 +91,14 @@ namespace MetaParser.WPF.ViewModels
         {
             get => base.IsDirty || Nav.IsDirty;
             set => base.IsDirty = value;
+        }
+
+        private void Nav_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(NavRouteViewModel.IsDirty))
+            {
+                OnPropertyChanged(nameof(IsDirty));
+            }
         }
     }
 }

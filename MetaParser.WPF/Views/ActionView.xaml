@@ -20,6 +20,7 @@
         <cvt:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
         <cvt:EnumToDescriptionConverter x:Key="EnumToDescriptionConverter" />
         <cvt:ExponentialConverter x:Key="ExponentialConverter" />
+        <cvt:VTankOptionToDisplayDescriptionConverter x:Key="VTankOptionToDisplayDescriptionConverter" />
 
         <local:ActionDataTemplateSelector x:Key="ActionDataTemplateSelector">
             <local:ActionDataTemplateSelector.DefaultTemplate>
@@ -68,7 +69,13 @@
                         </Grid.RowDefinitions>
 
                         <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Right">Option:</TextBlock>
-                        <ComboBox Grid.Row="0" Grid.Column="1" Text="{Binding Option, UpdateSourceTrigger=PropertyChanged}" Margin="2,0,0,0" IsEditable="True" ItemsSource="{Binding Options}" TextBoxBase.TextChanged="ComboBox_TextChanged" />
+                        <ComboBox Grid.Row="0" Grid.Column="1" Text="{Binding Option, UpdateSourceTrigger=PropertyChanged}" Margin="2,0,0,0" IsEditable="True" ItemsSource="{Binding Options}" TextBoxBase.TextChanged="ComboBox_TextChanged" ToolTip="{Binding Option, Converter={StaticResource VTankOptionToDisplayDescriptionConverter}}">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding}" ToolTip="{Binding Converter={StaticResource VTankOptionToDisplayDescriptionConverter }}" />
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
 
                         <TextBlock Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Right">Value:</TextBlock>
                         <TextBox Grid.Row="1" Grid.Column="1" x:Name="txtValue" Margin="2,2,0,0">
@@ -105,7 +112,13 @@
                         </Grid.RowDefinitions>
 
                         <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Right">Option:</TextBlock>
-                        <ComboBox Grid.Row="0" Grid.Column="1" Text="{Binding Option, UpdateSourceTrigger=PropertyChanged}" Margin="2,0,0,0" IsEditable="True" ItemsSource="{Binding Options}" />
+                        <ComboBox Grid.Row="0" Grid.Column="1" Text="{Binding Option, UpdateSourceTrigger=PropertyChanged}" Margin="2,0,0,0" IsEditable="True" ItemsSource="{Binding Options}" ToolTip="{Binding Option, Converter={StaticResource VTankOptionToDisplayDescriptionConverter}}">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding}" ToolTip="{Binding Converter={StaticResource VTankOptionToDisplayDescriptionConverter }}" />
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
 
                         <TextBlock Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Right">Variable:</TextBlock>
                         <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Variable, UpdateSourceTrigger=PropertyChanged}" Margin="2,2,0,0" />
@@ -155,7 +168,10 @@
                         </DockPanel>
 
                         <TextBlock Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Right">Time (s):</TextBlock>
-                        <xctk:DoubleUpDown Grid.Row="2" Grid.Column="1" Value="{Binding Time, UpdateSourceTrigger=PropertyChanged}" Minimum="0" Increment="1" Margin="2,2,0,0" />
+                        <DockPanel Grid.Row="2" Grid.Column="1" Margin="2,0,0,0">
+                            <xctk:DoubleUpDown DockPanel.Dock="Left" Value="{Binding Time, UpdateSourceTrigger=PropertyChanged}" Minimum="0" Increment="1" Width="100" />
+                            <Slider Value="{Binding Time, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource ExponentialConverter}}" Minimum="0" Maximum="31" SmallChange="0.1" LargeChange="1" IsSnapToTickEnabled="False" Margin="2,0,0,0" />
+                        </DockPanel>
                     </Grid>
                 </DataTemplate>
             </local:ActionDataTemplateSelector.WatchdogSetTemplate>
@@ -203,9 +219,9 @@
                                 <TextBox AcceptsReturn="True" AcceptsTab="True" Height="100" Margin="2,2,0,0" Name="txtXmlDefinition" BorderThickness="0" FontFamily="Consolas" ScrollViewer.VerticalScrollBarVisibility="Auto" TextWrapping="Wrap">
                                     <TextBox.Text>
                                         <Binding Path="ViewDefinition"
-                                 UpdateSourceTrigger="PropertyChanged"
-                                 Mode="TwoWay"
-                                 NotifyOnValidationError="True">
+                                                 UpdateSourceTrigger="PropertyChanged"
+                                                 Mode="TwoWay"
+                                                 NotifyOnValidationError="True">
                                             <Binding.ValidationRules>
                                                 <vr:IsValidViewDefinitionValidationRule />
                                             </Binding.ValidationRules>
