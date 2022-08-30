@@ -472,7 +472,23 @@
                                 </Grid.ColumnDefinitions>
 
                                 <TextBlock Grid.Column="0" VerticalAlignment="Center">LandCell:</TextBlock>
-                                <xctk:WatermarkTextBox Grid.Column="1" Margin="2,0,0,0">
+                                <xctk:WatermarkComboBox IsEditable="True" Grid.Column="1" Margin="2,0,0,0" ItemsSource="{ext:EnumBindingSource EnumType={x:Type root:NamedLandcell}}">
+                                    <xctk:WatermarkComboBox.Watermark>
+                                        <TextBlock Foreground="LightGray">FFFFFFFF</TextBlock>
+                                    </xctk:WatermarkComboBox.Watermark>
+                                    <xctk:WatermarkComboBox.Text>
+                                        <Binding Path="Data"
+                                                 UpdateSourceTrigger="PropertyChanged"
+                                                 Converter="{StaticResource LandBlockConverter}"
+                                                 ConverterParameter="False"
+                                                 StringFormat="X8">
+                                            <Binding.ValidationRules>
+                                                <vr:RegexValidationRule Regex="[0-9a-fA-F]{1,8}" />
+                                            </Binding.ValidationRules>
+                                        </Binding>
+                                    </xctk:WatermarkComboBox.Text>
+                                </xctk:WatermarkComboBox>
+                                <!--<xctk:WatermarkTextBox Grid.Column="1" Margin="2,0,0,0">
                                     <xctk:WatermarkTextBox.Watermark>
                                         <TextBlock Foreground="LightGray">FFFFFFFF</TextBlock>
                                     </xctk:WatermarkTextBox.Watermark>
@@ -487,7 +503,7 @@
                                             </Binding.ValidationRules>
                                         </Binding>
                                     </xctk:WatermarkTextBox.Text>
-                                </xctk:WatermarkTextBox>
+                                </xctk:WatermarkTextBox>-->
                             </Grid>
                         </DataTemplate>
                     </local:ConditionDataTemplateSelector.LandCellTemplate>

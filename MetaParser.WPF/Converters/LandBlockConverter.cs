@@ -35,7 +35,15 @@ namespace MetaParser.WPF.Converters
                     return i;
                 }
                 catch (OverflowException) { }
-                catch (FormatException) { }
+                catch (FormatException)
+                {
+                    if (NamedLandcellExtensions.TryParse(s, out var landcell))
+                    {
+                        return (int)landcell;
+                    }
+                    else
+                        throw;
+                }
                 catch (ArgumentOutOfRangeException) { }
             }
 

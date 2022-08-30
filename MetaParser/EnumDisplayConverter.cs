@@ -18,7 +18,10 @@ namespace MetaParser
                     if (fi != null)
                     {
                         var disp = fi.GetCustomAttribute<DisplayAttribute>();
-                        return !string.IsNullOrEmpty(disp.Name) ? disp.Name : value.ToString();
+                        if (disp != null)
+                            return !string.IsNullOrEmpty(disp.Name) ? disp.Name : value.ToString();
+                        else
+                            return value.ToString();
                     }
                 }
 
