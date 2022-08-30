@@ -207,7 +207,14 @@ namespace MetaParser.Models
     public class NavNodeNPCChat
         : NavNode<(string objectName, ObjectClass objectClass, double x, double y, double z)>
     {
-        public NavNodeNPCChat() : base(NavNodeType.NPCChat) { }
+        public NavNodeNPCChat() : base(NavNodeType.NPCChat)
+        {
+            Data = (
+                    null,
+                    ObjectClass.NPC,
+                    0, 0, 0
+                );
+        }
 
         protected NavNodeNPCChat(SerializationInfo info, StreamingContext context)
             : base(info, context)

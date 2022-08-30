@@ -1,10 +1,11 @@
-﻿using GongSolutions.Wpf.DragDrop;
+﻿using CommunityToolkit.Mvvm.Input;
+using GongSolutions.Wpf.DragDrop;
 using MetaParser.Models;
-using Microsoft.Toolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Windows;
+using WK.Libraries.SharpClipboardNS;
 
 namespace MetaParser.WPF.ViewModels
 {
@@ -12,6 +13,7 @@ namespace MetaParser.WPF.ViewModels
     {
         private readonly ObservableCollection<ConditionViewModel> conditionList = new();
         private ConditionViewModel selectedCondition;
+        private readonly SharpClipboard clipboard = new();
 
         public MultipleConditionViewModel(MultipleCondition condition) : base(condition)
         {
@@ -135,6 +137,18 @@ namespace MetaParser.WPF.ViewModels
                     SelectedCondition = ConditionList[idx];
                 }
             }, () => SelectedCondition != null && SelectedCondition is MultipleConditionViewModel mc && mc.ConditionList.Count == 1);
+
+            bool? prevValue = null;
+            clipboard.MonitorClipboard = true;
+            clipboard.ClipboardChanged += (sender, e) =>
+            {
+                var canPaste = PasteCommand.CanExecute(null);
+                if (canPaste != prevValue)
+                {
+                    prevValue = canPaste;
+                    Application.Current.Dispatcher.Invoke(PasteCommand.NotifyCanExecuteChanged);
+                }
+            };
         }
 
         public RelayCommand AddCommand { get; }

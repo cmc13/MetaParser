@@ -1,5 +1,4 @@
 ﻿using MetaParser.Models;
-using Microsoft.Toolkit.Mvvm.ComponentModel;
 
 namespace MetaParser.WPF.ViewModels
 {

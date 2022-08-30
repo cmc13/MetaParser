@@ -25,13 +25,13 @@
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
 
-                <xctk:DoubleUpDown Grid.Row="0" Grid.Column="0" Value="{Binding AbsY, UpdateSourceTrigger=PropertyChanged}" />
+                <xctk:DoubleUpDown Grid.Row="0" Grid.Column="0" Value="{Binding AbsY, UpdateSourceTrigger=PropertyChanged}" Minimum="0" />
                 <ComboBox Grid.Row="0" Grid.Column="1" SelectedValue="{Binding YDirection, UpdateSourceTrigger=PropertyChanged}">
                     <sys:String>N</sys:String>
                     <sys:String>S</sys:String>
                 </ComboBox>
 
-                <xctk:DoubleUpDown Grid.Row="0" Grid.Column="3" Value="{Binding AbsX, UpdateSourceTrigger=PropertyChanged}" />
+                <xctk:DoubleUpDown Grid.Row="0" Grid.Column="3" Value="{Binding AbsX, UpdateSourceTrigger=PropertyChanged}" Minimum="0" />
                 <ComboBox Grid.Row="0" Grid.Column="4" SelectedValue="{Binding XDirection, UpdateSourceTrigger=PropertyChanged}">
                     <sys:String>E</sys:String>
                     <sys:String>W</sys:String>

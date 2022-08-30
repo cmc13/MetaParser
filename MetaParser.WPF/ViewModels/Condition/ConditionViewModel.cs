@@ -1,7 +1,6 @@
-﻿using MetaParser.Models;
-using Microsoft.Toolkit.Mvvm.Input;
+﻿using CommunityToolkit.Mvvm.Input;
+using MetaParser.Models;
 using System;
-using System.Windows.Input;
 
 namespace MetaParser.WPF.ViewModels
 {

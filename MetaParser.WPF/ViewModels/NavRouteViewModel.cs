@@ -1,5 +1,4 @@
 ﻿using MetaParser.Models;
-using System.Collections.Generic;
 
 namespace MetaParser.WPF.ViewModels
 {
@@ -80,6 +79,13 @@ namespace MetaParser.WPF.ViewModels
         }
 
         public string Display => nav.ToString();
+
+        public override void Clean()
+        {
+            base.Clean();
+            if (NavViewModel.IsDirty)
+                NavViewModel.Clean();
+        }
 
         public override bool IsDirty
         {

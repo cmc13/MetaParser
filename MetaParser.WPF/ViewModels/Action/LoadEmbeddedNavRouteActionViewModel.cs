@@ -1,6 +1,6 @@
-﻿using MetaParser.Formatting;
+﻿using CommunityToolkit.Mvvm.Input;
+using MetaParser.Formatting;
 using MetaParser.Models;
-using Microsoft.Toolkit.Mvvm.Input;
 using Microsoft.Win32;
 using System;
 using System.IO;
@@ -91,6 +91,13 @@ namespace MetaParser.WPF.ViewModels
         {
             get => base.IsDirty || Nav.IsDirty;
             set => base.IsDirty = value;
+        }
+
+        public override void Clean()
+        {
+            base.Clean();
+            if (Nav.IsDirty)
+                Nav.Clean();
         }
 
         private void Nav_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)

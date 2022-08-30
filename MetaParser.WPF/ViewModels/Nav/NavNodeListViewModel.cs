@@ -1,5 +1,5 @@
-﻿using MetaParser.Models;
-using Microsoft.Toolkit.Mvvm.Input;
+﻿using CommunityToolkit.Mvvm.Input;
+using MetaParser.Models;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -163,6 +163,13 @@ namespace MetaParser.WPF.ViewModels
                     IsDirty = true;
                 }
             }
+        }
+
+        public override void Clean()
+        {
+            base.Clean();
+            foreach (var dirtyNode in NavNodes.Where(n => n.IsDirty))
+                dirtyNode.Clean();
         }
 
         public override bool IsDirty

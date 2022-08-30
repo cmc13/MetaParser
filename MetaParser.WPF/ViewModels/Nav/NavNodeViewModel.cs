@@ -37,7 +37,9 @@ namespace MetaParser.WPF.ViewModels
             {
                 if (AbsX != value)
                 {
-                    X = Math.Sign(X) * value;
+                    var sign = Math.Sign(X);
+                    sign = sign == 0 ? 1 : sign;
+                    X = sign * value;
                 }
             }
         }
@@ -78,7 +80,9 @@ namespace MetaParser.WPF.ViewModels
             {
                 if (AbsY != value)
                 {
-                    Y = Math.Sign(Y) * value;
+                    var sign = Math.Sign(Y);
+                    sign = sign == 0 ? 1 : sign;
+                    Y = sign * value;
                 }
             }
         }

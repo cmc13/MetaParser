@@ -1,10 +1,12 @@
-﻿using GongSolutions.Wpf.DragDrop;
+﻿using CommunityToolkit.Mvvm.Input;
+using GongSolutions.Wpf.DragDrop;
 using MetaParser.Models;
-using Microsoft.Toolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Windows;
+using System.Windows.Input;
+using WK.Libraries.SharpClipboardNS;
 
 namespace MetaParser.WPF.ViewModels
 {
@@ -12,6 +14,7 @@ namespace MetaParser.WPF.ViewModels
     {
         private readonly ObservableCollection<ActionViewModel> actionList = new();
         private ActionViewModel selectedAction;
+        private readonly SharpClipboard clipboard = new();
 
         public AllActionViewModel(AllMetaAction action, MetaViewModel meta) : base(action, meta)
         {
@@ -111,6 +114,18 @@ namespace MetaParser.WPF.ViewModels
                     SelectedAction = ActionList[idx];
                 }
             }, () => SelectedAction != null && SelectedAction is AllActionViewModel avm && avm.ActionList.Count == 1);
+
+            bool? prevValue = null;
+            clipboard.MonitorClipboard = true;
+            clipboard.ClipboardChanged += (sender, e) =>
+            {
+                var canPaste = PasteCommand.CanExecute(null);
+                if (canPaste != prevValue)
+                {
+                    prevValue = canPaste;
+                    Application.Current.Dispatcher.Invoke(PasteCommand.NotifyCanExecuteChanged);
+                }
+            };
         }
 
         public RelayCommand AddCommand { get; }

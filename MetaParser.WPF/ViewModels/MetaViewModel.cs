@@ -1,12 +1,14 @@
-﻿using GongSolutions.Wpf.DragDrop;
+﻿using CommunityToolkit.Mvvm.Input;
+using GongSolutions.Wpf.DragDrop;
 using MetaParser.Models;
 using MetaParser.WPF.MetaValidation;
-using Microsoft.Toolkit.Mvvm.Input;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Windows;
+using System.Windows.Input;
+using WK.Libraries.SharpClipboardNS;
 
 namespace MetaParser.WPF.ViewModels
 {
@@ -17,17 +19,32 @@ namespace MetaParser.WPF.ViewModels
         private bool showValidationErrors = false;
         private MetaValidationResult selectedValidationResult = null;
         private static readonly IMetaValidator validator = new AggregateMetaValidator();
+        private readonly SharpClipboard clipboard = new();
 
         public MetaViewModel(Meta meta)
         {
             Meta = meta;
 
+            Dictionary<string, List<RuleViewModel>> rulesByState = new();
             foreach (var rule in meta.Rules)
             {
                 var vm = new RuleViewModel(rule, this);
-                Rules.Add(vm);
+
+                List<RuleViewModel> list;
+                if (!rulesByState.ContainsKey(rule.State))
+                    list = rulesByState[rule.State] = new();
+                else
+                    list = rulesByState[rule.State];
+
+                list.Add(vm);
                 vm.StateChanged += Vm_StateChanged;
                 vm.PropertyChanged += Vm_PropertyChanged;
+            }
+
+            foreach (var kv in rulesByState.OrderBy(k => k.Key))
+            {
+                foreach (var rule in kv.Value)
+                    Rules.Add(rule);
             }
 
             Rules.CollectionChanged += Rules_CollectionChanged;
@@ -53,7 +70,8 @@ namespace MetaParser.WPF.ViewModels
                 using var sr = new StringReader(ruleText);
                 var rule = await Formatters.DefaultMetaReader.ReadRuleAsync(sr).ConfigureAwait(false);
                 var vm = new RuleViewModel(rule, this);
-                Rules.Add(vm);
+                var idx = FindIndexForState(vm.State);
+                Rules.Insert(idx, vm);
                 SelectedRule = vm;
             }, () => Clipboard.ContainsData(typeof(Rule).Name));
 
@@ -67,7 +85,8 @@ namespace MetaParser.WPF.ViewModels
                 };
 
                 var vm = new RuleViewModel(rule, this);
-                Rules.Add(vm);
+                var idx = FindIndexForState(vm.State);
+                Rules.Insert(idx, vm);
                 SelectedRule = vm;
             });
 
@@ -171,6 +190,18 @@ namespace MetaParser.WPF.ViewModels
 
                 SelectedState = state;
             });
+
+            bool? prevValue = null;
+            clipboard.MonitorClipboard = true;
+            clipboard.ClipboardChanged += (sender, e) =>
+            {
+                var canPaste = PasteCommand.CanExecute(null);
+                if (canPaste != prevValue)
+                {
+                    prevValue = canPaste;
+                    Application.Current.Dispatcher.Invoke(PasteCommand.NotifyCanExecuteChanged);
+                }
+            };
         }
 
         private void Vm_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -181,7 +212,26 @@ namespace MetaParser.WPF.ViewModels
             }
         }
 
-        private void Vm_StateChanged(object sender, System.EventArgs e) => OnPropertyChanged(nameof(StateList));
+        private void Vm_StateChanged(object sender, System.EventArgs e)
+        {
+            if (sender is RuleViewModel rule)
+            {
+                Rules.Remove(rule);
+                var idx = FindIndexForState(rule.State);
+                Rules.Insert(idx, rule);
+            }
+            OnPropertyChanged(nameof(StateList));
+        }
+
+        private int FindIndexForState(string state)
+        {
+            for (var i = 0; i < Rules.Count; ++i)
+            {
+                if (state.CompareTo(Rules[i].State) < 0)
+                    return i;
+            }
+            return Rules.Count;
+        }
 
         public override bool IsDirty
         {
@@ -279,10 +329,14 @@ namespace MetaParser.WPF.ViewModels
             if (dropInfo.Data is RuleViewModel source)
             {
                 var moveIndex = dropInfo.InsertIndex;
-                if (moveIndex > dropInfo.DragInfo.SourceIndex)
+                if (moveIndex > Rules.IndexOf(source))
                     moveIndex--;
                 if (dropInfo.DragInfo.SourceIndex != moveIndex)
-                    Rules.Move(dropInfo.DragInfo.SourceIndex, moveIndex);
+                {
+                    Rules.Remove(source);
+                    Rules.Insert(moveIndex, source);
+                    SelectedRule = source;
+                }
                 if (dropInfo.TargetGroup != null && source.State != (string)dropInfo.TargetGroup.Name)
                     source.State = (string)dropInfo.TargetGroup.Name;
             }
