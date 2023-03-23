@@ -38,15 +38,8 @@ namespace MetaParser.Formatting
 
             for (var i = 0; i < ruleCount; ++i)
             {
-                try
-                {
-                    var rule = await ReadRuleAsync(reader);
-                    m.Rules.Add(rule);
-                }
-                catch (Exception ex)
-                {
-                    throw;
-                }
+                var rule = await ReadRuleAsync(reader);
+                m.Rules.Add(rule);
             }
 
             return m;

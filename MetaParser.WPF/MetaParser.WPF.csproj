@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net6.0-windows</TargetFramework>
+    <TargetFramework>net7.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
     <ApplicationIcon>C:\Users\Cole\source\repos\MetaParser\MetaParser.WPF\Assets\Icons\Alloy_Cogwheel_Icon.ico</ApplicationIcon>
   </PropertyGroup>
@@ -34,11 +34,16 @@
     <None Remove="Assets\Icons\Remove_16x.png" />
     <None Remove="Assets\Icons\SaveAs_16x.png" />
     <None Remove="Assets\Icons\Save_16x.png" />
+    <None Remove="Assets\Icons\Search_16x.png" />
     <None Remove="Assets\Icons\ValidateDocument_16x.png" />
     <None Remove="Assets\Icons\WebFile_16x.png" />
     <None Remove="Assets\Icons\ZoomIn_16x.png" />
     <None Remove="Assets\Icons\ZoomOriginalSize_16x.png" />
     <None Remove="Assets\Icons\ZoomOut_16x.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\Icons\Search_16x.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -52,12 +57,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.0.0" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.1.0" />
     <PackageReference Include="Gu.Wpf.Geometry" Version="2.2.8" />
-    <PackageReference Include="Extended.Wpf.Toolkit" Version="4.4.0" />
+    <PackageReference Include="Extended.Wpf.Toolkit" Version="4.5.0" />
     <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.39" />
-    <PackageReference Include="gong-wpf-dragdrop" Version="3.1.1" />
+    <PackageReference Include="gong-wpf-dragdrop" Version="3.2.1" />
     <PackageReference Include="SharpClipboard" Version="3.5.2" />
+    <PackageReference Include="WPFTextBoxAutoComplete" Version="1.0.5" />
   </ItemGroup>
 
   <ItemGroup>

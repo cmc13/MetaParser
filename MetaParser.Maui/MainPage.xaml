@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:MetaParser.Maui.ViewModels"
+             x:DataType="vm:MainViewModel"
+             x:Class="MetaParser.Maui.MainPage"
+             Title="{Binding FileNameDisplay, StringFormat='MetaParser - {0}'}">
+    <ContentPage.MenuBarItems>
+        <MenuBarItem Text="File">
+            <MenuFlyoutItem Text="New Meta File"
+                            Command="{Binding NewFileCommand}"/>
+            <MenuFlyoutItem Text="Open Meta File…"
+                            Command="{Binding OpenFileCommand}"/>
+            <MenuFlyoutItem Text="Import Meta File…" />
+            <MenuFlyoutSeparator />
+            <MenuFlyoutItem Text="{Binding FileNameDisplay, StringFormat='Save {0}'}"
+                            Command="{Binding SaveFileCommand}"/>
+            <MenuFlyoutItem Text="{Binding FileNameDisplay, StringFormat='Save {0} As…'}"
+                            Command="{Binding SaveFileAsCommand}"/>
+            <MenuFlyoutSeparator />
+            <MenuFlyoutItem Text="Exit"
+                            Command="{Binding ExitCommand}"/>
+        </MenuBarItem>
+    </ContentPage.MenuBarItems>
+
+    <ScrollView>
+    </ScrollView>
+
+</ContentPage>

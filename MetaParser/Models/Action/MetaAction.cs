@@ -30,7 +30,7 @@ namespace MetaParser.Models
             ActionType.WatchdogSet => new WatchdogSetMetaAction(),
             ActionType.EmbeddedNavRoute => new EmbeddedNavRouteMetaAction(),
             ActionType.None => new MetaAction<int>(actionType),
-            ActionType.WatchdogClear => new MetaAction<int>(actionType),
+            ActionType.WatchdogClear => new TableMetaAction(actionType),
             ActionType.GetVTOption => new GetVTOptionMetaAction(),
             ActionType.DestroyView => new DestroyViewMetaAction(),
             ActionType.DestroyAllViews => new TableMetaAction(actionType),

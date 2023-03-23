@@ -1,9 +1,14 @@
 ﻿using MetaParser.Models;
+using MetaParser.WPF.Services;
+using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 
 namespace MetaParser.WPF.ViewModels
 {
     public class ItemCountConditionViewModel : ConditionViewModel
     {
+        private static readonly WeenieService weenieService = new();
+
         public ItemCountConditionViewModel(ItemCountCondition condition) : base(condition)
         { }
 
@@ -18,6 +23,19 @@ namespace MetaParser.WPF.ViewModels
                     OnPropertyChanged(nameof(ItemName));
                     OnPropertyChanged(nameof(Display));
                     IsDirty = true;
+
+                    //if (!string.IsNullOrWhiteSpace(value))
+                    //{
+                    //    Task.Run(async () =>
+                    //    {
+                    //        ItemNameList.Clear();
+                    //        await foreach (var weenie in weenieService.GetWeeniesAsync(value).ConfigureAwait(false))
+                    //        {
+                    //            if (!ItemNameList.Contains(weenie.Name))
+                    //                ItemNameList.Add(weenie.Name);
+                    //        }
+                    //    });
+                    //}
                 }
             }
         }
@@ -36,5 +54,7 @@ namespace MetaParser.WPF.ViewModels
                 }
             }
         }
+
+        public ObservableCollection<string> ItemNameList { get; } = new();
     }
 }

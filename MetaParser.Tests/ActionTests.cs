@@ -23,7 +23,7 @@ namespace MetaParser.Tests
         [DataRow(ActionType.WatchdogSet, typeof(WatchdogSetMetaAction))]
         [DataRow(ActionType.EmbeddedNavRoute, typeof(EmbeddedNavRouteMetaAction))]
         [DataRow(ActionType.None, typeof(MetaAction<int>))]
-        [DataRow(ActionType.WatchdogClear, typeof(MetaAction<int>))]
+        [DataRow(ActionType.WatchdogClear, typeof(TableMetaAction))]
         [DataRow(ActionType.GetVTOption, typeof(GetVTOptionMetaAction))]
         [DataRow(ActionType.DestroyView, typeof(DestroyViewMetaAction))]
         [DataRow(ActionType.DestroyAllViews, typeof(TableMetaAction))]

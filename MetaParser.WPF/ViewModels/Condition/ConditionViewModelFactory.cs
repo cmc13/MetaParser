@@ -12,9 +12,12 @@ namespace MetaParser.WPF.ViewModels
         {
             NotCondition nc => new NotConditionViewModel(nc),
             MultipleCondition mc => new MultipleConditionViewModel(mc),
-            Condition<int> c => c.Type == ConditionType.LandBlockE ?
-                new LandBlockConditionViewModel(c) :
-                new ConditionViewModel<int>(c),
+            Condition<int> c => c.Type switch
+            {
+                ConditionType.LandBlockE => new LandBlockConditionViewModel(c),
+                ConditionType.LandCellE => new LandCellConditionViewModel(c),
+                _ => new ConditionViewModel<int>(c)
+            },
             Condition<string> c => new ConditionViewModel<string>(c),
             ExpressionCondition ec => new ExpressionConditionViewModel(ec),
             DistanceToAnyRoutePointGECondition dc => new DistanceToAnyRoutePointGEConditionViewModel(dc),

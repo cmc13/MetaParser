@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Reflection;
 
 namespace MetaParser.Models
 {
@@ -19,8 +20,8 @@ namespace MetaParser.Models
                     var fi = value.GetType().GetField(value.ToString());
                     if (fi != null)
                     {
-                        var attributes = (DescriptionAttribute[])fi.GetCustomAttributes(typeof(DescriptionAttribute), false);
-                        return ((attributes.Length > 0) && (!String.IsNullOrEmpty(attributes[0].Description))) ? attributes[0].Description : value.ToString();
+                        var attribute = fi.GetCustomAttribute<DescriptionAttribute>();
+                        return attribute?.Description ?? value.ToString();
                     }
                 }
 

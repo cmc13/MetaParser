@@ -14,6 +14,7 @@
              xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
              xmlns:root="clr-namespace:MetaParser.WPF"
              xmlns:fx="http://gu.se/Geometry"
+             xmlns:ac="clr-namespace:WPFTextBoxAutoComplete;assembly=WPFTextBoxAutoComplete"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>
@@ -26,6 +27,7 @@
         <cvt:CoordinateConverter x:Key="CoordinateConverter" />
         <cvt:AllConverter x:Key="AllConverter" />
         <cvt:ExponentialConverter x:Key="ExponentialConverter" />
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
 
     </UserControl.Resources>
     <Grid Margin="0,2,0,0">
@@ -102,7 +104,7 @@
                                 </Grid.RowDefinitions>
 
                                 <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Right">Item Name:</TextBlock>
-                                <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding ItemName, UpdateSourceTrigger=PropertyChanged}" Margin="2" />
+                                <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding ItemName, UpdateSourceTrigger=PropertyChanged}" Margin="2" ac:AutoCompleteBehavior.AutoCompleteItemsSource="{Binding ItemNameList}" />
 
                                 <TextBlock Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Right">Count:</TextBlock>
                                 <DockPanel Grid.Row="1" Grid.Column="1" Margin="2">
@@ -469,10 +471,16 @@
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
 
-                                <TextBlock Grid.Column="0" VerticalAlignment="Center">LandCell:</TextBlock>
-                                <xctk:WatermarkComboBox IsEditable="True" Grid.Column="1" Margin="2,0,0,0" ItemsSource="{ext:EnumBindingSource EnumType={x:Type root:NamedLandcell}}">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Grid.Column="0" Grid.Row="0" VerticalAlignment="Center">LandCell:</TextBlock>
+                                <xctk:WatermarkComboBox IsEditable="True" Grid.Column="1" Grid.Row="0" Margin="2,0,0,0" ItemsSource="{ext:EnumBindingSource EnumType={x:Type root:NamedLandcell}}">
                                     <xctk:WatermarkComboBox.Watermark>
                                         <TextBlock Foreground="LightGray">FFFFFFFF</TextBlock>
                                     </xctk:WatermarkComboBox.Watermark>
@@ -488,22 +496,45 @@
                                         </Binding>
                                     </xctk:WatermarkComboBox.Text>
                                 </xctk:WatermarkComboBox>
-                                <!--<xctk:WatermarkTextBox Grid.Column="1" Margin="2,0,0,0">
-                                    <xctk:WatermarkTextBox.Watermark>
-                                        <TextBlock Foreground="LightGray">FFFFFFFF</TextBlock>
-                                    </xctk:WatermarkTextBox.Watermark>
-                                    <xctk:WatermarkTextBox.Text>
-                                        <Binding Path="Data"
-                                                 UpdateSourceTrigger="PropertyChanged"
-                                                 Converter="{StaticResource LandBlockConverter}"
-                                                 ConverterParameter="False"
-                                                 StringFormat="X8">
-                                            <Binding.ValidationRules>
-                                                <vr:RegexValidationRule Regex="[0-9a-fA-F]{1,8}" />
-                                            </Binding.ValidationRules>
-                                        </Binding>
-                                    </xctk:WatermarkTextBox.Text>
-                                </xctk:WatermarkTextBox>-->
+                                <Button Grid.Column="2" Grid.Row="0" Command="{Binding ShowSearchPanelCommand}">
+                                    Search Portals
+                                </Button>
+
+                                <GroupBox Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="1" Visibility="{Binding ShowSearchPanel, Converter={StaticResource BooleanToVisibilityConverter}}" Header="Search Portals">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                        </Grid.RowDefinitions>
+
+                                        <TextBlock Grid.Column="0" Grid.Row="0" VerticalAlignment="Center" Margin="0,0,2,0">Search Text:</TextBlock>
+                                        <TextBox Grid.Column="1" Grid.Row="0" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}">
+                                            <TextBox.InputBindings>
+                                                <KeyBinding Command="{Binding SearchPortalsCommand}" Key="Enter" />
+                                            </TextBox.InputBindings>
+                                        </TextBox>
+                                        <Button Grid.Column="2" Grid.Row="0" Command="{Binding SearchPortalsCommand}" ToolTip="Search">
+                                            <Image Source="../Assets/Icons/Search_16x.png" />
+                                        </Button>
+
+                                        <xctk:BusyIndicator Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="1" IsBusy="{Binding Searching}" BusyContent="Searching..." Margin="0,2,0,0">
+                                            <ListView ItemsSource="{Binding Weenies}" Height="100" SelectedItem="{Binding SelectedPortal}">
+                                                <ListView.View>
+                                                    <GridView>
+                                                        <GridViewColumn Header="Id" DisplayMemberBinding="{Binding WeenieClassId}" Width="80" />
+                                                        <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Name}" Width="250" />
+                                                    </GridView>
+                                                </ListView.View>
+                                            </ListView>
+                                        </xctk:BusyIndicator>
+                                    </Grid>
+                                </GroupBox>
                             </Grid>
                         </DataTemplate>
                     </local:ConditionDataTemplateSelector.LandCellTemplate>

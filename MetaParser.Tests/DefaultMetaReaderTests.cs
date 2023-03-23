@@ -107,7 +107,7 @@ namespace MetaParser.Tests
                 .AppendLine(expectedData.ToString())
                 .ToString();
             using var reader = new StringReader(sb);
-            var action = MetaAction.CreateMetaAction(ActionType.WatchdogClear) as MetaAction<int>;
+            var action = MetaAction.CreateMetaAction(ActionType.ReturnFromCall) as MetaAction<int>;
 
             var f = new DefaultMetaReader(new DefaultNavReader());
 
@@ -125,7 +125,7 @@ namespace MetaParser.Tests
                 .AppendLine("0")
                 .ToString();
             using var reader = new StringReader(sb);
-            var action = MetaAction.CreateMetaAction(ActionType.WatchdogClear) as MetaAction<int>;
+            var action = MetaAction.CreateMetaAction(ActionType.ReturnFromCall) as MetaAction<int>;
 
             var f = new DefaultMetaReader(new DefaultNavReader());
 
@@ -140,7 +140,7 @@ namespace MetaParser.Tests
                 .AppendLine("asdf")
                 .ToString();
             using var reader = new StringReader(sb);
-            var action = MetaAction.CreateMetaAction(ActionType.WatchdogClear) as MetaAction<int>;
+            var action = MetaAction.CreateMetaAction(ActionType.ReturnFromCall) as MetaAction<int>;
 
             var f = new DefaultMetaReader(new DefaultNavReader());
 
