@@ -1,102 +1,70 @@
 ﻿using CommunityToolkit.Maui.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using System.Collections.ObjectModel;
 
 namespace MetaParser.Maui.ViewModels;
 
 public partial class MainViewModel
     : ObservableObject
 {
-    private string fileName = null;
-    private readonly IFileSaver fileSaver;
-
-    public MainViewModel(IFileSaver fileSaver)
+    [RelayCommand]
+    async Task NewFile()
     {
-        this.fileSaver = fileSaver;
+        await Task.Delay(0);
     }
 
-    [RelayCommand]
-    public void Exit() => Application.Current.Quit();
-
-    [RelayCommand]
-    public async Task NewFile()
+    [RelayCommand(CanExecute = nameof(CanOpenFile))]
+    async Task OpenFile()
     {
-        if (MetaViewModel.IsDirty)
+        await Shell.Current.GoToAsync(nameof(MetaPage), new Dictionary<string, object>()
         {
-            var result = await Shell.Current.CurrentPage.DisplayAlert("Unsaved Changes", $"{FileNameDisplay} has unsaved changes. Would you like to save before closing?", "Yes", "No");
-            if (!result)
-            {
-                return;
-            }
-        }
-
-        MetaViewModel = new();
-        FileName = null;
-    }
-
-    [RelayCommand]
-    public async Task OpenFile()
-    {
-        if (MetaViewModel.IsDirty)
-        {
-            var confirm = await Shell.Current.CurrentPage.DisplayAlert("Unsaved Changes", $"{FileNameDisplay} has unsaved changes. Would you like to save before closing?", "Yes", "No");
-            if (!confirm)
-            {
-                return;
-            }
-        }
-
-        var result = await FilePicker.Default.PickAsync(new()
-        {
-            FileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>()
-            {
-                { DevicePlatform.WinUI, new[] { ".met", ".xml", ".af"} }
-            }),
-            PickerTitle = "Open Meta File…"
+            { nameof(MetaViewModel.FileName), SelectedFile.FullName }
         });
+    }
 
-        if (result != null)
+    bool CanOpenFile() => SelectedFile != null;
+
+    [RelayCommand]
+    async Task FileDoubleClicked()
+    {
+        await Task.Delay(0);
+    }
+
+    [RelayCommand]
+    async Task ChooseLocation()
+    {
+        var result = await FolderPicker.Default.PickAsync(CurrentLocation, CancellationToken.None);
+        if (result.IsSuccessful)
         {
-            FileName = result.FullPath;
+            CurrentLocation = result.Folder.Path;
         }
     }
 
     [RelayCommand]
-    public async Task SaveFile()
+    void Appearing()
     {
-        if (string.IsNullOrEmpty(FileName) || Path.GetExtension(FileName).ToLower() != ".met")
-        {
-            await SaveFileAs();
-        }
-        else
-        {
-        }
+        OnCurrentLocationChanged(CurrentLocation);
     }
 
-    [RelayCommand]
-    public async Task SaveFileAs()
-    {
-        var fileName = FileName ?? @"C:\test.met";
-        using var ms = new MemoryStream();
-        var result = await fileSaver.SaveAsync(Path.GetDirectoryName(fileName), Path.GetFileName(fileName), ms, CancellationToken.None);
+    [ObservableProperty]
+    private string currentLocation = @"C:\Games\VirindiPlugins\VirindiTank";
 
+    [ObservableProperty]
+    private ObservableCollection<FileInfo> files = new();
+
+    [ObservableProperty]
+    private FileInfo selectedFile;
+
+    partial void OnCurrentLocationChanged(string value)
+    {
+        Files.Clear();
+        foreach (var file in new[] { "*.met", "*.af", "*.xml" }.SelectMany(pat => Directory.EnumerateFiles(value, pat)).OrderBy(f => f))
+            Files.Add(new FileInfo(file));
     }
 
-    public string FileName
+    partial void OnSelectedFileChanged(FileInfo value)
     {
-        get => fileName;
-        set
-        {
-            if (fileName != value)
-            {
-                fileName = value;
-                OnPropertyChanged(nameof(FileName));
-                OnPropertyChanged(nameof(FileNameDisplay));
-            }
-        }
+        OpenFileCommand.NotifyCanExecuteChanged();
     }
-
-    public string FileNameDisplay => !string.IsNullOrEmpty(FileName) ? Path.GetFileName(FileName) : "[New File]";
-
-    public MetaViewModel MetaViewModel { get; set; } = new();
 }

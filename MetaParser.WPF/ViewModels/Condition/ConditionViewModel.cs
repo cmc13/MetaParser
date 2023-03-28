@@ -43,7 +43,7 @@ namespace MetaParser.WPF.ViewModels
         }
     }
 
-    public class LandCellConditionViewModel : ConditionViewModel<int>
+    public partial class LandCellConditionViewModel : ConditionViewModel<int>
     {
         private bool showSearchPanel = false;
         private string searchText = null;
@@ -123,32 +123,32 @@ namespace MetaParser.WPF.ViewModels
                 throw new ArgumentException("Invalid condition");
 
             ShowSearchPanelCommand = new(() => ShowSearchPanel = !ShowSearchPanel);
-
-            SearchPortalsCommand = new(async () =>
-            {
-                Searching = true;
-                var service = new WeenieService();
-
-                try
-                {
-                    Weenies.Clear();
-                    await foreach (var weenie in service.GetWeeniesAsync(7, SearchText))
-                    {
-                        Weenies.Add(weenie);
-                    }
-                }
-                finally
-                {
-                    Searching = false;
-                }
-            });
         }
 
         public RelayCommand ShowSearchPanelCommand { get; }
-        public AsyncRelayCommand SearchPortalsCommand { get; }
+
+        [RelayCommand]
+        async Task SearchPortals()
+        {
+            Searching = true;
+            var service = new WeenieService();
+
+            try
+            {
+                Weenies.Clear();
+                await foreach (var weenie in service.GetWeeniesAsync(7, SearchText))
+                {
+                    Weenies.Add(weenie);
+                }
+            }
+            finally
+            {
+                Searching = false;
+            }
+        }
     }
 
-    public class LandBlockConditionViewModel : ConditionViewModel<int>
+    public partial class LandBlockConditionViewModel : ConditionViewModel<int>
     {
         private const int LANDBLOCK_DIVISION = 256;
         private bool showMap;
@@ -159,14 +159,6 @@ namespace MetaParser.WPF.ViewModels
         {
             if (condition.Type != ConditionType.LandBlockE)
                 throw new ArgumentException("Invalid condition");
-
-            MapClickCommand = new(p =>
-            {
-                Data = CoordinatesToLandBlock(p.x, p.y);
-                ShowMap = false;
-            });
-
-            ToggleMapCommand = new(() => ShowMap = !ShowMap);
         }
 
         public bool ShowMap
@@ -198,9 +190,15 @@ namespace MetaParser.WPF.ViewModels
 
         public int HoverLandblock => CoordinatesToLandBlock(MousePosition.x, MousePosition.y);
 
-        public RelayCommand<(double x, double y)> MapClickCommand { get; }
+        [RelayCommand]
+        void MapClick((double x, double y) p)
+        {
+            Data = CoordinatesToLandBlock(p.x, p.y);
+            ShowMap = false;
+        }
 
-        public RelayCommand ToggleMapCommand { get; }
+        [RelayCommand]
+        void ToggleMap() => ShowMap = !ShowMap;
 
         private static int CoordinatesToLandBlock(double x, double y) => (int)(x * LANDBLOCK_DIVISION) * 0x1000000 + (int)(y * LANDBLOCK_DIVISION) * 0x10000;
     }

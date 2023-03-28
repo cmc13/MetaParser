@@ -4,12 +4,13 @@ using MetaParser.Models;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using WK.Libraries.SharpClipboardNS;
 
 namespace MetaParser.WPF.ViewModels
 {
-    public class MultipleConditionViewModel : ConditionViewModel, IDropTarget
+    public partial class MultipleConditionViewModel : ConditionViewModel, IDropTarget
     {
         private readonly ObservableCollection<ConditionViewModel> conditionList = new();
         private ConditionViewModel selectedCondition;
@@ -27,122 +28,11 @@ namespace MetaParser.WPF.ViewModels
 
             conditionList.CollectionChanged += ConditionList_CollectionChanged;
 
-            AddCommand = new(() =>
-            {
-                var c = Models.Condition.CreateCondition(ConditionType.Always);
-                var vm = ConditionViewModelFactory.CreateViewModel(c);
-                ConditionList.Add(vm);
-                SelectedCondition = vm;
-            });
-
-            RemoveCommand = new(() =>
-            {
-                ConditionList.Remove(SelectedCondition);
-                SelectedCondition = null;
-            }, () => SelectedCondition != null);
-
-            CutCommand = new(async () =>
-            {
-                await CopyCommand.ExecuteAsync(null);
-                RemoveCommand.Execute(null);
-            }, () => SelectedCondition != null);
-
-            CopyCommand = new(async () =>
-            {
-                using var sw = new StringWriter();
-                await sw.WriteLineAsync(((int)SelectedCondition.Type).ToString());
-                await Formatters.MetaWriter.WriteConditionAsync(sw, SelectedCondition.Condition).ConfigureAwait(false);
-                var conditionText = sw.ToString();
-                Clipboard.SetData(typeof(Models.Condition).Name, conditionText);
-                PasteCommand.NotifyCanExecuteChanged();
-            }, () => SelectedCondition != null);
-
-            PasteCommand = new(async () =>
-            {
-                var conditionText = (string)Clipboard.GetData(typeof(Models.Condition).Name);
-                using var sr = new StringReader(conditionText);
-                var conditionType = (ConditionType)int.Parse(await sr.ReadLineAsync().ConfigureAwait(false));
-                var condition = Models.Condition.CreateCondition(conditionType);
-                await Formatters.DefaultMetaReader.ReadConditionAsync(sr, condition).ConfigureAwait(false);
-                var vm = ConditionViewModelFactory.CreateViewModel(condition);
-                ConditionList.Add(vm);
-                SelectedCondition = vm;
-            }, () => Clipboard.ContainsData(typeof(Models.Condition).Name));
-
-            MoveUpCommand = new(() =>
-            {
-                var idx = ConditionList.IndexOf(SelectedCondition);
-                if (idx > 0)
-                    ConditionList.Move(idx, idx - 1);
-            }, () => SelectedCondition != null && ConditionList.IndexOf(SelectedCondition) > 0);
-
-            MoveDownCommand = new(() =>
-            {
-                var idx = ConditionList.IndexOf(SelectedCondition);
-                if (idx < ConditionList.Count - 1)
-                    ConditionList.Move(idx, idx + 1);
-            }, () => SelectedCondition != null && ConditionList.IndexOf(SelectedCondition) < ConditionList.Count - 1);
-
-            WrapInAllCommand = new(() =>
-            {
-                var uc = Condition as MultipleCondition;
-                var idx = ConditionList.IndexOf(SelectedCondition);
-                uc.Data[idx] = Models.Condition.CreateCondition(ConditionType.All) as MultipleCondition;
-                ((MultipleCondition)uc.Data[idx]).Data.Add(SelectedCondition.Condition);
-                ConditionList[idx] = ConditionViewModelFactory.CreateViewModel(uc.Data[idx]);
-                SelectedCondition = ConditionList[idx];
-                UnwrapCommand.NotifyCanExecuteChanged();
-            }, () => SelectedCondition != null);
-
-            WrapInAnyCommand = new(() =>
-            {
-                var uc = Condition as MultipleCondition;
-                var idx = ConditionList.IndexOf(SelectedCondition);
-                uc.Data[idx] = Models.Condition.CreateCondition(ConditionType.Any) as MultipleCondition;
-                ((MultipleCondition)uc.Data[idx]).Data.Add(SelectedCondition.Condition);
-                ConditionList[idx] = ConditionViewModelFactory.CreateViewModel(uc.Data[idx]);
-                SelectedCondition = ConditionList[idx];
-                UnwrapCommand.NotifyCanExecuteChanged();
-            }, () => SelectedCondition != null);
-
-            InvertCommand = new(() =>
-            {
-                var uc = Condition as MultipleCondition;
-                var idx = ConditionList.IndexOf(SelectedCondition);
-                if (SelectedCondition is NotConditionViewModel nc)
-                {
-                    var cond = nc.InnerCondition.Condition;
-                    uc.Data[idx] = cond;
-                    ConditionList[idx] = ConditionViewModelFactory.CreateViewModel(uc.Data[idx]);
-                    SelectedCondition = ConditionList[idx];
-                }
-                else
-                {
-                    var cond = SelectedCondition.Condition;
-                    uc.Data[idx] = Models.Condition.CreateCondition(ConditionType.Not) as NotCondition;
-                    ((NotCondition)uc.Data[idx]).Data = cond;
-                    ConditionList[idx] = ConditionViewModelFactory.CreateViewModel(uc.Data[idx]);
-                    SelectedCondition = ConditionList[idx];
-                }
-            }, () => SelectedCondition != null);
-
-            UnwrapCommand = new(() =>
-            {
-                if (SelectedCondition.Condition is MultipleCondition mc && mc.Data.Count == 1)
-                {
-                    var uc = Condition as MultipleCondition;
-                    var idx = ConditionList.IndexOf(SelectedCondition);
-                    uc.Data[idx] = mc.Data[0];
-                    ConditionList[idx] = ConditionViewModelFactory.CreateViewModel(uc.Data[idx]);
-                    SelectedCondition = ConditionList[idx];
-                }
-            }, () => SelectedCondition != null && SelectedCondition is MultipleConditionViewModel mc && mc.ConditionList.Count == 1);
-
             bool? prevValue = null;
             clipboard.MonitorClipboard = true;
             clipboard.ClipboardChanged += (sender, e) =>
             {
-                var canPaste = PasteCommand.CanExecute(null);
+                var canPaste = PasteCanExecute();
                 if (canPaste != prevValue)
                 {
                     prevValue = canPaste;
@@ -151,27 +41,130 @@ namespace MetaParser.WPF.ViewModels
             };
         }
 
-        public RelayCommand AddCommand { get; }
+        [RelayCommand]
+        void Add()
+        {
+            var c = Models.Condition.CreateCondition(ConditionType.Always);
+            var vm = ConditionViewModelFactory.CreateViewModel(c);
+            ConditionList.Add(vm);
+            SelectedCondition = vm;
+        }
 
-        public RelayCommand RemoveCommand { get; }
+        [RelayCommand(CanExecute = nameof(ConditionIsSelected))]
+        void Remove()
+        {
+            ConditionList.Remove(SelectedCondition);
+            SelectedCondition = null;
+        }
 
-        public AsyncRelayCommand CutCommand { get; }
+        private bool ConditionIsSelected() => SelectedCondition != null;
 
-        public AsyncRelayCommand CopyCommand { get; }
+        [RelayCommand(CanExecute = nameof(ConditionIsSelected))]
+        async Task Cut()
+        {
+            await Copy().ConfigureAwait(false);
+            Remove();
+        }
 
-        public AsyncRelayCommand PasteCommand { get; }
+        [RelayCommand(CanExecute = nameof(ConditionIsSelected))]
+        async Task Copy()
+        {
+            using var sw = new StringWriter();
+            await sw.WriteLineAsync(((int)SelectedCondition.Type).ToString());
+            await Formatters.MetaWriter.WriteConditionAsync(sw, SelectedCondition.Condition).ConfigureAwait(false);
+            var conditionText = sw.ToString();
+            Clipboard.SetData(typeof(Models.Condition).Name, conditionText);
+            PasteCommand.NotifyCanExecuteChanged();
+        }
 
-        public RelayCommand MoveUpCommand { get; }
+        [RelayCommand(CanExecute = nameof(PasteCanExecute))]
+        async Task Paste()
+        {
+            var conditionText = (string)Clipboard.GetData(typeof(Models.Condition).Name);
+            using var sr = new StringReader(conditionText);
+            var conditionType = (ConditionType)int.Parse(await sr.ReadLineAsync().ConfigureAwait(false));
+            var condition = Models.Condition.CreateCondition(conditionType);
+            await Formatters.DefaultMetaReader.ReadConditionAsync(sr, condition).ConfigureAwait(false);
+            var vm = ConditionViewModelFactory.CreateViewModel(condition);
+            ConditionList.Add(vm);
+            SelectedCondition = vm;
+        }
 
-        public RelayCommand MoveDownCommand { get; }
+        bool PasteCanExecute() => Clipboard.ContainsData(typeof(Models.Condition).Name);
 
-        public RelayCommand WrapInAllCommand { get; }
+        [RelayCommand(CanExecute = nameof(MoveUpCanExecute))]
+        void MoveUp()
+        {
+            var idx = ConditionList.IndexOf(SelectedCondition);
+            if (idx > 0)
+                ConditionList.Move(idx, idx - 1);
+        }
 
-        public RelayCommand WrapInAnyCommand { get; }
+        bool MoveUpCanExecute() => SelectedCondition != null && ConditionList.IndexOf(SelectedCondition) > 0;
 
-        public RelayCommand InvertCommand { get; }
+        [RelayCommand(CanExecute = nameof(MoveDownCanExecute))]
+        void MoveDown()
+        {
+            var idx = ConditionList.IndexOf(SelectedCondition);
+            if (idx < ConditionList.Count - 1)
+                ConditionList.Move(idx, idx + 1);
+        }
 
-        public RelayCommand UnwrapCommand { get; }
+        bool MoveDownCanExecute() => SelectedCondition != null && ConditionList.IndexOf(SelectedCondition) < ConditionList.Count - 1;
+
+        [RelayCommand(CanExecute = nameof(ConditionIsSelected))]
+        void WrapInAll() => WrapCondition(ConditionType.All);
+
+        [RelayCommand(CanExecute = nameof(ConditionIsSelected))]
+        void WrapInAny() => WrapCondition(ConditionType.Any);
+
+        private void WrapCondition(ConditionType type)
+        {
+            var uc = Condition as MultipleCondition;
+            var idx = ConditionList.IndexOf(SelectedCondition);
+            uc.Data[idx] = Models.Condition.CreateCondition(ConditionType.All) as MultipleCondition;
+            ((MultipleCondition)uc.Data[idx]).Data.Add(SelectedCondition.Condition);
+            ConditionList[idx] = ConditionViewModelFactory.CreateViewModel(uc.Data[idx]);
+            SelectedCondition = ConditionList[idx];
+            UnwrapCommand.NotifyCanExecuteChanged();
+        }
+
+        [RelayCommand(CanExecute = nameof(ConditionIsSelected))]
+        void Invert()
+        {
+            var uc = Condition as MultipleCondition;
+            var idx = ConditionList.IndexOf(SelectedCondition);
+            if (SelectedCondition is NotConditionViewModel nc)
+            {
+                var cond = nc.InnerCondition.Condition;
+                uc.Data[idx] = cond;
+                ConditionList[idx] = ConditionViewModelFactory.CreateViewModel(uc.Data[idx]);
+                SelectedCondition = ConditionList[idx];
+            }
+            else
+            {
+                var cond = SelectedCondition.Condition;
+                uc.Data[idx] = Models.Condition.CreateCondition(ConditionType.Not) as NotCondition;
+                ((NotCondition)uc.Data[idx]).Data = cond;
+                ConditionList[idx] = ConditionViewModelFactory.CreateViewModel(uc.Data[idx]);
+                SelectedCondition = ConditionList[idx];
+            }
+        }
+
+        [RelayCommand(CanExecute = nameof(UnwrapCanExecute))]
+        void Unwrap()
+        {
+            if (SelectedCondition.Condition is MultipleCondition mc && mc.Data.Count == 1)
+            {
+                var uc = Condition as MultipleCondition;
+                var idx = ConditionList.IndexOf(SelectedCondition);
+                uc.Data[idx] = mc.Data[0];
+                ConditionList[idx] = ConditionViewModelFactory.CreateViewModel(uc.Data[idx]);
+                SelectedCondition = ConditionList[idx];
+            }
+        }
+
+        bool UnwrapCanExecute() => SelectedCondition != null && SelectedCondition is MultipleConditionViewModel mc && mc.ConditionList.Count == 1;
 
         private void ConditionList_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {

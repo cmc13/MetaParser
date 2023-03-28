@@ -21,7 +21,7 @@ namespace MetaParser.WPF.Views
 
         public override DataTemplate SelectTemplate(object item, DependencyObject container) => item switch
         {
-            ActionViewModel<int> or DestroyAllViewsActionViewModel => DefaultTemplate,
+            ActionViewModel<int> or TableActionViewModel => DefaultTemplate,
             ExpressionActionViewModel => ExpressionTemplate ?? DefaultTemplate,
             ActionViewModel<string> c when c.Type == Models.ActionType.SetState => SetStateTemplate ?? DefaultTemplate,
             ActionViewModel<string> => StringValueTemplate ?? DefaultTemplate,

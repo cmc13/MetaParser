@@ -9,7 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MetaParser.Tests", "MetaPar
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MetaParser.WPF", "MetaParser.WPF\MetaParser.WPF.csproj", "{BD33A928-4A87-4A4F-998A-5C04F2E43C77}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MetaParser.Maui", "MetaParser.Maui\MetaParser.Maui.csproj", "{577F21BD-3FE8-498A-B6F6-CA8F2E5BBA29}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MetaParser.Maui", "MetaParser.Maui\MetaParser.Maui.csproj", "{577F21BD-3FE8-498A-B6F6-CA8F2E5BBA29}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MetaParser.WPF.Tests", "MetaParser.WPF.Tests\MetaParser.WPF.Tests.csproj", "{2B10904F-AA93-4B79-B282-09625A17ABF3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -35,6 +37,10 @@ Global
 		{577F21BD-3FE8-498A-B6F6-CA8F2E5BBA29}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{577F21BD-3FE8-498A-B6F6-CA8F2E5BBA29}.Release|Any CPU.Build.0 = Release|Any CPU
 		{577F21BD-3FE8-498A-B6F6-CA8F2E5BBA29}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{2B10904F-AA93-4B79-B282-09625A17ABF3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2B10904F-AA93-4B79-B282-09625A17ABF3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2B10904F-AA93-4B79-B282-09625A17ABF3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2B10904F-AA93-4B79-B282-09625A17ABF3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

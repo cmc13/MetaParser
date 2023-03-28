@@ -58,4 +58,10 @@
 	  <ProjectReference Include="..\MetaParser\MetaParser.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <MauiXaml Update="MetaPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	</ItemGroup>
+
 </Project>

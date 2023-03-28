@@ -1,4 +1,5 @@
-﻿using CommunityToolkit.Maui.Storage;
+﻿using CommunityToolkit.Maui;
+using CommunityToolkit.Maui.Storage;
 using MetaParser.Maui.ViewModels;
 using Microsoft.Extensions.Logging;
 
@@ -11,6 +12,7 @@ namespace MetaParser.Maui
             var builder = MauiApp.CreateBuilder();
             builder
                 .UseMauiApp<App>()
+                .UseMauiCommunityToolkit()
                 .ConfigureFonts(fonts =>
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
@@ -19,6 +21,8 @@ namespace MetaParser.Maui
 
             builder.Services.AddSingleton<MainViewModel>();
             builder.Services.AddSingleton<MainPage>();
+            builder.Services.AddTransient<MetaViewModel>();
+            builder.Services.AddTransient<MetaPage>();
             builder.Services.AddSingleton(FileSaver.Default);
 
 #if DEBUG

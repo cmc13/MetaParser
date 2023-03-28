@@ -4,10 +4,11 @@ using MetaParser.Models;
 using Microsoft.Win32;
 using System;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace MetaParser.WPF.ViewModels
 {
-    public class LoadEmbeddedNavRouteActionViewModel : ActionViewModel
+    public partial class LoadEmbeddedNavRouteActionViewModel : ActionViewModel
     {
         private NavRouteViewModel nav;
         private string name;
@@ -22,36 +23,35 @@ namespace MetaParser.WPF.ViewModels
                 action.Data = (action.Data.name, new NavRoute() { Type = NavType.Circular });
             nav = new NavRouteViewModel(action.Data.nav);
             nav.PropertyChanged += Nav_PropertyChanged;
-
-            LoadNavCommand = new(async () =>
-            {
-                var ofd = new OpenFileDialog()
-                {
-                    InitialDirectory = Directory.Exists(@"C:\Games\VirindiPlugins\VirindiTank\") ? @"C:\Games\VirindiPlugins\VirindiTank\" : Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-                    CheckFileExists = true,
-                    CheckPathExists = true,
-                    Multiselect = false,
-                    Filter = "Nav Route Files (*.nav)|*.nav|Metaf Nav Files (*.af)|*.af"
-                };
-
-                var result = ofd.ShowDialog();
-                if (result.HasValue && result.Value == true)
-                {
-                    var nav = new NavRoute();
-                    using var fs = File.OpenRead(ofd.FileName);
-                    using var reader = new StreamReader(fs);
-                    if (Path.GetExtension(ofd.FileName).ToLower() == ".af")
-                        await metafNavReader.ReadNavAsync(reader, nav);
-                    else
-                        await navReader.ReadNavAsync(reader, nav).ConfigureAwait(false);
-
-                    ((EmbeddedNavRouteMetaAction)Action).Data = (Path.GetFileName(ofd.FileName), nav);
-                    Nav = new NavRouteViewModel(nav);
-                }
-            });
         }
 
-        public AsyncRelayCommand LoadNavCommand { get; }
+        [RelayCommand]
+        async Task LoadNav()
+        {
+            var ofd = new OpenFileDialog()
+            {
+                InitialDirectory = Directory.Exists(@"C:\Games\VirindiPlugins\VirindiTank\") ? @"C:\Games\VirindiPlugins\VirindiTank\" : Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                CheckFileExists = true,
+                CheckPathExists = true,
+                Multiselect = false,
+                Filter = "Nav Route Files (*.nav)|*.nav|Metaf Nav Files (*.af)|*.af"
+            };
+
+            var result = ofd.ShowDialog();
+            if (result.HasValue && result.Value == true)
+            {
+                var nav = new NavRoute();
+                using var fs = File.OpenRead(ofd.FileName);
+                using var reader = new StreamReader(fs);
+                if (Path.GetExtension(ofd.FileName).ToLower() == ".af")
+                    await metafNavReader.ReadNavAsync(reader, nav);
+                else
+                    await navReader.ReadNavAsync(reader, nav).ConfigureAwait(false);
+
+                ((EmbeddedNavRouteMetaAction)Action).Data = (Path.GetFileName(ofd.FileName), nav);
+                Nav = new NavRouteViewModel(nav);
+            }
+        }
 
         public override string Display => $"{base.Display} ({Nav.Indicator})";
 

@@ -16,12 +16,12 @@ namespace MetaParser.WPF.ViewModels
             SetVTOptionMetaAction c => new SetVTOptionActionViewModel(c, meta),
             GetVTOptionMetaAction c => new GetVTOptionActionViewModel(c, meta),
             CallStateMetaAction c => new CallStateActionViewModel(c, meta),
-            TableMetaAction c when c.Type == ActionType.DestroyAllViews => new DestroyAllViewsActionViewModel(c, meta),
             DestroyViewMetaAction c => new DestroyViewActionViewModel(c, meta),
             CreateViewMetaAction c => new CreateViewActionViewModel(c, meta),
             AllMetaAction c => new AllActionViewModel(c, meta),
             EmbeddedNavRouteMetaAction c => new LoadEmbeddedNavRouteActionViewModel(c, meta),
             WatchdogSetMetaAction c => new WatchdogSetActionViewModel(c, meta),
+            TableMetaAction c => new TableActionViewModel(c, meta),
             _ => new ActionViewModel(action, meta)
         };
     }

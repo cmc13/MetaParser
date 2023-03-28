@@ -8,7 +8,7 @@ namespace MetaParser.WPF.Converters
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if ((bool)value)
+            if (value is bool b && b)
                 return "*";
             return "";
         }

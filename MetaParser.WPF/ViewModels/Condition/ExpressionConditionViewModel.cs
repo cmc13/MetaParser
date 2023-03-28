@@ -4,7 +4,7 @@ using System.Diagnostics;
 
 namespace MetaParser.WPF.ViewModels
 {
-    public class ExpressionConditionViewModel : ConditionViewModel
+    public partial class ExpressionConditionViewModel : ConditionViewModel
     {
         public ExpressionConditionViewModel(ExpressionCondition condition) : base(condition)
         {
@@ -26,7 +26,8 @@ namespace MetaParser.WPF.ViewModels
             }
         }
 
-        public RelayCommand LaunchExpressionHelpCommand => new(() =>
+        [RelayCommand]
+        void LaunchExpressionHelp()
         {
             var psi = new ProcessStartInfo()
             {
@@ -34,6 +35,6 @@ namespace MetaParser.WPF.ViewModels
                 UseShellExecute = true
             };
             Process.Start(psi);
-        });
+        }
     }
 }

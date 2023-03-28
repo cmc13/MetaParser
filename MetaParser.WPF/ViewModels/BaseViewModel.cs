@@ -2,7 +2,7 @@
 
 namespace MetaParser.WPF.ViewModels
 {
-    public class BaseViewModel : ObservableRecipient
+    public partial class BaseViewModel : ObservableRecipient
     {
         private bool isDirty = false;
 
