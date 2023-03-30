@@ -5,11 +5,14 @@ namespace MetaParser.WPF.ViewModels
     class NotConditionViewModel : ConditionViewModel
     {
         private ConditionViewModel vm;
-        public NotConditionViewModel(NotCondition condition)
+        private readonly ConditionViewModelFactory conditionViewModelFactory;
+
+        public NotConditionViewModel(NotCondition condition, ConditionViewModelFactory conditionViewModelFactory)
             :base(condition)
         {
-            vm = ConditionViewModelFactory.CreateViewModel(condition.Data);
+            vm = conditionViewModelFactory.CreateViewModel(condition.Data);
             vm.PropertyChanged += Vm_PropertyChanged;
+            this.conditionViewModelFactory = conditionViewModelFactory;
         }
 
         private void Vm_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -32,7 +35,7 @@ namespace MetaParser.WPF.ViewModels
                 if (vm.Type != value)
                 {
                     ((NotCondition)Condition).Data = Condition.CreateCondition(value);
-                    InnerCondition = ConditionViewModelFactory.CreateViewModel(((NotCondition)Condition).Data);
+                    InnerCondition = conditionViewModelFactory.CreateViewModel(((NotCondition)Condition).Data);
 
                     OnPropertyChanged(nameof(CurrentConditionType));
                     OnPropertyChanged(nameof(Display));

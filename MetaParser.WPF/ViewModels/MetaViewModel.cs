@@ -20,17 +20,20 @@ public partial class MetaViewModel
     private MetaValidationResult selectedValidationResult = null;
     private static readonly IMetaValidator validator = new AggregateMetaValidator();
     private readonly SharpClipboard clipboard = new();
+    private readonly ConditionViewModelFactory conditionViewModelFactory;
+    private readonly ActionViewModelFactory actionViewModelFactory;
 
-    public MetaViewModel() : this(new()) { }
+    public MetaViewModel(ConditionViewModelFactory conditionViewModelFactory, ActionViewModelFactory actionViewModelFactory) : this(new(), conditionViewModelFactory, actionViewModelFactory) { }
 
-    public MetaViewModel(Meta meta)
+    public MetaViewModel(Meta meta, ConditionViewModelFactory conditionViewModelFactory, ActionViewModelFactory actionViewModelFactory)
     {
         Meta = meta;
-
+        this.conditionViewModelFactory = conditionViewModelFactory;
+        this.actionViewModelFactory = actionViewModelFactory;
         Dictionary<string, List<RuleViewModel>> rulesByState = new();
         foreach (var rule in meta.Rules)
         {
-            var vm = new RuleViewModel(rule, this);
+            var vm = new RuleViewModel(rule, this, conditionViewModelFactory, actionViewModelFactory);
 
             List<RuleViewModel> list;
             if (!rulesByState.ContainsKey(rule.State))
@@ -55,7 +58,7 @@ public partial class MetaViewModel
         clipboard.MonitorClipboard = true;
         clipboard.ClipboardChanged += (sender, e) =>
         {
-            var canPaste = PasteCommand.CanExecute(null);
+            var canPaste = PasteCanExecute();
             if (canPaste != prevValue)
             {
                 prevValue = canPaste;
@@ -205,7 +208,7 @@ public partial class MetaViewModel
     [RelayCommand(CanExecute = nameof(CutCanExecute))]
     async Task Cut()
     {
-        await CopyCommand.ExecuteAsync(null).ConfigureAwait(false);
+        await Copy().ConfigureAwait(false);
         Rules.Remove(SelectedRule);
     }
 
@@ -227,7 +230,7 @@ public partial class MetaViewModel
         var ruleText = (string)Clipboard.GetData(typeof(Rule).Name);
         using var sr = new StringReader(ruleText);
         var rule = await Formatters.DefaultMetaReader.ReadRuleAsync(sr).ConfigureAwait(false);
-        var vm = new RuleViewModel(rule, this);
+        var vm = new RuleViewModel(rule, this, conditionViewModelFactory, actionViewModelFactory);
         var idx = FindIndexForState(vm.State);
         Rules.Insert(idx, vm);
         SelectedRule = vm;
@@ -245,7 +248,7 @@ public partial class MetaViewModel
             State = "Default"
         };
 
-        var vm = new RuleViewModel(rule, this);
+        var vm = new RuleViewModel(rule, this, conditionViewModelFactory, actionViewModelFactory);
         var idx = FindIndexForState(vm.State);
         Rules.Insert(idx, vm);
         SelectedRule = vm;

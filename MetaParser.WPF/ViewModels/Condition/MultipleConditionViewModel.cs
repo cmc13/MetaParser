@@ -1,12 +1,12 @@
 ﻿using CommunityToolkit.Mvvm.Input;
 using GongSolutions.Wpf.DragDrop;
 using MetaParser.Models;
+using MetaParser.WPF.Services;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
-using WK.Libraries.SharpClipboardNS;
 
 namespace MetaParser.WPF.ViewModels
 {
@@ -14,13 +14,17 @@ namespace MetaParser.WPF.ViewModels
     {
         private readonly ObservableCollection<ConditionViewModel> conditionList = new();
         private ConditionViewModel selectedCondition;
-        private readonly SharpClipboard clipboard = new();
+        private readonly ConditionViewModelFactory conditionViewModelFactory;
+        private readonly ClipboardService clipboardService;
 
-        public MultipleConditionViewModel(MultipleCondition condition) : base(condition)
+        public MultipleConditionViewModel(MultipleCondition condition, ConditionViewModelFactory conditionViewModelFactory, ClipboardService clipboardService) : base(condition)
         {
+            this.conditionViewModelFactory = conditionViewModelFactory;
+            this.clipboardService = clipboardService;
+
             foreach (var subCondition in condition.Data)
             {
-                var c = ConditionViewModelFactory.CreateViewModel(subCondition);
+                var c = conditionViewModelFactory.CreateViewModel(subCondition);
                 conditionList.Add(c);
 
                 c.PropertyChanged += C_PropertyChanged;
@@ -29,8 +33,7 @@ namespace MetaParser.WPF.ViewModels
             conditionList.CollectionChanged += ConditionList_CollectionChanged;
 
             bool? prevValue = null;
-            clipboard.MonitorClipboard = true;
-            clipboard.ClipboardChanged += (sender, e) =>
+            clipboardService.ClipboardChanged += (sender, e) =>
             {
                 var canPaste = PasteCanExecute();
                 if (canPaste != prevValue)
@@ -45,7 +48,7 @@ namespace MetaParser.WPF.ViewModels
         void Add()
         {
             var c = Models.Condition.CreateCondition(ConditionType.Always);
-            var vm = ConditionViewModelFactory.CreateViewModel(c);
+            var vm = conditionViewModelFactory.CreateViewModel(c);
             ConditionList.Add(vm);
             SelectedCondition = vm;
         }
@@ -73,7 +76,7 @@ namespace MetaParser.WPF.ViewModels
             await sw.WriteLineAsync(((int)SelectedCondition.Type).ToString());
             await Formatters.MetaWriter.WriteConditionAsync(sw, SelectedCondition.Condition).ConfigureAwait(false);
             var conditionText = sw.ToString();
-            Clipboard.SetData(typeof(Models.Condition).Name, conditionText);
+            clipboardService.SetData(typeof(Models.Condition).Name, conditionText);
             PasteCommand.NotifyCanExecuteChanged();
         }
 
@@ -85,12 +88,12 @@ namespace MetaParser.WPF.ViewModels
             var conditionType = (ConditionType)int.Parse(await sr.ReadLineAsync().ConfigureAwait(false));
             var condition = Models.Condition.CreateCondition(conditionType);
             await Formatters.DefaultMetaReader.ReadConditionAsync(sr, condition).ConfigureAwait(false);
-            var vm = ConditionViewModelFactory.CreateViewModel(condition);
+            var vm = conditionViewModelFactory.CreateViewModel(condition);
             ConditionList.Add(vm);
             SelectedCondition = vm;
         }
 
-        bool PasteCanExecute() => Clipboard.ContainsData(typeof(Models.Condition).Name);
+        bool PasteCanExecute() => clipboardService.ContainsData(typeof(Models.Condition).Name);
 
         [RelayCommand(CanExecute = nameof(MoveUpCanExecute))]
         void MoveUp()
@@ -124,7 +127,7 @@ namespace MetaParser.WPF.ViewModels
             var idx = ConditionList.IndexOf(SelectedCondition);
             uc.Data[idx] = Models.Condition.CreateCondition(ConditionType.All) as MultipleCondition;
             ((MultipleCondition)uc.Data[idx]).Data.Add(SelectedCondition.Condition);
-            ConditionList[idx] = ConditionViewModelFactory.CreateViewModel(uc.Data[idx]);
+            ConditionList[idx] = conditionViewModelFactory.CreateViewModel(uc.Data[idx]);
             SelectedCondition = ConditionList[idx];
             UnwrapCommand.NotifyCanExecuteChanged();
         }
@@ -138,7 +141,7 @@ namespace MetaParser.WPF.ViewModels
             {
                 var cond = nc.InnerCondition.Condition;
                 uc.Data[idx] = cond;
-                ConditionList[idx] = ConditionViewModelFactory.CreateViewModel(uc.Data[idx]);
+                ConditionList[idx] = conditionViewModelFactory.CreateViewModel(uc.Data[idx]);
                 SelectedCondition = ConditionList[idx];
             }
             else
@@ -146,7 +149,7 @@ namespace MetaParser.WPF.ViewModels
                 var cond = SelectedCondition.Condition;
                 uc.Data[idx] = Models.Condition.CreateCondition(ConditionType.Not) as NotCondition;
                 ((NotCondition)uc.Data[idx]).Data = cond;
-                ConditionList[idx] = ConditionViewModelFactory.CreateViewModel(uc.Data[idx]);
+                ConditionList[idx] = conditionViewModelFactory.CreateViewModel(uc.Data[idx]);
                 SelectedCondition = ConditionList[idx];
             }
         }
@@ -159,7 +162,7 @@ namespace MetaParser.WPF.ViewModels
                 var uc = Condition as MultipleCondition;
                 var idx = ConditionList.IndexOf(SelectedCondition);
                 uc.Data[idx] = mc.Data[0];
-                ConditionList[idx] = ConditionViewModelFactory.CreateViewModel(uc.Data[idx]);
+                ConditionList[idx] = conditionViewModelFactory.CreateViewModel(uc.Data[idx]);
                 SelectedCondition = ConditionList[idx];
             }
         }
@@ -265,7 +268,7 @@ namespace MetaParser.WPF.ViewModels
                     var idx = ((MultipleCondition)Condition).Data.IndexOf(SelectedCondition.Condition);
                     ((MultipleCondition)Condition).Data[idx] = Models.Condition.CreateCondition(value.Value);
                     ConditionList[idx].PropertyChanged -= C_PropertyChanged;
-                    ConditionList[idx] = ConditionViewModelFactory.CreateViewModel(((MultipleCondition)Condition).Data[idx]);
+                    ConditionList[idx] = conditionViewModelFactory.CreateViewModel(((MultipleCondition)Condition).Data[idx]);
                     ConditionList[idx].PropertyChanged += C_PropertyChanged;
 
                     IsDirty = true;

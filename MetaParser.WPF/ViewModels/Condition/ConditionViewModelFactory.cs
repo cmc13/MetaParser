@@ -1,17 +1,21 @@
 ﻿using MetaParser.Models;
-using System;
-using System.Collections.Generic;
+using MetaParser.WPF.Services;
 
 namespace MetaParser.WPF.ViewModels
 {
-    public static class ConditionViewModelFactory
+    public class ConditionViewModelFactory
     {
-        private static readonly Dictionary<Type, Type> typedict = new();
+        private readonly ClipboardService clipboardService;
 
-        public static ConditionViewModel CreateViewModel(Condition condition) => condition switch
+        public ConditionViewModelFactory(ClipboardService clipboardService)
         {
-            NotCondition nc => new NotConditionViewModel(nc),
-            MultipleCondition mc => new MultipleConditionViewModel(mc),
+            this.clipboardService = clipboardService;
+        }
+
+        public ConditionViewModel CreateViewModel(Condition condition) => condition switch
+        {
+            NotCondition nc => new NotConditionViewModel(nc, this),
+            MultipleCondition mc => new MultipleConditionViewModel(mc, this, clipboardService),
             Condition<int> c => c.Type switch
             {
                 ConditionType.LandBlockE => new LandBlockConditionViewModel(c),

@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using MetaParser.WPF.ViewModels;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 
@@ -9,9 +10,10 @@ namespace MetaParser.WPF
     /// </summary>
     public partial class MainWindow : Window
     {
-        public MainWindow()
+        public MainWindow(MainViewModel vm)
         {
             InitializeComponent();
+            DataContext = vm;
         }
 
         private void CommandBinding_Executed(object sender, ExecutedRoutedEventArgs e)

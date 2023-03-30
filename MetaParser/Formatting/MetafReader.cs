@@ -33,18 +33,6 @@ namespace MetaParser.Formatting
         private static readonly Regex ItemCountRegex = new(@"^\s*(?<arg1>\d+)\s*{(?<arg2>[^}]*)}\s*(~~.*)?");
         private static readonly Regex LandCellRegex = new(@"^\s*(?<arg>[0-9a-fA-F]+)\s*(~~.*)?", RegexOptions.Compiled);
         private static readonly Regex OptionRegex = new(@"^\s*{(?<arg1>[^}]*)}\s*{(?<arg2>[^}]*)}\s*(~~.*)?", RegexOptions.Compiled);
-        private static readonly Dictionary<string, Regex> NavNodeRegex = new()
-        {
-            { "flw", new(@"^\s*flw\s*(?<id>[0-9a-fA-F]+)\s*{(?<name>[^}]*)}", RegexOptions.Compiled) },
-            { "prt", new(@"^\s*(?<id>[0-9a-fA-F]+)", RegexOptions.Compiled) },
-            { "rcl", new(@"^\s*{(?<spell>[^}]*)}", RegexOptions.Compiled) },
-            { "pau", new(@"^\s*(?<time>" + DOUBLE_REGEX + @")", RegexOptions.Compiled) },
-            { "cht", new(@"^\s*{(?<chat>[^}]*)}", RegexOptions.Compiled) },
-            { "vnd", new(@"^\s*(?<id>[a-fA-F0-9]+)\s*{(?<name>[^}]*)}", RegexOptions.Compiled) },
-            { "ptl", new(@"^\s*(?<oc>\d+)\s*{(?<name>[^}]*)}", RegexOptions.Compiled) },
-            { "tlk", new(@"^\s*(?<oc>\d+)\s*{(?<name>[^}]*)}", RegexOptions.Compiled) },
-            { "jmp", new(@"^\s*(?<heading>" + DOUBLE_REGEX + @")\s*(?<tf>True|False)\s*(?<time>" + DOUBLE_REGEX + @")", RegexOptions.Compiled) }
-        };
         private static readonly Dictionary<string, Regex> ConditionListRegex = new()
         {
             { "NoMobsInDist",           new(@"^\s*(?<arg>" + DOUBLE_REGEX + @")", RegexOptions.Compiled) },
@@ -127,35 +115,12 @@ namespace MetaParser.Formatting
             { "DestroyAllViews", ActionType.DestroyAllViews },
         };
 
-        private static readonly Dictionary<string, RecallSpellId> RecallSpellList = new()
+        private readonly MetafNavReader navReader;
+
+        public MetafReader(MetafNavReader navReader)
         {
-            { "Primary Portal Recall", RecallSpellId.PrimaryPortalRecall },
-            { "Secondary Portal Recall", RecallSpellId.SecondaryPortalRecall },
-            { "Lifestone Recall", RecallSpellId.LifestoneRecall },
-            { "Lifestone Sending", RecallSpellId.LifestoneSending },
-            { "Portal Recall", RecallSpellId.PortalRecall },
-            { "Recall Aphus Lassel", RecallSpellId.RecallAphusLassel },
-            { "Recall the Sanctuary", RecallSpellId.RecalltheSanctuary },
-            { "Recall to the Singularity Caul", RecallSpellId.RecalltotheSingularityCaul },
-            { "Glenden Wood Recall", RecallSpellId.GlendenWoodRecall },
-            { "Aerlinthe Recall", RecallSpellId.AerlintheRecall },
-            { "Mount Lethe Recall", RecallSpellId.MountLetheRecall },
-            { "Ulgrim's Recall", RecallSpellId.UlgrimsRecall },
-            { "Bur Recall", RecallSpellId.BurRecall },
-            { "Paradox-touched Olthoi Infested Area Recall", RecallSpellId.ParadoxTouchedOlthoiInfestedAreaRecall },
-            { "Call of the Mhoire Forge", RecallSpellId.CalloftheMhoireForge },
-            { "Colosseum Recall", RecallSpellId.ColosseumRecall },
-            { "Facility Hub Recall", RecallSpellId.FacilityHubRecall },
-            { "Gear Knight Invasion Area Camp Recall", RecallSpellId.GearKnightInvasionAreaCampRecall },
-            { "Lost City of Neftet Recall", RecallSpellId.LostCityofNeftetRecall },
-            { "Return to the Keep", RecallSpellId.ReturntotheKeep },
-            { "Rynthid Recall", RecallSpellId.RynthidRecall },
-            { "Viridian Rise Recall", RecallSpellId.ViridianRiseRecall },
-            { "Viridian Rise Great Tree Recall", RecallSpellId.ViridianRiseGreatTreeRecall },
-            { "Celestial Hand Stronghold Recall", RecallSpellId.CelestialHandStrongholdRecall },
-            { "Radiant Blood Stronghold Recall", RecallSpellId.RadiantBloodStrongholdRecall },
-            { "Eldrytch Web Stronghold Recall", RecallSpellId.EldrytchWebStrongholdRecall }
-        };
+            this.navReader = navReader;
+        }
 
         public async Task<Meta> ReadMetaAsync(Stream stream)
         {
@@ -195,192 +160,12 @@ namespace MetaParser.Formatting
                     }
                     else // NAV
                     {
-                        m = NavRegex.Match(enumerator.Current.Substring(m.Index + m.Length));
-                        if (!m.Success)
-                            throw new MetaParserException("Invalid nav declaration");
-
-                        NavRoute nav = new();
-                        if (navReferences.ContainsKey(m.Groups["navRef"].Value))
-                            nav = navReferences[m.Groups["navRef"].Value];
-
-                        if (!Enum.TryParse<NavType>(m.Groups["navType"].Value, true, out var type))
-                            throw new MetaParserException("Invalid nav type", "follow|once|circular|linear", m.Groups["navType"].Value);
-
-                        nav.Type = type;
-
-                        if (!await enumerator.MoveNextAsync().ConfigureAwait(false))
-                            break;
-
-                        if (nav.Type == NavType.Follow)
-                        {
-                            // skip whitespace
-                            while (EmptyLineRegex.IsMatch(enumerator.Current) && await enumerator.MoveNextAsync().ConfigureAwait(false)) { }
-
-                            if (enumerator.Current == null || StateNavRegex.IsMatch(enumerator.Current))
-                                break;
-
-                            nav.Data = await ParseNavFollow(enumerator);
-                        }
-                        else
-                        {
-                            var nodes = new List<NavNode>();
-                            await foreach (var node in ParseNavNodesAsync(enumerator).ConfigureAwait(false))
-                                nodes.Add(node);
-                            nav.Data = nodes;
-                        }
+                        await navReader.ReadNavAsync(reader, navReferences).ConfigureAwait(false);
                     }
                 }
             }
 
             return meta;
-        }
-
-        private async Task<NavFollow> ParseNavFollow(IAsyncEnumerator<string> enumerator)
-        {
-            var m = NavNodeRegex["flw"].Match(enumerator.Current);
-            if (!m.Success)
-                throw new MetaParserException("Invalid nav follow definition");
-
-            var follow = new NavFollow()
-            {
-                TargetId = int.TryParse(m.Groups["id"].Value, System.Globalization.NumberStyles.HexNumber, null, out var id) ? id : throw new MetaParserException("Invalid nav follow target id"),
-                TargetName = m.Groups["name"].Value
-            };
-
-            await enumerator.MoveNextAsync().ConfigureAwait(false);
-
-            return follow;
-        }
-
-        private async IAsyncEnumerable<NavNode> ParseNavNodesAsync(IAsyncEnumerator<string> enumerator)
-        {
-            // Parse Nav Nodes
-            while (enumerator.Current != null && !StateNavRegex.IsMatch(enumerator.Current))
-            {
-                // skip whitespace
-                while (EmptyLineRegex.IsMatch(enumerator.Current) && await enumerator.MoveNextAsync().ConfigureAwait(false)) { }
-
-                if (enumerator.Current == null || StateNavRegex.IsMatch(enumerator.Current))
-                    break;
-
-                yield return ParseNavNode(enumerator.Current);
-
-                await enumerator.MoveNextAsync().ConfigureAwait(false);
-            }
-        }
-
-        private NavNode ParseNavNode(string line)
-        {
-            var m = Regex.Match(line, @"^\s*(?<nodeType>\S+)");
-            if (!m.Success)
-                throw new MetaParserException("Invalid nav node definition");
-
-            line = line.Substring(m.Index + m.Length);
-            (double x, double y, double z) pt = ParsePoint(ref line), pt2;
-            switch (m.Groups["nodeType"].Value)
-            {
-                case "pnt":
-                    return new NavNodePoint() { Point = pt };
-
-                case "prt":
-                    m = NavNodeRegex[m.Groups["nodeType"].Value].Match(line);
-                    if (!m.Success)
-                        throw new MetaParserException("Invalid nav portal definition");
-                    return new NavNodePortalObs()
-                    {
-                        Point = pt,
-                        Data = int.TryParse(m.Groups["id"].Value, System.Globalization.NumberStyles.HexNumber, null, out var id) ? id : throw new MetaParserException("Invalid nav portal definition")
-                    };
-
-                case "rcl":
-                    m = NavNodeRegex[m.Groups["nodeType"].Value].Match(line);
-                    if (!m.Success)
-                        throw new MetaParserException("Invalid nav recall definition");
-                    return new NavNodeRecall()
-                    {
-                        Point = pt,
-                        Data = RecallSpellList.ContainsKey(m.Groups["spell"].Value) ? RecallSpellList[m.Groups["spell"].Value] : throw new MetaParserException($"Invalid spell name: {m.Groups["spell"].Value}")
-                    };
-
-                case "pau":
-                    m = NavNodeRegex[m.Groups["nodeType"].Value].Match(line);
-                    if (!m.Success)
-                        throw new MetaParserException("Invalid nav pause definition");
-                    return new NavNodePause()
-                    {
-                        Point = pt,
-                        Data = double.TryParse(m.Groups["time"].Value, out var pause) ? pause : throw new MetaParserException("Invalid nav pause definition")
-                    };
-
-                case "cht":
-                    m = NavNodeRegex[m.Groups["nodeType"].Value].Match(line);
-                    if (!m.Success)
-                        throw new MetaParserException("Invalid nav chat definition");
-                    return new NavNodeChat() { Point = pt, Data = m.Groups["chat"].Value };
-
-                case "vnd":
-                    m = NavNodeRegex[m.Groups["nodeType"].Value].Match(line);
-                    if (!m.Success)
-                        throw new MetaParserException("Invalid nav vendor definition");
-                    return new NavNodeOpenVendor()
-                    {
-                        Point = pt,
-                        Data = (
-                            int.TryParse(m.Groups["id"].Value, System.Globalization.NumberStyles.HexNumber, null, out var vid) ? vid : throw new MetaParserException("Invalid nav vendor definition"),
-                            m.Groups["name"].Value)
-                    };
-
-                case "ptl":
-                    pt2 = ParsePoint(ref line);
-                    m = NavNodeRegex[m.Groups["nodeType"].Value].Match(line);
-                    if (!m.Success)
-                        throw new MetaParserException("Invalid nav portal definition");
-                    return new NavNodePortal()
-                    {
-                        Point = pt,
-                        Data = (
-                            m.Groups["name"].Value,
-                            (ObjectClass)(int.TryParse(m.Groups["oc"].Value, out var oc) ? oc : throw new MetaParserException("Invalid nav portal definition")),
-                            pt2.x,
-                            pt2.y,
-                            pt2.z)
-                    };
-
-                case "tlk":
-                    pt2 = ParsePoint(ref line);
-                    m = NavNodeRegex[m.Groups["nodeType"].Value].Match(line);
-                    if (!m.Success)
-                        throw new MetaParserException("Invalid nav npc chat definition");
-                    return new NavNodeNPCChat()
-                    {
-                        Point = pt,
-                        Data = (
-                            m.Groups["name"].Value,
-                            (ObjectClass)(int.TryParse(m.Groups["oc"].Value, out var oc2) ? oc2 : throw new MetaParserException("Invalid nav npc chat definition")),
-                            pt2.x,
-                            pt2.y,
-                            pt2.z)
-                    };
-
-                case "chk":
-                    return new NavNodeCheckpoint() { Point = pt };
-
-                case "jmp":
-                    m = NavNodeRegex[m.Groups["nodeType"].Value].Match(line);
-                    if (!m.Success)
-                        throw new MetaParserException("Invalid nav jump definition");
-                    return new NavNodeJump()
-                    {
-                        Point = pt,
-                        Data = (
-                            double.TryParse(m.Groups["heading"].Value, out var heading) ? heading : throw new MetaParserException("Invalid nav jump definition"),
-                            m.Groups["tf"].Value != "False",
-                            double.TryParse(m.Groups["time"].Value, out var time) ? time : throw new MetaParserException("Invalid nav jump definition"))
-                    };
-
-                default:
-                    throw new MetaParserException($"Invalid nav node type: {m.Groups["nodeType"].Value}");
-            }
         }
 
         private async IAsyncEnumerable<Rule> ParseStateAsync(IAsyncEnumerator<string> enumerator, string state, Dictionary<string, NavRoute> navReferences)

@@ -56,18 +56,23 @@ namespace MetaParser.Formatting
             { "Eldrytch Web Stronghold Recall", RecallSpellId.EldrytchWebStrongholdRecall }
         };
 
-        public async Task ReadNavAsync(TextReader reader, NavRoute route)
+        public Task<NavRoute> ReadNavAsync(TextReader reader) => ReadNavAsync(reader, null);
+
+        public async Task<NavRoute> ReadNavAsync(TextReader reader, IDictionary<string, NavRoute> navReferences = null)
         {
             string line;
 
             do { line = await reader.ReadLineAsync().ConfigureAwait(false); } while (line != null && EmptyLineRegex.IsMatch(line));
 
             if (line == null)
-                return;
+                return null;
 
             var m = NavLineRegex.Match(line);
             if (!m.Success)
                 throw new MetaParserException("Invalid nav declaration");
+
+            if (navReferences == null || !navReferences.TryGetValue(m.Groups["navRef"].Value, out var route))
+                route = new();
 
             if (!Enum.TryParse<NavType>(m.Groups["navType"].Value, true, out var type))
                 throw new MetaParserException("Invalid nav type", "follow|once|circular|linear", m.Groups["navType"].Value);
@@ -90,12 +95,14 @@ namespace MetaParser.Formatting
                     do { line = await reader.ReadLineAsync().ConfigureAwait(false); } while (line != null && EmptyLineRegex.IsMatch(line));
 
                     if (line == null)
-                        return;
+                        return route;
 
                     list.Add(ParseNavNode(line));
                 }
                 while (line != null);
             }
+
+            return route;
         }
 
         private NavNode ParseNavNode(string line)

@@ -1,12 +1,12 @@
 ﻿using CommunityToolkit.Mvvm.Input;
 using GongSolutions.Wpf.DragDrop;
 using MetaParser.Models;
+using MetaParser.WPF.Services;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
-using WK.Libraries.SharpClipboardNS;
 
 namespace MetaParser.WPF.ViewModels;
 
@@ -14,13 +14,17 @@ internal partial class AllActionViewModel : ActionViewModel, IDropTarget
 {
     private readonly ObservableCollection<ActionViewModel> actionList = new();
     private ActionViewModel selectedAction;
-    private readonly SharpClipboard clipboard = new();
+    private readonly ActionViewModelFactory actionViewModelFactory;
+    private readonly ClipboardService clipboardService;
 
-    public AllActionViewModel(AllMetaAction action, MetaViewModel meta) : base(action, meta)
+    public AllActionViewModel(AllMetaAction action, MetaViewModel meta, ActionViewModelFactory actionViewModelFactory, ClipboardService clipboardService) : base(action, meta)
     {
+        this.actionViewModelFactory = actionViewModelFactory;
+        this.clipboardService = clipboardService;
+
         foreach (var subAction in action.Data)
         {
-            var c = ActionViewModelFactory.CreateViewModel(subAction, meta);
+            var c = actionViewModelFactory.CreateViewModel(subAction, meta);
             actionList.Add(c);
 
             c.PropertyChanged += C_PropertyChanged;
@@ -30,8 +34,7 @@ internal partial class AllActionViewModel : ActionViewModel, IDropTarget
         actionList.CollectionChanged += ActionList_CollectionChanged;
 
         bool? prevValue = null;
-        clipboard.MonitorClipboard = true;
-        clipboard.ClipboardChanged += (sender, e) =>
+        clipboardService.ClipboardChanged += (sender, e) =>
         {
             var canPaste = PasteCanExecute();
             if (canPaste != prevValue)
@@ -46,7 +49,7 @@ internal partial class AllActionViewModel : ActionViewModel, IDropTarget
     void Add()
     {
         var c = MetaAction.CreateMetaAction(ActionType.None);
-        var vm = ActionViewModelFactory.CreateViewModel(c, Meta);
+        var vm = actionViewModelFactory.CreateViewModel(c, Meta);
         ActionList.Add(vm);
         SelectedAction = vm;
     }
@@ -74,7 +77,7 @@ internal partial class AllActionViewModel : ActionViewModel, IDropTarget
         await sw.WriteLineAsync(((int)SelectedAction.Type).ToString());
         await Formatters.MetaWriter.WriteActionAsync(sw, SelectedAction.Action).ConfigureAwait(false);
         var actionText = sw.ToString();
-        Clipboard.SetData(typeof(MetaAction).Name, actionText);
+        clipboardService.SetData(typeof(MetaAction).Name, actionText);
         PasteCommand.NotifyCanExecuteChanged();
     }
 
@@ -86,12 +89,12 @@ internal partial class AllActionViewModel : ActionViewModel, IDropTarget
         var actionType = (ActionType)int.Parse(await sr.ReadLineAsync().ConfigureAwait(false));
         var action = MetaAction.CreateMetaAction(actionType);
         await Formatters.DefaultMetaReader.ReadActionAsync(sr, action).ConfigureAwait(false);
-        var vm = ActionViewModelFactory.CreateViewModel(action, Meta);
+        var vm = actionViewModelFactory.CreateViewModel(action, Meta);
         ActionList.Add(vm);
         SelectedAction = vm;
     }
 
-    bool PasteCanExecute() => Clipboard.ContainsData(typeof(MetaAction).Name);
+    bool PasteCanExecute() => clipboardService.ContainsData(typeof(MetaAction).Name);
 
     [RelayCommand(CanExecute = nameof(MoveUpCanExecute))]
     void MoveUp()
@@ -128,7 +131,7 @@ internal partial class AllActionViewModel : ActionViewModel, IDropTarget
         a.Data.Add(SelectedAction.Action);
         //ua.Data[idx] = Models.MetaAction.CreateMetaAction(ActionType.Multiple) as AllMetaAction;
         //((AllMetaAction)ua.Data[idx]).Data.Add(SelectedAction.Action);
-        ActionList[idx] = ActionViewModelFactory.CreateViewModel(a, Meta);
+        ActionList[idx] = actionViewModelFactory.CreateViewModel(a, Meta);
         SelectedAction = ActionList[idx];
     }
 
@@ -140,7 +143,7 @@ internal partial class AllActionViewModel : ActionViewModel, IDropTarget
             //var ua = Action as AllMetaAction;
             var idx = ActionList.IndexOf(SelectedAction);
             //ua.Data[idx] = ama.Data[0];
-            ActionList[idx] = ActionViewModelFactory.CreateViewModel(ama.Data[0], Meta);
+            ActionList[idx] = actionViewModelFactory.CreateViewModel(ama.Data[0], Meta);
             SelectedAction = ActionList[idx];
         }
     }
@@ -263,7 +266,7 @@ internal partial class AllActionViewModel : ActionViewModel, IDropTarget
                 var idx = ((AllMetaAction)Action).Data.IndexOf(SelectedAction.Action);
                 SelectedAction = null;
                 var a = MetaAction.CreateMetaAction(value.Value);
-                ActionList[idx] = ActionViewModelFactory.CreateViewModel(a, Meta);
+                ActionList[idx] = actionViewModelFactory.CreateViewModel(a, Meta);
 
                 IsDirty = true;
 

@@ -2,7 +2,6 @@
 using CommunityToolkit.Mvvm.Input;
 using GongSolutions.Wpf.DragDrop;
 using MetaParser.WPF.Services;
-using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -38,7 +37,10 @@ public partial class MainViewModel
     private string fileName;
     private bool isBusy;
     private string busyStatus;
-    private readonly FileSystemService fileSystemService = new();
+    private readonly FileSystemService fileSystemService;
+    private readonly DialogService dialogService;
+    private readonly ConditionViewModelFactory conditionViewModelFactory;
+    private readonly ActionViewModelFactory actionViewModelFactory;
     private FileSystemWatcher fw = null;
     private Timer t = null;
 
@@ -133,7 +135,7 @@ public partial class MainViewModel
             return;
 
         // Initialize new meta
-        MetaViewModel = new();
+        MetaViewModel = new(conditionViewModelFactory, actionViewModelFactory);
         FileName = null;
     }
 
@@ -143,54 +145,20 @@ public partial class MainViewModel
         if (await DirtyCheck().ConfigureAwait(false))
             return;
 
-        var ofd = new OpenFileDialog()
-        {
-            Filter = "Meta Files (*.met)|*.met|MiMB Files (*.xml)|*.xml|Metaf files (*.af)|*.af",
-            Multiselect = false,
-            Title = "Open Meta File..."
-        };
-
-        if (!string.IsNullOrWhiteSpace(FileName))
-        {
-            ofd.InitialDirectory = Path.GetDirectoryName(FileName);
-            ofd.FileName = Path.GetFileName(FileName);
-        }
-        else if (fileSystemService.DirectoryExists(@"C:\Games\VirindiPlugins\VirindiTank\"))
-            ofd.InitialDirectory = @"C:\Games\VirindiPlugins\VirindiTank\";
-        else
-            ofd.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-
-        var result = ofd.ShowDialog();
+        var result = dialogService.ShowOpenFileDialog("Open Meta File…", out var fileName, FileName, "Meta Files (*.met)|*.met|MiMB Files (*.xml)|*.xml|Metaf files (*.af)|*.af");
         if (result.HasValue && result.Value == true)
         {
-            await OpenFile(ofd.FileName).ConfigureAwait(false);
+            await OpenFile(fileName).ConfigureAwait(false);
         }
     }
 
     [RelayCommand]
     async Task ImportFile()
     {
-        var ofd = new OpenFileDialog()
-        {
-            Filter = "Meta Files (*.met)|*.met",
-            Multiselect = false,
-            Title = "Import Meta File"
-        };
-
-        if (!string.IsNullOrWhiteSpace(FileName))
-        {
-            ofd.InitialDirectory = Path.GetDirectoryName(FileName);
-            ofd.FileName = Path.GetFileName(FileName);
-        }
-        else if (fileSystemService.DirectoryExists(@"C:\Games\VirindiPlugins\VirindiTank\"))
-            ofd.InitialDirectory = @"C:\Games\VirindiPlugins\VirindiTank\";
-        else
-            ofd.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-
-        var result = ofd.ShowDialog();
+        var result = dialogService.ShowOpenFileDialog("Import Meta File…", out var fileName, FileName, "Meta Files (*.met)|*.met");
         if (result.HasValue && result == true)
         {
-            await ImportFile(ofd.FileName).ConfigureAwait(false);
+            await ImportFile(fileName).ConfigureAwait(false);
         }
     }
 
@@ -199,7 +167,7 @@ public partial class MainViewModel
     {
         if (string.IsNullOrEmpty(FileName) || Path.GetExtension(FileName).ToLower() != ".met")
         {
-            await SaveFileAsCommand.ExecuteAsync(null).ConfigureAwait(false);
+            await SaveFileAs().ConfigureAwait(false);
         }
         else
         {
@@ -233,24 +201,11 @@ public partial class MainViewModel
     [RelayCommand]
     async Task SaveFileAs()
     {
-        var sfd = new SaveFileDialog()
-        {
-            OverwritePrompt = true,
-            Filter = "Meta Files (*.met)|*.met",
-            Title = "Save Meta File..."
-        };
-
-        if (!string.IsNullOrWhiteSpace(FileName))
-        {
-            sfd.FileName = Path.GetFileName(FileName);
-            sfd.InitialDirectory = Path.GetDirectoryName(FileName);
-        }
-
-        var result = sfd.ShowDialog();
+        var result = dialogService.ShowSaveFileDialog("Save Meta File…", out var fileName, FileName, "Meta Files (*.met)|*.met");
         if (result.HasValue && result.Value)
         {
-            FileName = sfd.FileName;
-            await SaveFileCommand.ExecuteAsync(null).ConfigureAwait(false);
+            FileName = fileName;
+            await SaveFile().ConfigureAwait(false);
         }
     }
 
@@ -282,8 +237,12 @@ public partial class MainViewModel
 
     public List<string> RecentFiles { get; } = new();
 
-    public MainViewModel()
+    public MainViewModel(FileSystemService fileSystemService, DialogService dialogService, ConditionViewModelFactory conditionViewModelFactory, ActionViewModelFactory actionViewModelFactory)
     {
+        this.fileSystemService = fileSystemService;
+        this.dialogService = dialogService;
+        this.conditionViewModelFactory = conditionViewModelFactory;
+        this.actionViewModelFactory = actionViewModelFactory;
         if (fileSystemService.FileExists(RECENT_FILE_NAME))
         {
             Task.Run(async () =>
@@ -303,7 +262,7 @@ public partial class MainViewModel
                 OpenFile((string)Application.Current.Properties["InitialFile"]).GetAwaiter().GetResult();
         }
         else
-            MetaViewModel = new();
+            MetaViewModel = new(conditionViewModelFactory, actionViewModelFactory);
     }
 
     private async Task OpenFile(string fileName)
@@ -320,7 +279,7 @@ public partial class MainViewModel
             }).ConfigureAwait(false);
 
             FileName = fileName;
-            MetaViewModel = new(m);
+            MetaViewModel = new(m, conditionViewModelFactory, actionViewModelFactory);
         }
         catch (Exception ex)
         {
@@ -339,7 +298,7 @@ public partial class MainViewModel
             Application.Current.Dispatcher.Invoke(() =>
             {
                 foreach (var rule in m.Rules)
-                    MetaViewModel.Rules.Add(new(rule, MetaViewModel));
+                    MetaViewModel.Rules.Add(new(rule, MetaViewModel, conditionViewModelFactory, actionViewModelFactory));
             });
         }
         catch (Exception ex)
@@ -358,7 +317,7 @@ public partial class MainViewModel
             else if (response == MessageBoxResult.Yes)
             {
                 // save file
-                await SaveFileCommand.ExecuteAsync(null).ConfigureAwait(false);
+                await SaveFile().ConfigureAwait(false);
             }
         }
 

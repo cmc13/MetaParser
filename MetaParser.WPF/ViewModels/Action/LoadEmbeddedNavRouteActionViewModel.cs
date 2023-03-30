@@ -40,13 +40,13 @@ namespace MetaParser.WPF.ViewModels
             var result = ofd.ShowDialog();
             if (result.HasValue && result.Value == true)
             {
-                var nav = new NavRoute();
                 using var fs = File.OpenRead(ofd.FileName);
                 using var reader = new StreamReader(fs);
-                if (Path.GetExtension(ofd.FileName).ToLower() == ".af")
-                    await metafNavReader.ReadNavAsync(reader, nav);
-                else
-                    await navReader.ReadNavAsync(reader, nav).ConfigureAwait(false);
+                var nav = await (Path.GetExtension(ofd.FileName).ToLower() switch
+                {
+                    ".af" => metafNavReader.ReadNavAsync(reader).ConfigureAwait(false),
+                    _ => navReader.ReadNavAsync(reader).ConfigureAwait(false)
+                });
 
                 ((EmbeddedNavRouteMetaAction)Action).Data = (Path.GetFileName(ofd.FileName), nav);
                 Nav = new NavRouteViewModel(nav);

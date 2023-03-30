@@ -81,8 +81,7 @@ namespace MetaParser.Formatting
                     var navName = await reader.ReadLineAsync().ConfigureAwait(false);
                     if (!int.TryParse(await reader.ReadLineAsync().ConfigureAwait(false), out _))
                         throw new Exception("Invalid embedded nav route action");
-                    var navRoute = new NavRoute();
-                    await navReader.ReadNavAsync(reader, navRoute).ConfigureAwait(false);
+                    var navRoute = await navReader.ReadNavAsync(reader).ConfigureAwait(false);
                     cNav.Data = (navName, navRoute);
                     break;
 

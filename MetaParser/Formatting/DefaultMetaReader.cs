@@ -27,14 +27,14 @@ namespace MetaParser.Formatting
                 lineNumber++;
                 var readLine = await reader.ReadLineAsync().ConfigureAwait(false);
                 if (!readLine.Equals(headerLine))
-                    throw new System.Exception($"[line {lineNumber}] Invalid meta header line (expected: {headerLine}; actual: {readLine})");
+                    throw new Exception($"[line {lineNumber}] Invalid meta header line (expected: {headerLine}; actual: {readLine})");
             }
 
             var m = new Meta();
             lineNumber++;
             var line = await reader.ReadLineAsync().ConfigureAwait(false);
             if (string.IsNullOrEmpty(line) || !int.TryParse(line, out var ruleCount))
-                throw new System.Exception($"[line {lineNumber}] Unable to read rule count from meta header");
+                throw new Exception($"[line {lineNumber}] Unable to read rule count from meta header");
 
             for (var i = 0; i < ruleCount; ++i)
             {
@@ -161,9 +161,7 @@ namespace MetaParser.Formatting
                 if (!int.TryParse(line, out _))
                     throw new Exception("Invalid embedded nav route action");
 
-                var nav = new NavRoute();
-                if (exactCharCount > 5)
-                    await navReader.ReadNavAsync(reader, nav).ConfigureAwait(false);
+                var nav = exactCharCount > 5 ? await navReader.ReadNavAsync(reader).ConfigureAwait(false) : new();
 
                 cNav.Data = (navName, nav);
             }
