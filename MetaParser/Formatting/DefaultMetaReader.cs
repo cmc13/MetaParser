@@ -27,14 +27,14 @@ namespace MetaParser.Formatting
                 lineNumber++;
                 var readLine = await reader.ReadLineAsync().ConfigureAwait(false);
                 if (!readLine.Equals(headerLine))
-                    throw new Exception($"[line {lineNumber}] Invalid meta header line (expected: {headerLine}; actual: {readLine})");
+                    throw new MetaParserException($"[line {lineNumber}] Invalid meta header line", headerLine, readLine);
             }
 
             var m = new Meta();
             lineNumber++;
             var line = await reader.ReadLineAsync().ConfigureAwait(false);
             if (string.IsNullOrEmpty(line) || !int.TryParse(line, out var ruleCount))
-                throw new Exception($"[line {lineNumber}] Unable to read rule count from meta header");
+                throw new MetaParserException($"[line {lineNumber}] Unable to read rule count from meta header", typeof(int), line);
 
             for (var i = 0; i < ruleCount; ++i)
             {

@@ -12,6 +12,7 @@ namespace MetaParser.Formatting
         private static readonly string DOUBLE_REGEX = @"[+\-]?(([1-9]\d*\.|\d?\.)(\d+([eE][+\-]?[0-9]+)|[0-9]+)|([1-9]\d*|0))";
         private static readonly Regex EmptyLineRegex = new(@"^\s*(~~.*)?$", RegexOptions.Compiled);
         private static readonly Regex NavLineRegex = new(@"^\s*NAV:\s*(?<navRef>\S*)\s*(?<navType>\S*)\s*(~~.*)?$", RegexOptions.Compiled);
+        private static readonly Regex NavRegex = new(@"^\s*(?<navRef>\S*)\s*(?<navType>\S*)\s*(~~.*)?", RegexOptions.Compiled);
         private static readonly Regex PointRegex = new($@"^\s*(?<x>{DOUBLE_REGEX})\s*(?<y>{DOUBLE_REGEX})\s*(?<z>{DOUBLE_REGEX})", RegexOptions.Compiled);
         private static readonly Dictionary<string, Regex> NavNodeRegex = new()
         {
@@ -67,7 +68,7 @@ namespace MetaParser.Formatting
             if (line == null)
                 return null;
 
-            var m = NavLineRegex.Match(line);
+            var m = navReferences != null ? NavRegex.Match(line) : NavLineRegex.Match(line);
             if (!m.Success)
                 throw new MetaParserException("Invalid nav declaration");
 
@@ -103,6 +104,18 @@ namespace MetaParser.Formatting
             }
 
             return route;
+        }
+
+        public async Task ReadNavNodeAsync(TextReader reader, NavNode node)
+        {
+            string line;
+
+            do { line = await reader.ReadLineAsync().ConfigureAwait(false); } while (line != null && EmptyLineRegex.IsMatch(line));
+
+            if (line == null)
+                return;
+
+            var n = ParseNavNode(line);
         }
 
         private NavNode ParseNavNode(string line)
@@ -244,16 +257,11 @@ namespace MetaParser.Formatting
                 return;
 
             var m = NavNodeRegex["flw"].Match(line);
-            if (m.Success)
+            if (!m.Success)
                 throw new MetaParserException("Invalid nav follow definition");
 
             follow.TargetId = int.TryParse(m.Groups["id"].Value, System.Globalization.NumberStyles.HexNumber, null, out var id) ? id : throw new MetaParserException("Invalid nav follow definition");
             follow.TargetName = m.Groups["name"].Value;
-        }
-
-        public Task ReadNavNodeAsync(TextReader reader, NavNode node)
-        {
-            throw new NotImplementedException();
         }
     }
 }
