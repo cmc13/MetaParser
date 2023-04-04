@@ -259,8 +259,11 @@ public class MetafReader : IMetaReader
                 break;
 
             case EmbeddedNavRouteMetaAction a:
-                var nav = new NavRoute();
-                navReferences.Add(m.Groups["navRef"].Value, nav);
+                if (!navReferences.TryGetValue(m.Groups["navRef"].Value, out var nav))
+                {
+                    nav = new();
+                    navReferences.Add(m.Groups["navRef"].Value, nav);
+                }
                 a.Data = (m.Groups["navName"].Value, nav);
                 break;
 
