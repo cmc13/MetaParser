@@ -6,13 +6,15 @@ using System.Threading.Tasks;
 
 namespace MetaParser.Formatting;
 
-static class ReaderExtensions
+static class MetafExtensions
 {
     public static async IAsyncEnumerable<string> StreamLines(this StreamReader reader)
     {
         while (!reader.EndOfStream)
             yield return await reader.ReadLineAsync().ConfigureAwait(false);
     }
+
+    public static string UnescapeString(this string str) => str.Replace("{{", "{").Replace("}}", "}");
 }
 
 public class MetafReader : IMetaReader
@@ -268,41 +270,41 @@ public class MetafReader : IMetaReader
                 break;
 
             case MetaAction<string> a:
-                a.Data = m.Groups["arg"].Value.Replace("{{", "{").Replace("}}", "}");
+                a.Data = m.Groups["arg"].Value.UnescapeString();
                 break;
 
             case ExpressionMetaAction a:
-                a.Expression = m.Groups["arg"].Value.Replace("{{", "{").Replace("}}", "}");
+                a.Expression = m.Groups["arg"].Value.UnescapeString();
                 break;
 
             case SetVTOptionMetaAction a:
-                a.Option = m.Groups["arg1"].Value.Replace("{{", "{").Replace("}}", "}");
-                a.Value = m.Groups["arg2"].Value.Replace("{{", "{").Replace("}}", "}");
+                a.Option = m.Groups["arg1"].Value.UnescapeString();
+                a.Value = m.Groups["arg2"].Value.UnescapeString();
                 break;
 
             case GetVTOptionMetaAction a:
-                a.Option = m.Groups["arg1"].Value.Replace("{{", "{").Replace("}}", "}");
-                a.Variable = m.Groups["arg2"].Value.Replace("{{", "{").Replace("}}", "}");
+                a.Option = m.Groups["arg1"].Value.UnescapeString();
+                a.Variable = m.Groups["arg2"].Value.UnescapeString();
                 break;
 
             case CallStateMetaAction a:
-                a.CallState = m.Groups["arg1"].Value.Replace("{{", "{").Replace("}}", "}");
-                a.ReturnState = m.Groups["arg2"].Value.Replace("{{", "{").Replace("}}", "}");
+                a.CallState = m.Groups["arg1"].Value.UnescapeString();
+                a.ReturnState = m.Groups["arg2"].Value.UnescapeString();
                 break;
 
             case DestroyViewMetaAction a:
-                a.ViewName = m.Groups["arg"].Value.Replace("{{", "{").Replace("}}", "}");
+                a.ViewName = m.Groups["arg"].Value.UnescapeString();
                 break;
 
             case CreateViewMetaAction a:
-                a.ViewName = m.Groups["arg1"].Value.Replace("{{", "{").Replace("}}", "}");
-                a.ViewDefinition = m.Groups["arg2"].Value.Replace("{{", "{").Replace("}}", "}");
+                a.ViewName = m.Groups["arg1"].Value.UnescapeString();
+                a.ViewDefinition = m.Groups["arg2"].Value.UnescapeString();
                 break;
 
             case WatchdogSetMetaAction a:
                 a.Range = double.TryParse(m.Groups["arg1"].Value, out var range) ? range : throw new MetaParserException("Invalid set watchdog definition");
                 a.Time = int.TryParse(m.Groups["arg2"].Value, out var time) ? time : throw new MetaParserException("Invalid set watchdog definition");
-                a.State = m.Groups["arg3"].Value.Replace("{{", "{").Replace("}}", "}");
+                a.State = m.Groups["arg3"].Value.UnescapeString();
                 break;
         }
 
@@ -384,16 +386,16 @@ public class MetafReader : IMetaReader
                 break;
 
             case ExpressionCondition c:
-                c.Expression = m.Groups["arg"].Value.Replace("{{", "{").Replace("}}", "}");
+                c.Expression = m.Groups["arg"].Value.UnescapeString();
                 break;
 
             case ChatMessageCaptureCondition c:
-                c.Pattern = m.Groups["arg1"].Value.Replace("{{", "{").Replace("}}", "}");
-                c.Color = m.Groups["arg2"].Value.Replace("{{", "{").Replace("}}", "}");
+                c.Pattern = m.Groups["arg1"].Value.UnescapeString();
+                c.Color = m.Groups["arg2"].Value.UnescapeString();
                 break;
 
             case Condition<string> c:
-                c.Data = m.Groups["arg"].Value.Replace("{{", "{").Replace("}}", "}");
+                c.Data = m.Groups["arg"].Value.UnescapeString();
                 break;
 
             case MonstersWithPriorityWithinDistanceCondition c:
@@ -408,13 +410,13 @@ public class MetafReader : IMetaReader
 
             case ItemCountCondition c:
                 c.Count = int.Parse(m.Groups["arg1"].Value);
-                c.ItemName = m.Groups["arg2"].Value.Replace("{{", "{").Replace("}}", "}");
+                c.ItemName = m.Groups["arg2"].Value.UnescapeString();
                 break;
 
             case MonsterCountWithinDistanceCondition c:
                 c.Count = int.Parse(m.Groups["arg1"].Value);
                 c.Distance = double.Parse(m.Groups["arg2"].Value);
-                c.MonsterNameRx = m.Groups["arg3"].Value.Replace("{{", "{").Replace("}}", "}");
+                c.MonsterNameRx = m.Groups["arg3"].Value.UnescapeString();
                 break;
 
             case TimeLeftOnSpellGECondition c:

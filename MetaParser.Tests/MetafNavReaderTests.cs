@@ -417,7 +417,7 @@ public class MetafNavReaderTests
         var expectedDelay = fixture.Create<double>();
         var sb = new StringBuilder()
             .AppendLine("NAV: _ once")
-            .AppendLine($"jmp 0.0 0.0 0.0 {expectedHeading} {(expectedShift ? bool.TrueString : bool.FalseString)} {expectedDelay}");
+            .AppendLine($"jmp 0.0 0.0 0.0 {expectedHeading} {{{(expectedShift ? bool.TrueString : bool.FalseString)}}} {expectedDelay}");
         using var reader = new StringReader(sb.ToString());
 
         var navReader = new MetafNavReader();
