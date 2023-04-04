@@ -1,6 +1,8 @@
 ﻿using MetaParser.Models;
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -32,6 +34,7 @@ public class MetafReader : IMetaReader
     private static readonly Regex ItemCountRegex = new(@"^\s*(?<arg1>\d+)\s*{(?<arg2>([^{}]|{{|}})*)}\s*(~~.*)?");
     private static readonly Regex LandCellRegex = new(@"^\s*(?<arg>[0-9a-fA-F]+)\s*(~~.*)?", RegexOptions.Compiled);
     private static readonly Regex OptionRegex = new(@"^\s*{(?<arg1>([^{}]|{{|}})*)}\s*{(?<arg2>([^{}]|{{|}})*)}\s*(~~.*)?", RegexOptions.Compiled);
+    private static readonly Regex NavTransformRegex = new(@"^\s*" + @"(?<d>" + DOUBLE_REGEX + @")(\s+(?<d>" + DOUBLE_REGEX + @")){6}\s*$", RegexOptions.Compiled);
     private static readonly Dictionary<string, Regex> ConditionListRegex = new()
     {
         { "NoMobsInDist",           new(@"^\s*(?<arg>" + DOUBLE_REGEX + @")", RegexOptions.Compiled) },
@@ -53,7 +56,7 @@ public class MetafReader : IMetaReader
     };
     private static readonly Dictionary<string, Regex> ActionListRegex = new()
     {
-        { "EmbedNav",       new(@"\s*(?<navRef>[a-zA-Z_][a-zA-Z0-9_]*)\s*{(?<navName>([^{}]|{{|}})*)}\s*(~~.*)?", RegexOptions.Compiled) },
+        { "EmbedNav",       new(@"\s*(?<navRef>[a-zA-Z_][a-zA-Z0-9_]*)\s*{(?<navName>([^{}]|{{|}})*)}(\s+{(?<xf>([^{}]|{{|}})*)})?\s*(~~.*)?", RegexOptions.Compiled) },
         { "Chat",           ConditionStringRegex },
         { "SetState",       ConditionStringRegex },
         { "ChatExpr",       ConditionStringRegex },
@@ -126,6 +129,7 @@ public class MetafReader : IMetaReader
         var meta = new Meta();
         using var reader = new StreamReader(stream);
         var navReferences = new Dictionary<string, NavRoute>();
+        var navTransforms = new Dictionary<string, double[]>();
         string line = await reader.ReadLineAsync().ConfigureAwait(false);
 
         do
@@ -138,7 +142,7 @@ public class MetafReader : IMetaReader
                 var m = StateNavRegex.Match(line);
                 if (m.Groups["op"].Value == "STATE")
                 {
-                    line = await ParseStateAsync(line.Substring(m.Index + m.Length), reader, meta, navReferences);
+                    line = await ParseStateAsync(line.Substring(m.Index + m.Length), reader, meta, navReferences, navTransforms);
                 }
                 else if (m.Groups["op"].Value == "NAV")
                 {
@@ -149,10 +153,32 @@ public class MetafReader : IMetaReader
             }
         } while (line != null);
 
+        // apply transforms
+        foreach (var nav in navReferences)
+        {
+            if (navTransforms.TryGetValue(nav.Key, out var transform))
+                ApplyTransform(nav.Value, transform);
+        }
+
         return meta;
     }
 
-    private async Task<string> ParseStateAsync(string line, TextReader reader, Meta meta, Dictionary<string, NavRoute> navReferences)
+    private static void ApplyTransform(NavRoute value, double[] transform)
+    {
+        if (value.Data is List<NavNode> nodes)
+        {
+            foreach (var node in nodes)
+            {
+                node.Point = (
+                        transform[0] * node.Point.x + transform[1] * node.Point.y + transform[4],
+                        transform[2] * node.Point.x + transform[3] * node.Point.y + transform[5],
+                        transform[6] + node.Point.z
+                    );
+            }
+        }
+    }
+
+    private async Task<string> ParseStateAsync(string line, TextReader reader, Meta meta, Dictionary<string, NavRoute> navReferences, Dictionary<string, double[]> navTransforms)
     {
         Match m = StateRegex.Match(line);
         if (!m.Success)
@@ -170,7 +196,7 @@ public class MetafReader : IMetaReader
 
             if (IfRegex.IsMatch(line))
             {
-                (line, var rule) = await ParseRuleAsync(line, reader, state, navReferences);
+                (line, var rule) = await ParseRuleAsync(line, reader, state, navReferences, navTransforms);
                 if (rule != null)
                 {
                     meta.Rules.Add(rule);
@@ -181,7 +207,7 @@ public class MetafReader : IMetaReader
         return line;
     }
 
-    private async Task<(string, Rule)> ParseRuleAsync(string line, TextReader reader, string state, Dictionary<string, NavRoute> navReferences)
+    private async Task<(string, Rule)> ParseRuleAsync(string line, TextReader reader, string state, Dictionary<string, NavRoute> navReferences, Dictionary<string, double[]> navTransforms)
     {
         Match m = IfRegex.Match(line);
         if (!m.Success)
@@ -193,7 +219,7 @@ public class MetafReader : IMetaReader
         if (!m.Success)
             throw new MetaParserException("Invalid action definition");
 
-        (line, var action) = await ParseActionAsync(line.Substring(m.Index + m.Length), reader, navReferences);
+        (line, var action) = await ParseActionAsync(line.Substring(m.Index + m.Length), reader, navReferences, navTransforms);
 
         return (line, new Rule()
         {
@@ -203,7 +229,7 @@ public class MetafReader : IMetaReader
         });
     }
 
-    private async Task<(string, MetaAction)> ParseActionAsync(string line, TextReader reader, Dictionary<string, NavRoute> navReferences)
+    private async Task<(string, MetaAction)> ParseActionAsync(string line, TextReader reader, Dictionary<string, NavRoute> navReferences, Dictionary<string, double[]> navTransforms)
     {
         // skip whitespace
         while (line != null && EmptyLineRegex.IsMatch(line))
@@ -227,14 +253,14 @@ public class MetafReader : IMetaReader
 
             while (line != null && !StateNavRegex.IsMatch(line) && !IfRegex.IsMatch(line))
             {
-                (line, var c) = await ParseActionAsync(line, reader, navReferences).ConfigureAwait(false);
+                (line, var c) = await ParseActionAsync(line, reader, navReferences, navTransforms).ConfigureAwait(false);
                 if (c != null)
                     ((AllMetaAction)action).Data.Add(c);
             }
         }
         else if (ActionList.ContainsKey(m.Groups["action"].Value))
         {
-            action = ParseActionLine(m, line.Substring(m.Groups["action"].Index + m.Groups["action"].Length), navReferences);
+            action = ParseActionLine(m, line.Substring(m.Groups["action"].Index + m.Groups["action"].Length), navReferences, navTransforms);
 
             do { line = await reader.ReadLineAsync().ConfigureAwait(false); } while (line != null && EmptyLineRegex.IsMatch(line));
         }
@@ -244,7 +270,7 @@ public class MetafReader : IMetaReader
         return (line, action);
     }
 
-    private MetaAction ParseActionLine(Match m, string line, Dictionary<string, NavRoute> navReferences)
+    private MetaAction ParseActionLine(Match m, string line, Dictionary<string, NavRoute> navReferences, Dictionary<string, double[]> navTransforms)
     {
         var action = MetaAction.CreateMetaAction(ActionList[m.Groups["action"].Value]);
 
@@ -267,6 +293,16 @@ public class MetafReader : IMetaReader
                     navReferences.Add(m.Groups["navRef"].Value, nav);
                 }
                 a.Data = (m.Groups["navName"].Value, nav);
+
+                // transform
+                if (m.Groups["xf"].Success)
+                {
+                    var m2 = NavTransformRegex.Match(m.Groups["xf"].Value);
+                    if (!m2.Success)
+                        throw new MetaParserException("Invalid nav transform");
+
+                    navTransforms.Add(m.Groups["navRef"].Value, m2.Groups["d"].Captures.Select(c => double.Parse(c.Value)).ToArray());
+                }
                 break;
 
             case MetaAction<string> a:

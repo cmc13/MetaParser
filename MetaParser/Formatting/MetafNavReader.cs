@@ -103,6 +103,8 @@ public class MetafNavReader : INavReader
             var follow = new NavFollow();
             await ReadNavFollowAsync(reader, follow);
             route.Data = follow;
+
+            do { line = await reader.ReadLineAsync().ConfigureAwait(false); } while (line != null && EmptyLineRegex.IsMatch(line));
         }
         else
         {

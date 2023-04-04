@@ -747,4 +747,39 @@ public class MetafReaderTests
         Assert.AreEqual(0.2, navNodeList[0].Point.y);
         Assert.AreEqual(0.3, navNodeList[0].Point.z);
     }
+
+    [TestMethod]
+    public async Task ReadMetaAsync_HappyPath_ReadsNavTransform()
+    {
+        var expectedNavRef = "_" + Guid.NewGuid().ToString().Replace("-", "");
+        var expectedNavName = fixture.Create<string>();
+        var sb = new StringBuilder()
+            .AppendLine($"NAV: {expectedNavRef} once")
+            .AppendLine($"pnt 0.1 0.2 0.3")
+            .AppendLine("STATE: {Default}")
+            .AppendLine("   IF: Always")
+            .AppendLine($"       DO: EmbedNav {expectedNavRef} {{{expectedNavName}}} {{1.0 2.0 3.0 4.0 5.0 6.0 7.0}}");
+        using var stream = sb.ToString().ToStream();
+
+        var metaReader = new MetafReader(new MetafNavReader());
+
+        var meta = await metaReader.ReadMetaAsync(stream);
+
+        Assert.IsNotNull(meta);
+        Assert.AreEqual(1, meta.Rules.Count);
+        Assert.AreEqual(ActionType.EmbeddedNavRoute, meta.Rules[0].Action.Type);
+        Assert.IsInstanceOfType<EmbeddedNavRouteMetaAction>(meta.Rules[0].Action);
+        var ec = meta.Rules[0].Action as EmbeddedNavRouteMetaAction;
+
+        Assert.AreEqual(expectedNavName, ec.Data.name);
+        Assert.IsNotNull(ec.Data.nav);
+        Assert.IsInstanceOfType<List<NavNode>>(ec.Data.nav.Data);
+        var navNodeList = ec.Data.nav.Data as List<NavNode>;
+
+        Assert.AreEqual(1, navNodeList.Count);
+        Assert.IsInstanceOfType<NavNodePoint>(navNodeList[0]);
+        Assert.AreEqual(5.5, navNodeList[0].Point.x);
+        Assert.AreEqual(7.1, navNodeList[0].Point.y);
+        Assert.AreEqual(7.3, navNodeList[0].Point.z);
+    }
 }
