@@ -43,7 +43,7 @@ public class MetafNavReaderTests
         var navReader = new MetafNavReader();
 
         var ex = await Assert.ThrowsExceptionAsync<MetaParserException>(() => navReader.ReadNavAsync(reader));
-        Assert.AreEqual($"Invalid nav type (Expected: 'follow|once|circular|linear'; Actual: '{navType}')", ex.Message);
+        Assert.AreEqual("Invalid nav declaration", ex.Message);
     }
 
     [TestMethod]

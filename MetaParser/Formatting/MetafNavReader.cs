@@ -11,9 +11,10 @@ namespace MetaParser.Formatting
     {
         private static readonly string DOUBLE_REGEX = @"[+\-]?(([1-9]\d*\.|\d?\.)(\d+([eE][+\-]?[0-9]+)|[0-9]+)|([1-9]\d*|0))";
         private static readonly Regex EmptyLineRegex = new(@"^\s*(~~.*)?$", RegexOptions.Compiled);
-        private static readonly Regex NavLineRegex = new(@"^\s*NAV:\s*(?<navRef>\S*)\s*(?<navType>\S*)\s*(~~.*)?$", RegexOptions.Compiled);
-        private static readonly Regex NavRegex = new(@"^\s*(?<navRef>\S*)\s*(?<navType>\S*)\s*(~~.*)?", RegexOptions.Compiled);
+        private static readonly Regex NavLineRegex = new(@"^\s*NAV:", RegexOptions.Compiled);
+        private static readonly Regex NavRegex = new(@"^\s*(?<navRef>[a-zA-Z_][a-zA-Z0-9_]*)\s*(?<navType>circular|linear|once|follow)\s*(~~.*)?", RegexOptions.Compiled);
         private static readonly Regex PointRegex = new($@"^\s*(?<x>{DOUBLE_REGEX})\s*(?<y>{DOUBLE_REGEX})\s*(?<z>{DOUBLE_REGEX})", RegexOptions.Compiled);
+        private static readonly Regex PointDefRegex = new(@"^\s*pnt|prt|rcl|pau|cht|vnd|ptl|tlk|chk|jmp", RegexOptions.Compiled);
         private static readonly Dictionary<string, Regex> NavNodeRegex = new()
         {
             { "flw", new(@"^\s*flw\s*(?<id>[0-9a-fA-F]+)\s*{(?<name>[^}]*)}", RegexOptions.Compiled) },
@@ -57,23 +58,40 @@ namespace MetaParser.Formatting
             { "Eldrytch Web Stronghold Recall", RecallSpellId.EldrytchWebStrongholdRecall }
         };
 
-        public Task<NavRoute> ReadNavAsync(TextReader reader) => ReadNavAsync(reader, null);
-
-        public async Task<NavRoute> ReadNavAsync(TextReader reader, IDictionary<string, NavRoute> navReferences = null)
+        public async Task<NavRoute> ReadNavAsync(TextReader reader)
         {
             string line;
 
             do { line = await reader.ReadLineAsync().ConfigureAwait(false); } while (line != null && EmptyLineRegex.IsMatch(line));
 
-            if (line == null)
-                return null;
+            var m = NavLineRegex.Match(line);
+            if (!m.Success)
+                throw new MetaParserException("Invalid nav declaration");
 
-            var m = navReferences != null ? NavRegex.Match(line) : NavLineRegex.Match(line);
+            (_, var route) = await ReadNavAsync(line.Substring(m.Index + m.Length), reader, null);
+            return route;
+        }
+
+        public async Task<(string, NavRoute)> ReadNavAsync(string line, TextReader reader, IDictionary<string, NavRoute> navReferences = null)
+        {
+            if (line == null)
+            {
+                do { line = await reader.ReadLineAsync().ConfigureAwait(false); } while (line != null && EmptyLineRegex.IsMatch(line));
+            }
+
+            if (line == null)
+                return (line, null);
+
+            var m = NavRegex.Match(line);
             if (!m.Success)
                 throw new MetaParserException("Invalid nav declaration");
 
             if (navReferences == null || !navReferences.TryGetValue(m.Groups["navRef"].Value, out var route))
+            {
                 route = new();
+
+                navReferences?.Add(m.Groups["navRef"].Value, route);
+            }
 
             if (!Enum.TryParse<NavType>(m.Groups["navType"].Value, true, out var type))
                 throw new MetaParserException("Invalid nav type", "follow|once|circular|linear", m.Groups["navType"].Value);
@@ -95,15 +113,13 @@ namespace MetaParser.Formatting
                 {
                     do { line = await reader.ReadLineAsync().ConfigureAwait(false); } while (line != null && EmptyLineRegex.IsMatch(line));
 
-                    if (line == null)
-                        return route;
-
-                    list.Add(ParseNavNode(line));
+                    if (line != null && PointDefRegex.IsMatch(line))
+                        list.Add(ParseNavNode(line));
                 }
-                while (line != null);
+                while (line != null && PointDefRegex.IsMatch(line));
             }
 
-            return route;
+            return (line, route);
         }
 
         public async Task ReadNavNodeAsync(TextReader reader, NavNode node)
