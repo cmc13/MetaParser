@@ -13,19 +13,20 @@ public class MetafNavReader : INavReader
     private static readonly Regex EmptyLineRegex = new(@"^\s*(~~.*)?$", RegexOptions.Compiled);
     private static readonly Regex NavLineRegex = new(@"^\s*NAV:", RegexOptions.Compiled);
     private static readonly Regex NavRegex = new(@"^\s*(?<navRef>[a-zA-Z_][a-zA-Z0-9_]*)\s*(?<navType>circular|linear|once|follow)\s*(~~.*)?", RegexOptions.Compiled);
+    private static readonly Regex NavTypeRegex = new(@"^\s*(?<nodeType>pnt|prt|rcl|pau|cht|vnd|ptl|tlk|jmp|chk)", RegexOptions.Compiled);
     private static readonly Regex PointRegex = new($@"^\s*(?<x>{DOUBLE_REGEX})\s*(?<y>{DOUBLE_REGEX})\s*(?<z>{DOUBLE_REGEX})", RegexOptions.Compiled);
     private static readonly Regex PointDefRegex = new(@"^\s*pnt|prt|rcl|pau|cht|vnd|ptl|tlk|chk|jmp", RegexOptions.Compiled);
     private static readonly Dictionary<string, Regex> NavNodeRegex = new()
     {
-        { "flw", new(@"^\s*flw\s*(?<id>[0-9a-fA-F]+)\s*{(?<name>([^{}]|{{|}})*)}", RegexOptions.Compiled) },
-        { "prt", new(@"^\s*(?<id>[0-9a-fA-F]+)", RegexOptions.Compiled) },
-        { "rcl", new(@"^\s*{(?<spell>([^{}]|{{|}})*)}", RegexOptions.Compiled) },
-        { "pau", new(@"^\s*(?<time>" + DOUBLE_REGEX + @")", RegexOptions.Compiled) },
-        { "cht", new(@"^\s*{(?<chat>([^{}]|{{|}})*)}", RegexOptions.Compiled) },
-        { "vnd", new(@"^\s*(?<id>[a-fA-F0-9]+)\s*{(?<name>([^{}]|{{|}})*)}", RegexOptions.Compiled) },
-        { "ptl", new(@"^\s*(?<oc>\d+)\s*{(?<name>([^{}]|{{|}})*)}", RegexOptions.Compiled) },
-        { "tlk", new(@"^\s*(?<oc>\d+)\s*{(?<name>([^{}]|{{|}})*)}", RegexOptions.Compiled) },
-        { "jmp", new(@"^\s*(?<heading>" + DOUBLE_REGEX + @")\s*{(?<tf>True|False)}\s*(?<time>" + DOUBLE_REGEX + @")", RegexOptions.Compiled) }
+        { "flw", new(@"^\s*flw\s*(?<id>[0-9a-fA-F]+)\s*{(?<name>([^{}]|{{|}})*)}\s*(~~.*)?$", RegexOptions.Compiled) },
+        { "prt", new(@"^\s*(?<id>[0-9a-fA-F]+)\s*(~~.*)?$", RegexOptions.Compiled) },
+        { "rcl", new(@"^\s*{(?<spell>([^{}]|{{|}})*)}\s*(~~.*)?$", RegexOptions.Compiled) },
+        { "pau", new(@"^\s*(?<time>" + DOUBLE_REGEX + @")\s*(~~.*)?$", RegexOptions.Compiled) },
+        { "cht", new(@"^\s*{(?<chat>([^{}]|{{|}})*)}\s*(~~.*)?$", RegexOptions.Compiled) },
+        { "vnd", new(@"^\s*(?<id>[a-fA-F0-9]+)\s*{(?<name>([^{}]|{{|}})*)}\s*(~~.*)?$", RegexOptions.Compiled) },
+        { "ptl", new(@"^\s*(?<oc>\d+)\s*{(?<name>([^{}]|{{|}})*)}\s*(~~.*)?$", RegexOptions.Compiled) },
+        { "tlk", new(@"^\s*(?<oc>\d+)\s*{(?<name>([^{}]|{{|}})*)}\s*(~~.*)?$", RegexOptions.Compiled) },
+        { "jmp", new(@"^\s*(?<heading>" + DOUBLE_REGEX + @")\s*{(?<tf>True|False)}\s*(?<time>" + DOUBLE_REGEX + @")\s*(~~.*)?$", RegexOptions.Compiled) }
     };
 
     private static readonly Dictionary<string, RecallSpellId> RecallSpellList = new()
@@ -66,7 +67,7 @@ public class MetafNavReader : INavReader
 
         var m = NavLineRegex.Match(line);
         if (!m.Success)
-            throw new MetaParserException("Invalid nav declaration");
+            throw new MetaParserException("Invalid nav declaration", "NAV: ...", line);
 
         (_, var route) = await ReadNavAsync(line.Substring(m.Index + m.Length), reader, null);
         return route;
@@ -84,7 +85,7 @@ public class MetafNavReader : INavReader
 
         var m = NavRegex.Match(line);
         if (!m.Success)
-            throw new MetaParserException("Invalid nav declaration");
+            throw new MetaParserException("Invalid nav declaration", "<nav reference> [circular|once|follow|linear]", line);
 
         if (navReferences == null || !navReferences.TryGetValue(m.Groups["navRef"].Value, out var route))
         {
@@ -138,9 +139,9 @@ public class MetafNavReader : INavReader
 
     private NavNode ParseNavNode(string line)
     {
-        var m = Regex.Match(line, @"^\s*(?<nodeType>\S+)");
+        var m = NavTypeRegex.Match(line);
         if (!m.Success)
-            throw new MetaParserException("Invalid nav node definition");
+            throw new MetaParserException("Invalid nav node definition", "pnt|prt|rcl|pau|cht|vnd|ptl|tlk|chk|jmp ...", line);
 
         line = line.Substring(m.Index + m.Length);
         (double x, double y, double z) pt = ParsePoint(ref line), pt2;
@@ -152,7 +153,7 @@ public class MetafNavReader : INavReader
             case "prt":
                 m = NavNodeRegex[m.Groups["nodeType"].Value].Match(line);
                 if (!m.Success)
-                    throw new MetaParserException("Invalid nav portal definition");
+                    throw new MetaParserException("Invalid nav portal definition", "<hex number>", line);
                 return new NavNodePortalObs()
                 {
                     Point = pt,
@@ -162,7 +163,7 @@ public class MetafNavReader : INavReader
             case "rcl":
                 m = NavNodeRegex[m.Groups["nodeType"].Value].Match(line);
                 if (!m.Success)
-                    throw new MetaParserException("Invalid nav recall definition");
+                    throw new MetaParserException("Invalid nav recall definition", "{<recall spell name>}", line);
                 return new NavNodeRecall()
                 {
                     Point = pt,
@@ -172,7 +173,7 @@ public class MetafNavReader : INavReader
             case "pau":
                 m = NavNodeRegex[m.Groups["nodeType"].Value].Match(line);
                 if (!m.Success)
-                    throw new MetaParserException("Invalid nav pause definition");
+                    throw new MetaParserException("Invalid nav pause definition", "<double>", line);
                 return new NavNodePause()
                 {
                     Point = pt,
@@ -182,13 +183,13 @@ public class MetafNavReader : INavReader
             case "cht":
                 m = NavNodeRegex[m.Groups["nodeType"].Value].Match(line);
                 if (!m.Success)
-                    throw new MetaParserException("Invalid nav chat definition");
+                    throw new MetaParserException("Invalid nav chat definition", "{<chat>}", line);
                 return new NavNodeChat() { Point = pt, Data = m.Groups["chat"].Value.UnescapeString() };
 
             case "vnd":
                 m = NavNodeRegex[m.Groups["nodeType"].Value].Match(line);
                 if (!m.Success)
-                    throw new MetaParserException("Invalid nav vendor definition");
+                    throw new MetaParserException("Invalid nav vendor definition", "<hex number> {<target name>}", line);
                 return new NavNodeOpenVendor()
                 {
                     Point = pt,
@@ -201,7 +202,7 @@ public class MetafNavReader : INavReader
                 pt2 = ParsePoint(ref line);
                 m = NavNodeRegex[m.Groups["nodeType"].Value].Match(line);
                 if (!m.Success)
-                    throw new MetaParserException("Invalid nav portal definition");
+                    throw new MetaParserException("Invalid nav portal definition", "<object class> {<target name>}", line);
                 return new NavNodePortal()
                 {
                     Point = pt,
@@ -217,7 +218,7 @@ public class MetafNavReader : INavReader
                 pt2 = ParsePoint(ref line);
                 m = NavNodeRegex[m.Groups["nodeType"].Value].Match(line);
                 if (!m.Success)
-                    throw new MetaParserException("Invalid nav npc chat definition");
+                    throw new MetaParserException("Invalid nav npc chat definition", "<object class> {<target name>}", line);
                 return new NavNodeNPCChat()
                 {
                     Point = pt,
@@ -235,7 +236,7 @@ public class MetafNavReader : INavReader
             case "jmp":
                 m = NavNodeRegex[m.Groups["nodeType"].Value].Match(line);
                 if (!m.Success)
-                    throw new MetaParserException("Invalid nav jump definition");
+                    throw new MetaParserException("Invalid nav jump definition", "<double> <True|False> <double>", line);
                 return new NavNodeJump()
                 {
                     Point = pt,
@@ -254,7 +255,7 @@ public class MetafNavReader : INavReader
     {
         var m = PointRegex.Match(line);
         if (!m.Success)
-            throw new MetaParserException("Invalid nav point definition");
+            throw new MetaParserException("Invalid nav point definition", "<x> <y> <z> ...", line);
 
         line = line.Substring(m.Index + m.Length);
 
@@ -276,9 +277,9 @@ public class MetafNavReader : INavReader
 
         var m = NavNodeRegex["flw"].Match(line);
         if (!m.Success)
-            throw new MetaParserException("Invalid nav follow definition");
+            throw new MetaParserException("Invalid nav follow definition", "flw <hex number> {<target name>}", line);
 
         follow.TargetId = int.TryParse(m.Groups["id"].Value, System.Globalization.NumberStyles.HexNumber, null, out var id) ? id : throw new MetaParserException("Invalid nav follow definition");
-        follow.TargetName = m.Groups["name"].Value;
+        follow.TargetName = m.Groups["name"].Value.UnescapeString();
     }
 }

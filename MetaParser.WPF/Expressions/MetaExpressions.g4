@@ -21,7 +21,6 @@ expression          : '(' expression ')'                                        
                     | BOOL                                                                        #boolAtomExp
                     | STRING                                                                      #stringAtomExp                    
                     | HEXNUMBER                                                                   #hexNumberAtomExp
-                    | .                                                                           #catchallAtomExp
                     ;
 
 expressionList      : '[' (expression (',' expression)*)? ']' ;

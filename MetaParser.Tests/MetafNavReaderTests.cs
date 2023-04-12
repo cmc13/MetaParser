@@ -15,6 +15,20 @@ public class MetafNavReaderTests
     private readonly Fixture fixture = new();
 
     [TestMethod]
+    public async Task ReadNavAsync_InvalidNavDeclaration_ThrowsException()
+    {
+        var sb = new StringBuilder()
+            .AppendLine("NOTNAV: _");
+        using var reader = new StringReader(sb.ToString());
+
+        var navReader = new MetafNavReader();
+
+        var ex = await Assert.ThrowsExceptionAsync<MetaParserException>(() => navReader.ReadNavAsync(reader));
+        Assert.AreEqual("Invalid nav declaration (Expected: 'NAV: ...'; Actual: 'NOTNAV: _')", ex.Message);
+    }
+
+
+    [TestMethod]
     [DataRow("once", NavType.Once)]
     [DataRow("circular", NavType.Circular)]
     [DataRow("linear", NavType.Linear)]
@@ -43,7 +57,7 @@ public class MetafNavReaderTests
         var navReader = new MetafNavReader();
 
         var ex = await Assert.ThrowsExceptionAsync<MetaParserException>(() => navReader.ReadNavAsync(reader));
-        Assert.AreEqual("Invalid nav declaration", ex.Message);
+        Assert.AreEqual($"Invalid nav declaration (Expected: '<nav reference> [circular|once|follow|linear]'; Actual: ' _ {navType}')", ex.Message);
     }
 
     [TestMethod]
@@ -79,7 +93,7 @@ public class MetafNavReaderTests
         var navReader = new MetafNavReader();
 
         var ex = await Assert.ThrowsExceptionAsync<MetaParserException>(() => navReader.ReadNavAsync(reader));
-        Assert.AreEqual("Invalid nav follow definition", ex.Message);
+        Assert.AreEqual("Invalid nav follow definition (Expected: 'flw <hex number> {<target name>}'; Actual: 'flw')", ex.Message);
     }
 
     [TestMethod]
@@ -202,6 +216,21 @@ public class MetafNavReaderTests
     }
 
     [TestMethod]
+    public async Task ReadNavAsync_InvalidPortalObdDefinition_ThrowsException()
+    {
+        var expectedTargetId = fixture.Create<string>();
+        var sb = new StringBuilder()
+            .AppendLine("NAV: _ once")
+            .AppendLine($"prt 0.0 0.0 0.0 {expectedTargetId}");
+        using var reader = new StringReader(sb.ToString());
+
+        var navReader = new MetafNavReader();
+
+        var ex = await Assert.ThrowsExceptionAsync<MetaParserException>(() => navReader.ReadNavAsync(reader));
+        Assert.AreEqual($"Invalid nav portal definition (Expected: '<hex number>'; Actual: ' {expectedTargetId}')", ex.Message);
+    }
+
+    [TestMethod]
     [DataRow("Primary Portal Recall", RecallSpellId.PrimaryPortalRecall)]
     [DataRow("Secondary Portal Recall", RecallSpellId.SecondaryPortalRecall)]
     [DataRow("Lifestone Recall", RecallSpellId.LifestoneRecall)]
@@ -267,6 +296,21 @@ public class MetafNavReaderTests
     }
 
     [TestMethod]
+    public async Task ReadNavAsync_InvalidRecallNodeDefinition_ThrowsException()
+    {
+        var invalidSpellName = fixture.Create<string>();
+        var sb = new StringBuilder()
+            .AppendLine("NAV: _ once")
+            .AppendLine($"rcl 0.0 0.0 0.0 {invalidSpellName}");
+        using var reader = new StringReader(sb.ToString());
+
+        var navReader = new MetafNavReader();
+
+        var ex = await Assert.ThrowsExceptionAsync<MetaParserException>(() => navReader.ReadNavAsync(reader));
+        Assert.AreEqual($"Invalid nav recall definition (Expected: '{{<recall spell name>}}'; Actual: ' {invalidSpellName}')", ex.Message);
+    }
+
+    [TestMethod]
     public async Task ReadNavAsync_HappyPath_ReadsPauseNode()
     {
         var pauseTime = fixture.Create<double>();
@@ -289,6 +333,21 @@ public class MetafNavReaderTests
         var navNode = navNodeList[0] as NavNodePause;
 
         Assert.AreEqual(pauseTime, navNode.Data);
+    }
+
+    [TestMethod]
+    public async Task ReadNavAsync_InvalidPauseNodeDefinition_ThrowsException()
+    {
+        var invalidArgument = fixture.Create<string>();
+        var sb = new StringBuilder()
+            .AppendLine("NAV: _ once")
+            .AppendLine($"pau 0.0 0.0 0.0 {invalidArgument}");
+        using var reader = new StringReader(sb.ToString());
+
+        var navReader = new MetafNavReader();
+
+        var ex = await Assert.ThrowsExceptionAsync<MetaParserException>(() => navReader.ReadNavAsync(reader));
+        Assert.AreEqual($"Invalid nav pause definition (Expected: '<double>'; Actual: ' {invalidArgument}')", ex.Message);
     }
 
     [TestMethod]
@@ -317,6 +376,21 @@ public class MetafNavReaderTests
     }
 
     [TestMethod]
+    public async Task ReadNavAsync_InvalidChatNodeDefinition_ThrowsException()
+    {
+        var invalidArgument = fixture.Create<string>();
+        var sb = new StringBuilder()
+            .AppendLine("NAV: _ once")
+            .AppendLine($"cht 0.0 0.0 0.0 {invalidArgument}");
+        using var reader = new StringReader(sb.ToString());
+
+        var navReader = new MetafNavReader();
+
+        var ex = await Assert.ThrowsExceptionAsync<MetaParserException>(() => navReader.ReadNavAsync(reader));
+        Assert.AreEqual($"Invalid nav chat definition (Expected: '{{<chat>}}'; Actual: ' {invalidArgument}')", ex.Message);
+    }
+
+    [TestMethod]
     public async Task ReadNavAsync_HappyPath_ReadsOpenVendorNode()
     {
         var expectedTargetId = fixture.Create<int>();
@@ -341,6 +415,21 @@ public class MetafNavReaderTests
 
         Assert.AreEqual(expectedTargetId, navNode.Data.vendorId);
         Assert.AreEqual(expectedTargetName, navNode.Data.vendorName);
+    }
+
+    [TestMethod]
+    public async Task ReadNavAsync_InvalidOpenVendorNodeDefinition_ThrowsException()
+    {
+        var invalidArgument = fixture.Create<string>();
+        var sb = new StringBuilder()
+            .AppendLine("NAV: _ once")
+            .AppendLine($"vnd 0.0 0.0 0.0 {invalidArgument}");
+        using var reader = new StringReader(sb.ToString());
+
+        var navReader = new MetafNavReader();
+
+        var ex = await Assert.ThrowsExceptionAsync<MetaParserException>(() => navReader.ReadNavAsync(reader));
+        Assert.AreEqual($"Invalid nav vendor definition (Expected: '<hex number> {{<target name>}}'; Actual: ' {invalidArgument}')", ex.Message);
     }
 
     [TestMethod]
@@ -377,6 +466,21 @@ public class MetafNavReaderTests
     }
 
     [TestMethod]
+    public async Task ReadNavAsync_InvalidPortalNodeDefinition_ThrowsException()
+    {
+        var invalidArgument = fixture.Create<string>();
+        var sb = new StringBuilder()
+            .AppendLine("NAV: _ once")
+            .AppendLine($"ptl 0.0 0.0 0.0 0.0 0.0 0.0 {invalidArgument}");
+        using var reader = new StringReader(sb.ToString());
+
+        var navReader = new MetafNavReader();
+
+        var ex = await Assert.ThrowsExceptionAsync<MetaParserException>(() => navReader.ReadNavAsync(reader));
+        Assert.AreEqual($"Invalid nav portal definition (Expected: '<object class> {{<target name>}}'; Actual: ' {invalidArgument}')", ex.Message);
+    }
+
+    [TestMethod]
     public async Task ReadNavAsync_HappyPath_ReadsNPCChatNode()
     {
         var expectedX = fixture.Create<double>();
@@ -410,6 +514,21 @@ public class MetafNavReaderTests
     }
 
     [TestMethod]
+    public async Task ReadNavAsync_InvalidNPCChatNodeDefinition_ThrowsException()
+    {
+        var invalidArgument = fixture.Create<string>();
+        var sb = new StringBuilder()
+            .AppendLine("NAV: _ once")
+            .AppendLine($"tlk 0.0 0.0 0.0 0.0 0.0 0.0 {invalidArgument}");
+        using var reader = new StringReader(sb.ToString());
+
+        var navReader = new MetafNavReader();
+
+        var ex = await Assert.ThrowsExceptionAsync<MetaParserException>(() => navReader.ReadNavAsync(reader));
+        Assert.AreEqual($"Invalid nav npc chat definition (Expected: '<object class> {{<target name>}}'; Actual: ' {invalidArgument}')", ex.Message);
+    }
+
+    [TestMethod]
     public async Task ReadNavAsync_HappyPath_ReadsJumpNode()
     {
         var expectedHeading = fixture.Create<double>();
@@ -436,5 +555,20 @@ public class MetafNavReaderTests
         Assert.AreEqual(expectedHeading, navNode.Data.heading);
         Assert.AreEqual(expectedShift, navNode.Data.shift);
         Assert.AreEqual(expectedDelay, navNode.Data.delay);
+    }
+
+    [TestMethod]
+    public async Task ReadNavAsync_InvalidJumpNodeDefinition_ThrowsException()
+    {
+        var invalidArgument = fixture.Create<string>();
+        var sb = new StringBuilder()
+            .AppendLine("NAV: _ once")
+            .AppendLine($"jmp 0.0 0.0 0.0 {invalidArgument}");
+        using var reader = new StringReader(sb.ToString());
+
+        var navReader = new MetafNavReader();
+
+        var ex = await Assert.ThrowsExceptionAsync<MetaParserException>(() => navReader.ReadNavAsync(reader));
+        Assert.AreEqual($"Invalid nav jump definition (Expected: '<double> <True|False> <double>'; Actual: ' {invalidArgument}')", ex.Message);
     }
 }

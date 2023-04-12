@@ -3,9 +3,11 @@ using Antlr4.Runtime.Misc;
 using MetaParser.Models;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.RegularExpressions;
 using System.Xml;
@@ -66,11 +68,9 @@ public class UnreachableStateMetaValidator : IMetaValidator
             return false;
         }
 
-        foreach (var state in meta.Rules.Select(r => r.State).Distinct().Except(new[] { "Default" }))
-        {
-            if (meta.Rules.All(r => !ContainsState(r.Action, state)))
-                yield return new MetaValidationResult(meta, null, $"Unreachable state detected: {state}");
-        }
+        return meta.Rules.Select(r => r.State).Distinct().Except(new[] { "Default" })
+            .Where(s => meta.Rules.All(r => !ContainsState(r.Action, s)))
+            .Select(s => new MetaValidationResult(meta, null, $"Unreachable state detected: {s}"));
     }
 }
 
@@ -151,19 +151,15 @@ public class EmptyMultipleConditionValidator : IMetaValidator
         {
             if (c is MultipleCondition mc)
             {
-                if (mc.Data.Count == 0)
-                    return true;
-                else if (mc.Data.Any(HasEmptyCondition))
+                if (mc.Data.Count == 0 || mc.Data.Any(HasEmptyCondition))
                     return true;
             }
 
             return false;
         }
 
-        foreach (var r in meta.Rules.Where(r => HasEmptyCondition(r.Condition)))
-        {
-            yield return new MetaValidationResult(meta, r, $"Empty multiple condition detected");
-        }
+        return meta.Rules.Where(r => HasEmptyCondition(r.Condition))
+            .Select(r => new MetaValidationResult(meta, r, "Empty multiple condition detected"));
     }
 }
 
@@ -175,19 +171,15 @@ public class EmptyMultipleActionValidator : IMetaValidator
         {
             if (c is AllMetaAction mc)
             {
-                if (mc.Data.Count == 0)
-                    return true;
-                else if (mc.Data.Any(HasEmptyAction))
+                if (mc.Data.Count == 0 || mc.Data.Any(HasEmptyAction))
                     return true;
             }
 
             return false;
         }
 
-        foreach (var r in meta.Rules.Where(r => HasEmptyAction(r.Action)))
-        {
-            yield return new MetaValidationResult(meta, r, $"Empty multiple action detected");
-        }
+        return meta.Rules.Where(r => HasEmptyAction(r.Action))
+            .Select(r => new MetaValidationResult(meta, r, "Empty multiple action detected"));
     }
 }
 
@@ -266,13 +258,9 @@ public class VTankOptionValueValidator : IMetaValidator
             }
         }
 
-        foreach (var rule in meta.Rules)
-        {
-            foreach (var result in GetInvalidOptionValues(rule.Action))
-            {
-                yield return new MetaValidationResult(meta, rule, $"Invalid value for {result.op} option: {result.vv}");
-            }
-        }
+        return meta.Rules
+            .SelectMany(r => GetInvalidOptionValues(r.Action)
+                .Select(t => new MetaValidationResult(meta, r, $"Invalid value for {t.op} option: {t.vv}")));
     }
 }
 
@@ -310,20 +298,9 @@ public class VacuouslyTrueConditionValidator : IMetaValidator
             return false;
         }
 
-        foreach (var rule in meta.Rules)
-        {
-            if (IsVacuouslyTrue(rule.Condition))
-            {
-                if (rule.Condition is MultipleCondition)
-                {
-                    yield return new MetaValidationResult(meta, rule, $"Rule contains a vacuously true condition");
-                }
-                else
-                {
-                    yield return new MetaValidationResult(meta, rule, "Rule condition is vacuously true");
-                }
-            }
-        }
+        return meta.Rules
+            .Where(r => IsVacuouslyTrue(r.Condition))
+            .Select(r => new MetaValidationResult(meta, r, r.Condition is MultipleCondition ? "Rule contains a vacuously true condition" : "Rule conditions vacuously true"));
     }
 }
 
@@ -356,10 +333,9 @@ public class InvalidRegexValidator : IMetaValidator
             return false;
         }
 
-        foreach (var rule in meta.Rules.Where(r => HasInvalidRegex(r.Condition)))
-        {
-            yield return new MetaValidationResult(meta, rule, "Condition has invalid regular expression syntax");
-        }
+        return meta.Rules
+            .Where(r => HasInvalidRegex(r.Condition))
+            .Select(r => new MetaValidationResult(meta, r, "Condition has invalid regular expression syntax"));
     }
 
     private static bool IsValidRegex(string pattern)
@@ -380,31 +356,44 @@ public class DuplicateViewNameValidator : IMetaValidator
 {
     public IEnumerable<MetaValidationResult> ValidateMeta(Meta meta)
     {
-        var dict = new Dictionary<string, int>();
-        void GetViewNames(MetaAction action)
+        var viewNames = new Dictionary<string, int>();
+        var viewRules = new Dictionary<Rule, List<string>>();
+        IEnumerable<string> GetViewNames(MetaAction action)
         {
             if (action is CreateViewMetaAction cma)
             {
-                if (dict.ContainsKey(cma.ViewName))
-                    dict[cma.ViewName]++;
-                else
-                    dict[cma.ViewName] = 1;
+                yield return cma.ViewName;
             }
             else if (action is AllMetaAction ama)
             {
-                foreach (var a in ama.Data)
-                    GetViewNames(a);
+                foreach (var view in ama.Data.SelectMany(GetViewNames))
+                    yield return view;
             }
         }
 
         foreach (var rule in meta.Rules)
         {
-            GetViewNames(rule.Action);
+            var views = new List<string>();
+            foreach (var t in GetViewNames(rule.Action).GroupBy(v => v).Select(g => (g.Key,g.Count())))
+            {
+                if (!viewNames.TryGetValue(t.Key, out var count))
+                    count = 0;
+
+                viewNames[t.Key] = count + t.Item2;
+
+                if (!views.Contains(t.Key))
+                    views.Add(t.Key);
+            }
+
+            viewRules[rule] = views;
         }
 
-        foreach (var kv in dict.Where(v => v.Value > 1))
+        
+
+        foreach (var kv in viewNames.Where(v => v.Value > 1))
         {
-            yield return new MetaValidationResult(meta, null, $"View name declared multiple times: {kv.Key}");
+            foreach (var rule in viewRules.Where(kv2 => kv2.Value.Contains(kv.Key)).Select(kv2 => kv2.Key))
+                yield return new MetaValidationResult(meta, rule, $"View name declared multiple times: {kv.Key}");
         }
     }
 }
@@ -487,15 +476,14 @@ public class ValidXMLViewValidator : IMetaValidator
             return true;
         }
 
-        foreach (var rule in meta.Rules)
-        {
-            if (!IsValidXMLView(rule.Action))
-                yield return new MetaValidationResult(meta, rule, @"Invalid View XML format");
-        }
+        return meta.Rules
+            .Where(r => !IsValidXMLView(r.Action))
+            .Select(r => new MetaValidationResult(meta, r, "Invalid View XML format"));
     }
 }
 
-public class ValidMetaExpressionFunctionValidator : IMetaValidator
+public class MetaExpressionValidator
+    : IMetaValidator
 {
     private class FunctionNameVisitor : MetaExpressionsBaseVisitor<List<string>>
     {
@@ -517,6 +505,7 @@ public class ValidMetaExpressionFunctionValidator : IMetaValidator
 
     private static readonly string[] VTANK_EXPRESSION_FUNCTIONS = new string[]
     {
+        //VTank base expressions
         "testvar",
         "getvar",
         "setvar",
@@ -789,59 +778,72 @@ public class ValidMetaExpressionFunctionValidator : IMetaValidator
 
     public IEnumerable<MetaValidationResult> ValidateMeta(Meta meta)
     {
-        IEnumerable<string> GetExpressionFunctionNamesInCondition(Condition c)
+        return meta.Rules.SelectMany(r => CheckConditionMetaExpressions(meta, r, r.Condition))
+            .Union(meta.Rules.SelectMany(r => CheckActionMetaExpressions(meta, r, r.Action)));
+    }
+
+    private static MetaExpressionsParser.ParseContext ParseExpression(string expression)
+    {
+        var stream = new AntlrInputStream(expression);
+        var lexer = new MetaExpressionsLexer(stream);
+        var tokens = new CommonTokenStream(lexer);
+        var parser = new MetaExpressionsParser(tokens);
+        return parser.parse();
+    }
+
+    private static IEnumerable<MetaValidationResult> CheckConditionMetaExpressions(Meta m, Rule r, Condition c)
+    {
+        if (c is ExpressionCondition ec)
         {
-            if (c is ExpressionCondition ec)
-            {
-                var stream = new AntlrInputStream(ec.Expression);
-                var lexer = new MetaExpressionsLexer(stream);
-                var tokens = new CommonTokenStream(lexer);
-                var parser = new MetaExpressionsParser(tokens);
-                var ctx = parser.parse();
-                var visitor = new FunctionNameVisitor();
-                foreach (var fn in visitor.Visit(ctx))
-                    yield return fn;
-            }
-            else if (c is MultipleCondition mc)
-            {
-                foreach (var f in mc.Data.SelectMany(GetExpressionFunctionNamesInCondition))
-                    yield return f;
-            }
+            return CheckExpression(m, r, ec.Expression);
+        }
+        else if (c is MultipleCondition mc)
+        {
+            return mc.Data.SelectMany(cc => CheckConditionMetaExpressions(m, r, cc));
         }
 
-        IEnumerable<string> GetExpressionFunctionNamesInAction(MetaAction a)
+        return Enumerable.Empty<MetaValidationResult>();
+    }
+
+    private static IEnumerable<MetaValidationResult> CheckActionMetaExpressions(Meta m, Rule r, MetaAction a)
+    {
+        if (a is ExpressionMetaAction ec)
         {
-            if (a is ExpressionMetaAction ea)
-            {
-                var stream = new AntlrInputStream(ea.Expression);
-                var lexer = new MetaExpressionsLexer(stream);
-                var tokens = new CommonTokenStream(lexer);
-                var parser = new MetaExpressionsParser(tokens);
-                var ctx = parser.parse();
-                var visitor = new FunctionNameVisitor();
-                foreach (var fn in visitor.Visit(ctx))
-                    yield return fn;
-            }
-            else if (a is AllMetaAction aa)
-            {
-                foreach (var f in aa.Data.SelectMany(GetExpressionFunctionNamesInAction))
-                    yield return f;
-            }
+            return CheckExpression(m, r, ec.Expression))
+        }
+        else if (a is AllMetaAction mc)
+        {
+            return mc.Data.SelectMany(aa => CheckActionMetaExpressions(m, r, aa));
         }
 
-        var rules = new List<MetaValidationResult>();
-        foreach (var rule in meta.Rules)
+        return Enumerable.Empty<MetaValidationResult>();
+    }
+
+    private static IEnumerable<MetaValidationResult> CheckExpression(Meta m, Rule r, string expression)
+    {
+        List<MetaValidationResult> results = new();
+        try
         {
-            try
+            var ctx = ParseExpression(expression);
+
+            if (ctx.exception != null)
             {
-                foreach (var f in GetExpressionFunctionNamesInCondition(rule.Condition).Where(c => !VTANK_EXPRESSION_FUNCTIONS.Contains(c)))
-                    rules.Add(new(meta, rule, $"Invalid expression function in condition: {f}"));
-                foreach (var f in GetExpressionFunctionNamesInAction(rule.Action).Where(a => !VTANK_EXPRESSION_FUNCTIONS.Contains(a)))
-                    rules.Add(new(meta, rule, $"Invalid expression function in action: {f}"));
+                results.Add(new MetaValidationResult(m, r, $"Unable to parse expression: {ctx.exception.Message}"));
             }
-            catch (NullReferenceException) { }
+
+            var visitor = new FunctionNameVisitor();
+            var functionNames = visitor.Visit(ctx).Where(f => !VTANK_EXPRESSION_FUNCTIONS.Contains(f));
+            if (functionNames != null)
+            {
+                foreach (var fn in functionNames)
+                    results.Add(new MetaValidationResult(m, r, $"Invalid expression function: {fn}"));
+            }
+        }
+        catch (Exception e)
+        {
+            results.Add(new MetaValidationResult(m, r, $"Unable to parse expression: {e.Message}"));
         }
 
-        return rules;
+        return results.AsReadOnly();
     }
 }

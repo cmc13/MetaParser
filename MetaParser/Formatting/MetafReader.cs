@@ -1,5 +1,4 @@
 ﻿using MetaParser.Models;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -17,6 +16,29 @@ static class MetafExtensions
     }
 
     public static string UnescapeString(this string str) => str.Replace("{{", "{").Replace("}}", "}");
+
+    public static void ApplyTransform(this NavRoute route, double[] transform)
+    {
+        if (route.Data is List<NavNode> nodes)
+        {
+            foreach (var node in nodes)
+                node.ApplyTransform(transform);
+        }
+    }
+
+    public static void ApplyTransform(this NavNode node, double[] transform)
+    {
+        node.Point = node.Point.ApplyTransform(transform);
+    }
+
+    public static (double, double, double) ApplyTransform(this (double x, double y, double z) pt, double[] transform)
+    {
+        return (
+                transform[0] * pt.x + transform[1] * pt.y + transform[4],
+                transform[2] * pt.x + transform[3] * pt.y + transform[5],
+                transform[6] + pt.z
+            );
+    }
 }
 
 public class MetafReader : IMetaReader
@@ -157,25 +179,10 @@ public class MetafReader : IMetaReader
         foreach (var nav in navReferences)
         {
             if (navTransforms.TryGetValue(nav.Key, out var transform))
-                ApplyTransform(nav.Value, transform);
+                nav.Value.ApplyTransform(transform);
         }
 
         return meta;
-    }
-
-    private static void ApplyTransform(NavRoute value, double[] transform)
-    {
-        if (value.Data is List<NavNode> nodes)
-        {
-            foreach (var node in nodes)
-            {
-                node.Point = (
-                        transform[0] * node.Point.x + transform[1] * node.Point.y + transform[4],
-                        transform[2] * node.Point.x + transform[3] * node.Point.y + transform[5],
-                        transform[6] + node.Point.z
-                    );
-            }
-        }
     }
 
     private async Task<string> ParseStateAsync(string line, TextReader reader, Meta meta, Dictionary<string, NavRoute> navReferences, Dictionary<string, double[]> navTransforms)

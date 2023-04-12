@@ -44,6 +44,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Antlr4 Include="Expressions\MetaExpressions.g4" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Resource Include="Assets\Icons\Search_16x.png" />
   </ItemGroup>
 
@@ -59,6 +63,7 @@
 
   <ItemGroup>
     <PackageReference Include="Antlr4.Runtime.Standard" Version="4.12.0" />
+    <PackageReference Include="Antlr4BuildTasks" Version="12.2.0" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.1.0" />
     <PackageReference Include="Gu.Wpf.Geometry" Version="2.2.8" />
     <PackageReference Include="Extended.Wpf.Toolkit" Version="4.5.0" />
