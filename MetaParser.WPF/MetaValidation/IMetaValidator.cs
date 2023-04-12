@@ -187,48 +187,36 @@ public class VTankOptionValidator : IMetaValidator
 {
     public IEnumerable<MetaValidationResult> ValidateMeta(Meta meta)
     {
-        string InvalidVTankOption(MetaAction c)
+        IEnumerable<string> InvalidVTankOption(MetaAction c)
         {
             if (c is AllMetaAction mc)
             {
-                foreach (var a in mc.Data)
-                {
-                    var op = InvalidVTankOption(a);
-                    if (op != null)
-                        return op;
-                }
+                foreach (var op in mc.Data.SelectMany(InvalidVTankOption))
+                    yield return op;
             }
             else if (c is SetVTOptionMetaAction sc)
             {
                 if (!VTankOptionsExtensions.TryParse(sc.Option, out _))
                 {
-                    return sc.Option;
+                    yield return sc.Option;
                 }
             }
             else if (c is GetVTOptionMetaAction gc)
             {
                 if (!VTankOptionsExtensions.TryParse(gc.Option, out _))
                 {
-                    return gc.Option;
+                    yield return gc.Option;
                 }
             }
-
-            return null;
         }
 
         foreach (var rule in meta.Rules)
         {
-            var opt = InvalidVTankOption(rule.Action);
-            if (opt != null)
+
+            var opt = InvalidVTankOption(rule.Action).ToArray();
+            if (opt.Length > 0)
             {
-                if (rule.Action is AllMetaAction)
-                {
-                    yield return new(meta, rule, $"Rule action contains an invalid/unknown VTank option name: {opt}");
-                }
-                else
-                {
-                    yield return new(meta, rule, $"Invalid/unknown VTank option name: {opt}");
-                }
+                yield return new(meta, rule, rule.Action is AllMetaAction ? $"Rule action contains invalid/unknown VTank option name(s): {string.Join(", ", opt)}" : $"Invalid/unknown VTank option name(s): {string.Join(", ", opt)}");
             }
         }
     }
