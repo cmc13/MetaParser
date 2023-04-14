@@ -3,12 +3,8 @@ using Antlr4.Runtime.Misc;
 using MetaParser.Models;
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.IO;
 using System.Linq;
-using System.Linq.Expressions;
-using System.Runtime.CompilerServices;
-using System.Security.Cryptography.X509Certificates;
 using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Linq;
@@ -53,25 +49,20 @@ public class UnreachableStateMetaValidator : IMetaValidator
 {
     public IEnumerable<MetaValidationResult> ValidateMeta(Meta meta)
     {
-        bool ContainsState(MetaAction action, string state)
-        {
-            if (action is CallStateMetaAction cs && (cs.CallState == state || cs.ReturnState == state))
-                return true;
-            if (action.Type == ActionType.SetState && action is MetaAction<string> s && s.Data == state)
-                return true;
-            if (action is WatchdogSetMetaAction ws && ws.State == state)
-                return true;
-            if (action is AllMetaAction aa && aa.Data.Any(d => ContainsState(d, state)))
-                return true;
-            if (action is CreateViewMetaAction vwa && vwa.ViewDefinition.Contains("setstate=\"" + state + "\""))
-                return true;
-            return false;
-        }
-
         return meta.Rules.Select(r => r.State).Distinct().Except(new[] { "Default" })
             .Where(s => meta.Rules.All(r => !ContainsState(r.Action, s)))
             .Select(s => new MetaValidationResult(meta, null, $"Unreachable state detected: {s}"));
     }
+
+    private static bool ContainsState(MetaAction action, string state) => action switch
+    {
+        CallStateMetaAction cs when (cs.CallState == state || cs.ReturnState == state) => true,
+        MetaAction<string> s when s.Type == ActionType.SetState && s.Data == state => true,
+        WatchdogSetMetaAction ws when ws.State == state => true,
+        CreateViewMetaAction vwa when vwa.ViewDefinition.Contains("setstate=\"" + state + "\"") => true,
+        AllMetaAction ama when ama.Data.Any(d => ContainsState(d, state)) => true,
+        _ => false
+    };
 }
 
 public class UndefinedStateMetaValidator : IMetaValidator
@@ -87,7 +78,7 @@ public class UndefinedStateMetaValidator : IMetaValidator
             if (action.Type == ActionType.SetState && action is MetaAction<string> s && !states.Contains(s.Data ?? ""))
                 yield return s.Data ?? "";
             if (action is WatchdogSetMetaAction ws && !states.Contains(ws.State))
-                yield return  ws.State;
+                yield return ws.State;
             if (action is AllMetaAction aa && aa.Data.Any(d => HasUnreachableState(states, d) != null))
             {
                 foreach (var state in aa.Data.SelectMany(d => HasUnreachableState(states, d)))
@@ -212,7 +203,6 @@ public class VTankOptionValidator : IMetaValidator
 
         foreach (var rule in meta.Rules)
         {
-
             var opt = InvalidVTankOption(rule.Action).ToArray();
             if (opt.Length > 0)
             {
@@ -256,75 +246,40 @@ public class VacuouslyTrueConditionValidator : IMetaValidator
 {
     public IEnumerable<MetaValidationResult> ValidateMeta(Meta meta)
     {
-        bool IsVacuouslyTrue(Condition c)
-        {
-            if (c.Type == ConditionType.BurdenPercentGE &&  c is Condition<int> cc && cc.Data <= 0)
-            {
-                return true;
-            }
-            else if (c is DistanceToAnyRoutePointGECondition drc && drc.Distance <= 0)
-            {
-                return true;
-            }
-            else if (c.Type == ConditionType.ItemCountGE && c is ItemCountCondition ic && ic.Count <= 0)
-            {
-                return true;
-            }
-            else if (c.Type == ConditionType.MainPackSlotsLE && c is Condition<int> cc2 && cc2.Data >= 102)
-            {
-                return true;
-            }
-            else if ((c.Type == ConditionType.SecondsInStateGE || c.Type == ConditionType.SecondsInStatePersistGE) && c is Condition<int> cc3 && cc3.Data <= 0)
-            {
-                return true;
-            }
-            else if (c is MultipleCondition mc && mc.Data.Any(IsVacuouslyTrue))
-            {
-                return true;
-            }
-
-            return false;
-        }
-
         return meta.Rules
             .Where(r => IsVacuouslyTrue(r.Condition))
             .Select(r => new MetaValidationResult(meta, r, r.Condition is MultipleCondition ? "Rule contains a vacuously true condition" : "Rule conditions vacuously true"));
     }
+
+    private static bool IsVacuouslyTrue(Condition c) => c switch
+    {
+        Condition<int> cc when cc.Type == ConditionType.BurdenPercentGE && cc.Data <= 0 => true,
+        DistanceToAnyRoutePointGECondition drc when drc.Distance <= 0 => true,
+        ItemCountCondition ic when ic.Type == ConditionType.ItemCountGE && ic.Count <= 0 => true,
+        Condition<int> cc when cc.Type == ConditionType.MainPackSlotsLE && cc.Data >= 102 => true,
+        Condition<int> cc when (cc.Type == ConditionType.SecondsInStateGE || cc.Type == ConditionType.SecondsInStatePersistGE) && cc.Data <= 0 => true,
+        MultipleCondition mc when mc.Data.Any(IsVacuouslyTrue) => true,
+        _ => false
+    };
 }
 
 public class InvalidRegexValidator : IMetaValidator
 {
     public IEnumerable<MetaValidationResult> ValidateMeta(Meta meta)
     {
-        bool HasInvalidRegex(Condition c)
-        {
-            if (c is MonsterCountWithinDistanceCondition mcc)
-            {
-                if (!IsValidRegex(mcc.MonsterNameRx))
-                    return true;
-            }
-            else if (c.Type == ConditionType.ChatMessage && c is Condition<string> sc)
-            {
-                if (!IsValidRegex(sc.Data))
-                    return true;
-            }
-            else if (c is ChatMessageCaptureCondition cmc)
-            {
-                if (!IsValidRegex(cmc.Pattern))
-                    return true;
-            }
-            else if (c is MultipleCondition mc && mc.Data.Any(HasInvalidRegex))
-            {
-                return true;
-            }
-
-            return false;
-        }
-
         return meta.Rules
             .Where(r => HasInvalidRegex(r.Condition))
             .Select(r => new MetaValidationResult(meta, r, "Condition has invalid regular expression syntax"));
     }
+
+    private static bool HasInvalidRegex(Condition c) => c switch
+    {
+        MonsterCountWithinDistanceCondition mcc when !IsValidRegex(mcc.MonsterNameRx) => true,
+        Condition<string> sc when sc.Type == ConditionType.ChatMessage && !IsValidRegex(sc.Data) => true,
+        ChatMessageCaptureCondition cmc when !IsValidRegex(cmc.Pattern) => true,
+        MultipleCondition mc when mc.Data.Any(HasInvalidRegex) => true,
+        _ => false
+    };
 
     private static bool IsValidRegex(string pattern)
     {
@@ -797,7 +752,7 @@ public class MetaExpressionValidator
     {
         if (a is ExpressionMetaAction ec)
         {
-            return CheckExpression(m, r, ec.Expression))
+            return CheckExpression(m, r, ec.Expression);
         }
         else if (a is AllMetaAction mc)
         {

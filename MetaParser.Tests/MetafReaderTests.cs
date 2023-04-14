@@ -2,8 +2,10 @@
 using MetaParser.Formatting;
 using MetaParser.Models;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
@@ -781,5 +783,156 @@ public class MetafReaderTests
         Assert.AreEqual(5.5, navNodeList[0].Point.x);
         Assert.AreEqual(7.1, navNodeList[0].Point.y);
         Assert.AreEqual(7.3, navNodeList[0].Point.z);
+    }
+
+    [TestMethod]
+    public async Task ReadMetaAsync_MissingCondition_ThrowsException()
+    {
+        var sb = new StringBuilder()
+            .AppendLine("STATE: {Default}")
+            .AppendLine("\t\tDO: None");
+        using var stream = sb.ToString().ToStream();
+
+        var metaReader = new MetafReader(new MetafNavReader());
+
+        var ex = await Assert.ThrowsExceptionAsync<MetaParserException>(() => metaReader.ReadMetaAsync(stream));
+        Assert.AreEqual("Missing condition specifier (Expected: 'IF:'; Actual: '\t\tDO: None')", ex.Message);
+    }
+
+    [TestMethod]
+    public async Task ReadMetaAsync_CreateViewHasFileSpecified_ReadsFile()
+    {
+        var fss = new Mock<IFileSystemService>();
+        var expectedViewName = fixture.Create<string>();
+        var expectedViewDefinition = fixture.Create<string>();
+        var expectedFileName = fixture.Create<string>();
+        var sb = new StringBuilder()
+            .AppendLine("STATE: {Default}")
+            .AppendLine("   IF: Always")
+            .AppendLine($"       DO: CreateView {{{expectedViewName}}} {{:{expectedFileName}}}");
+        using var stream = sb.ToString().ToStream();
+
+        fss.Setup(f => f.FileExists(expectedFileName)).Returns(true);
+        fss.Setup(f => f.OpenFileForReadAccess(expectedFileName)).Returns(new MemoryStream(Encoding.UTF8.GetBytes(expectedViewDefinition)));
+
+        var metaReader = new MetafReader(new MetafNavReader(), fss.Object);
+
+        var meta = await metaReader.ReadMetaAsync(stream);
+
+        fss.Verify(f => f.FileExists(expectedFileName), Times.Once);
+        fss.Verify(f => f.OpenFileForReadAccess(expectedFileName), Times.Once);
+
+        Assert.IsNotNull(meta);
+        Assert.AreEqual(1, meta.Rules.Count);
+        Assert.AreEqual(ActionType.CreateView, meta.Rules[0].Action.Type);
+        Assert.IsInstanceOfType<CreateViewMetaAction>(meta.Rules[0].Action);
+        var ec = meta.Rules[0].Action as CreateViewMetaAction;
+
+        Assert.AreEqual(expectedViewDefinition, ec.ViewDefinition);
+    }
+
+    [TestMethod]
+    public async Task ReadMetaAsync_CreateViewHasFileSpecifiedButFileDoesNotExist_ThrowsException()
+    {
+        var fss = new Mock<IFileSystemService>();
+        var expectedViewName = fixture.Create<string>();
+        var expectedViewDefinition = fixture.Create<string>();
+        var expectedFileName = fixture.Create<string>();
+        var sb = new StringBuilder()
+            .AppendLine("STATE: {Default}")
+            .AppendLine("   IF: Always")
+            .AppendLine($"       DO: CreateView {{{expectedViewName}}} {{:{expectedFileName}}}");
+        using var stream = sb.ToString().ToStream();
+
+        fss.Setup(f => f.FileExists(expectedFileName)).Returns(false);
+        fss.Setup(f => f.OpenFileForReadAccess(expectedFileName)).Returns(new MemoryStream(Encoding.UTF8.GetBytes(expectedViewDefinition)));
+
+        var metaReader = new MetafReader(new MetafNavReader(), fss.Object);
+
+        var ex = await Assert.ThrowsExceptionAsync<MetaParserException>(() => metaReader.ReadMetaAsync(stream));
+        Assert.AreEqual($"External file not found: {expectedFileName}", ex.Message);
+
+        fss.Verify(f => f.FileExists(expectedFileName), Times.Once);
+        fss.Verify(f => f.OpenFileForReadAccess(expectedFileName), Times.Never);
+    }
+
+    [TestMethod]
+    public async Task ReadMetaAsync_HappyPath_ReadsNestedAllActionCorrectly()
+    {
+        var sb = new StringBuilder()
+            .AppendLine("STATE: {Default}")
+            .AppendLine("\tIF: Always")
+            .AppendLine("\t\tDO: DoAll")
+            .AppendLine("\t\t\t\tNone")
+            .AppendLine("\t\t\t\tDoAll")
+            .AppendLine("\t\t\t\t\tNone")
+            .AppendLine("\t\t\t\t\tNone")
+            .AppendLine("\t\t\t\t\tNone")
+            .AppendLine("\t\t\t\tNone");
+        using var stream = sb.ToString().ToStream();
+
+        var metaReader = new MetafReader(new MetafNavReader());
+
+        var meta = await metaReader.ReadMetaAsync(stream);
+
+        Assert.IsNotNull(meta);
+        Assert.AreEqual(1, meta.Rules.Count);
+        Assert.AreEqual(ActionType.Multiple, meta.Rules[0].Action.Type);
+        Assert.IsInstanceOfType<AllMetaAction>(meta.Rules[0].Action);
+        var ec = meta.Rules[0].Action as AllMetaAction;
+
+        Assert.IsNotNull(ec.Data);
+        Assert.AreEqual(3, ec.Data.Count);
+
+        Assert.AreEqual(ActionType.None, ec.Data[0].Type);
+        Assert.AreEqual(ActionType.Multiple, ec.Data[1].Type);
+        Assert.AreEqual(ActionType.None, ec.Data[2].Type);
+
+        Assert.IsInstanceOfType<AllMetaAction>(ec.Data[1]);
+        var ec2 = ec.Data[1] as AllMetaAction;
+        Assert.AreEqual(3, ec2.Data.Count);
+        Assert.AreEqual(ActionType.None, ec2.Data[0].Type);
+        Assert.AreEqual(ActionType.None, ec2.Data[1].Type);
+        Assert.AreEqual(ActionType.None, ec2.Data[2].Type);
+    }
+
+    [TestMethod]
+    public async Task ReadMetaAsync_HappyPath_ReadsNestedMultipleConditionCorrectly()
+    {
+        var sb = new StringBuilder()
+            .AppendLine("STATE: {Default}")
+            .AppendLine("\tIF: All")
+            .AppendLine("\t\t\tAlways")
+            .AppendLine("\t\t\tAny")
+            .AppendLine("\t\t\t\tNever")
+            .AppendLine("\t\t\t\tAlways")
+            .AppendLine("\t\t\t\tNever")
+            .AppendLine("\t\t\tAlways")
+            .AppendLine("\t\tDO: None");
+        using var stream = sb.ToString().ToStream();
+
+        var metaReader = new MetafReader(new MetafNavReader());
+
+        var meta = await metaReader.ReadMetaAsync(stream);
+
+        Assert.IsNotNull(meta);
+        Assert.AreEqual(1, meta.Rules.Count);
+        Assert.AreEqual(ConditionType.All, meta.Rules[0].Condition.Type);
+        Assert.IsInstanceOfType<MultipleCondition>(meta.Rules[0].Condition);
+        var ec = meta.Rules[0].Condition as MultipleCondition;
+
+        Assert.IsNotNull(ec.Data);
+        Assert.AreEqual(3, ec.Data.Count);
+
+        Assert.AreEqual(ConditionType.Always, ec.Data[0].Type);
+        Assert.AreEqual(ConditionType.Any, ec.Data[1].Type);
+        Assert.AreEqual(ConditionType.Always, ec.Data[2].Type);
+
+        Assert.IsInstanceOfType<MultipleCondition>(ec.Data[1]);
+        var ec2 = ec.Data[1] as MultipleCondition;
+        Assert.AreEqual(3, ec2.Data.Count);
+        Assert.AreEqual(ConditionType.Never, ec2.Data[0].Type);
+        Assert.AreEqual(ConditionType.Always, ec2.Data[1].Type);
+        Assert.AreEqual(ConditionType.Never, ec2.Data[2].Type);
     }
 }
