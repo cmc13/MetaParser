@@ -6,7 +6,6 @@ using Moq;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -59,8 +58,8 @@ public class MetafReaderTests
         var expectedState = fixture.Create<string>();
         var sb = new StringBuilder()
             .AppendLine($"STATE: {{{expectedState}}}")
-            .AppendLine("   IF: Never")
-            .AppendLine("       DO: None");
+            .AppendLine("\tIF: Never")
+            .AppendLine("\t\tDO: None");
         using var stream = sb.ToString().ToStream();
 
         var metaReader = new MetafReader(new MetafNavReader());
@@ -83,8 +82,8 @@ public class MetafReaderTests
         var expectedExpression = fixture.Create<string>();
         var sb = new StringBuilder()
             .AppendLine("STATE: {Default}")
-            .AppendLine($"   IF: Expr {{{expectedExpression}}}")
-            .AppendLine("       DO: None");
+            .AppendLine($"\tIF: Expr {{{expectedExpression}}}")
+            .AppendLine("\t\tDO: None");
         using var stream = sb.ToString().ToStream();
 
         var metaReader = new MetafReader(new MetafNavReader());
@@ -106,8 +105,8 @@ public class MetafReaderTests
         var expectedDistance = fixture.Create<double>();
         var sb = new StringBuilder()
             .AppendLine("STATE: {Default}")
-            .AppendLine($"   IF: NoMobsInDist {expectedDistance}")
-            .AppendLine("       DO: None");
+            .AppendLine($"\tIF: NoMobsInDist {expectedDistance}")
+            .AppendLine("\t\tDO: None");
         using var stream = sb.ToString().ToStream();
 
         var metaReader = new MetafReader(new MetafNavReader());
@@ -130,8 +129,8 @@ public class MetafReaderTests
         var expectedColor = fixture.Create<string>();
         var sb = new StringBuilder()
             .AppendLine("STATE: {Default}")
-            .AppendLine($"   IF: ChatCapture {{{expectedChat}}} {{{expectedColor}}}")
-            .AppendLine("       DO: None");
+            .AppendLine($"\tIF: ChatCapture {{{expectedChat}}} {{{expectedColor}}}")
+            .AppendLine("\t\tDO: None");
         using var stream = sb.ToString().ToStream();
 
         var metaReader = new MetafReader(new MetafNavReader());
@@ -154,8 +153,8 @@ public class MetafReaderTests
         var expectedChat = fixture.Create<string>();
         var sb = new StringBuilder()
             .AppendLine("STATE: {Default}")
-            .AppendLine($"   IF: ChatMatch {{{expectedChat}}}")
-            .AppendLine("       DO: None");
+            .AppendLine($"\tIF: ChatMatch {{{expectedChat}}}")
+            .AppendLine("\t\tDO: None");
         using var stream = sb.ToString().ToStream();
 
         var metaReader = new MetafReader(new MetafNavReader());
@@ -179,8 +178,8 @@ public class MetafReaderTests
         var expectedPriority = fixture.Create<int>();
         var sb = new StringBuilder()
             .AppendLine("STATE: {Default}")
-            .AppendLine($"   IF: MobsInDist_Priority {expectedCount} {expectedDistance} {expectedPriority}")
-            .AppendLine("       DO: None");
+            .AppendLine($"\tIF: MobsInDist_Priority {expectedCount} {expectedDistance} {expectedPriority}")
+            .AppendLine("\t\tDO: None");
         using var stream = sb.ToString().ToStream();
 
         var metaReader = new MetafReader(new MetafNavReader());
@@ -212,8 +211,8 @@ public class MetafReaderTests
     {
         var sb = new StringBuilder()
             .AppendLine("STATE: {Default}")
-            .AppendLine($"   IF: {pattern}")
-            .AppendLine("       DO: None");
+            .AppendLine($"\tIF: {pattern}")
+            .AppendLine("\t\tDO: None");
         using var stream = sb.ToString().ToStream();
 
         var metaReader = new MetafReader(new MetafNavReader());
@@ -232,8 +231,8 @@ public class MetafReaderTests
         var expectedDistance = fixture.Create<double>();
         var sb = new StringBuilder()
             .AppendLine("STATE: {Default}")
-            .AppendLine($"   IF: DistToRteGE {expectedDistance}")
-            .AppendLine("       DO: None");
+            .AppendLine($"\tIF: DistToRteGE {expectedDistance}")
+            .AppendLine("\t\tDO: None");
         using var stream = sb.ToString().ToStream();
 
         var metaReader = new MetafReader(new MetafNavReader());
@@ -259,8 +258,8 @@ public class MetafReaderTests
         var expectedValue = fixture.Create<int>();
         var sb = new StringBuilder()
             .AppendLine("STATE: {Default}")
-            .AppendLine($"   IF: {pattern} {expectedValue}")
-            .AppendLine("       DO: None");
+            .AppendLine($"\tIF: {pattern} {expectedValue}")
+            .AppendLine("\t\tDO: None");
         using var stream = sb.ToString().ToStream();
 
         var metaReader = new MetafReader(new MetafNavReader());
@@ -285,8 +284,8 @@ public class MetafReaderTests
         var expectedItem = fixture.Create<string>();
         var sb = new StringBuilder()
             .AppendLine("STATE: {Default}")
-            .AppendLine($"   IF: {pattern} {expectedCount} {{{expectedItem}}}")
-            .AppendLine("       DO: None");
+            .AppendLine($"\tIF: {pattern} {expectedCount} {{{expectedItem}}}")
+            .AppendLine("\t\tDO: None");
         using var stream = sb.ToString().ToStream();
 
         var metaReader = new MetafReader(new MetafNavReader());
@@ -311,8 +310,8 @@ public class MetafReaderTests
         var expectedLandCell = fixture.Create<int>();
         var sb = new StringBuilder()
             .AppendLine("STATE: {Default}")
-            .AppendLine($"   IF: {pattern} {expectedLandCell:X}")
-            .AppendLine("       DO: None");
+            .AppendLine($"\tIF: {pattern} {expectedLandCell:X}")
+            .AppendLine("\t\tDO: None");
         using var stream = sb.ToString().ToStream();
 
         var metaReader = new MetafReader(new MetafNavReader());
@@ -336,8 +335,8 @@ public class MetafReaderTests
         var expectedName = fixture.Create<string>();
         var sb = new StringBuilder()
             .AppendLine("STATE: {Default}")
-            .AppendLine($"   IF: MobsInDist_Name {expectedCount} {expectedDistance} {{{expectedName}}}")
-            .AppendLine("       DO: None");
+            .AppendLine($"\tIF: MobsInDist_Name {expectedCount} {expectedDistance} {{{expectedName}}}")
+            .AppendLine("\t\tDO: None");
         using var stream = sb.ToString().ToStream();
 
         var metaReader = new MetafReader(new MetafNavReader());
@@ -362,8 +361,8 @@ public class MetafReaderTests
         var expectedSpellId = fixture.Create<int>();
         var sb = new StringBuilder()
             .AppendLine("STATE: {Default}")
-            .AppendLine($"   IF: SecsOnSpellGE {expectedSeconds} {expectedSpellId}")
-            .AppendLine("       DO: None");
+            .AppendLine($"\tIF: SecsOnSpellGE {expectedSeconds} {expectedSpellId}")
+            .AppendLine("\t\tDO: None");
         using var stream = sb.ToString().ToStream();
 
         var metaReader = new MetafReader(new MetafNavReader());
@@ -385,8 +384,8 @@ public class MetafReaderTests
     {
         var sb = new StringBuilder()
             .AppendLine("STATE: {Default}")
-            .AppendLine($"   IF: Not Always")
-            .AppendLine("       DO: None");
+            .AppendLine($"\tIF: Not Always")
+            .AppendLine("\t\tDO: None");
         using var stream = sb.ToString().ToStream();
 
         var metaReader = new MetafReader(new MetafNavReader());
@@ -411,11 +410,11 @@ public class MetafReaderTests
     {
         var sb = new StringBuilder()
             .AppendLine("STATE: {Default}")
-            .AppendLine($"   IF: {pattern}")
-            .AppendLine("           Always")
-            .AppendLine("           Always")
-            .AppendLine("           Always")
-            .AppendLine("       DO: None");
+            .AppendLine($"\tIF: {pattern}")
+            .AppendLine("\t\t\tAlways")
+            .AppendLine("\t\t\tAlways")
+            .AppendLine("\t\t\tAlways")
+            .AppendLine("\t\tDO: None");
         using var stream = sb.ToString().ToStream();
 
         var metaReader = new MetafReader(new MetafNavReader());
@@ -440,8 +439,8 @@ public class MetafReaderTests
     {
         var sb = new StringBuilder()
             .AppendLine("STATE: {Default}")
-            .AppendLine("   IF: Always")
-            .AppendLine($"       DO: {pattern}");
+            .AppendLine("\tIF: Always")
+            .AppendLine($"\t\tDO: {pattern}");
         using var stream = sb.ToString().ToStream();
 
         var metaReader = new MetafReader(new MetafNavReader());
@@ -462,8 +461,8 @@ public class MetafReaderTests
         var expectedData = fixture.Create<string>();
         var sb = new StringBuilder()
             .AppendLine("STATE: {Default}")
-            .AppendLine("   IF: Always")
-            .AppendLine($"       DO: {pattern} {{{expectedData}}}");
+            .AppendLine("\tIF: Always")
+            .AppendLine($"\t\tDO: {pattern} {{{expectedData}}}");
         using var stream = sb.ToString().ToStream();
 
         var metaReader = new MetafReader(new MetafNavReader());
@@ -487,8 +486,8 @@ public class MetafReaderTests
         var expectedData = fixture.Create<string>();
         var sb = new StringBuilder()
             .AppendLine("STATE: {Default}")
-            .AppendLine("   IF: Always")
-            .AppendLine($"       DO: {pattern} {{{expectedData}}}");
+            .AppendLine("\tIF: Always")
+            .AppendLine($"\t\tDO: {pattern} {{{expectedData}}}");
         using var stream = sb.ToString().ToStream();
 
         var metaReader = new MetafReader(new MetafNavReader());
@@ -511,8 +510,8 @@ public class MetafReaderTests
         var expectedVariable = fixture.Create<string>();
         var sb = new StringBuilder()
             .AppendLine("STATE: {Default}")
-            .AppendLine("   IF: Always")
-            .AppendLine($"       DO: GetOpt {{{expectedOption}}} {{{expectedVariable}}}");
+            .AppendLine("\tIF: Always")
+            .AppendLine($"\t\tDO: GetOpt {{{expectedOption}}} {{{expectedVariable}}}");
         using var stream = sb.ToString().ToStream();
 
         var metaReader = new MetafReader(new MetafNavReader());
@@ -536,8 +535,8 @@ public class MetafReaderTests
         var expectedValue = fixture.Create<string>();
         var sb = new StringBuilder()
             .AppendLine("STATE: {Default}")
-            .AppendLine("   IF: Always")
-            .AppendLine($"       DO: SetOpt {{{expectedOption}}} {{{expectedValue}}}");
+            .AppendLine("\tIF: Always")
+            .AppendLine($"\t\tDO: SetOpt {{{expectedOption}}} {{{expectedValue}}}");
         using var stream = sb.ToString().ToStream();
 
         var metaReader = new MetafReader(new MetafNavReader());
@@ -561,8 +560,8 @@ public class MetafReaderTests
         var expectedReturnState = fixture.Create<string>();
         var sb = new StringBuilder()
             .AppendLine("STATE: {Default}")
-            .AppendLine("   IF: Always")
-            .AppendLine($"       DO: CallState {{{expectedCallState}}} {{{expectedReturnState}}}");
+            .AppendLine("\tIF: Always")
+            .AppendLine($"\t\tDO: CallState {{{expectedCallState}}} {{{expectedReturnState}}}");
         using var stream = sb.ToString().ToStream();
 
         var metaReader = new MetafReader(new MetafNavReader());
@@ -585,8 +584,8 @@ public class MetafReaderTests
         var expectedViewName = fixture.Create<string>();
         var sb = new StringBuilder()
             .AppendLine("STATE: {Default}")
-            .AppendLine("   IF: Always")
-            .AppendLine($"       DO: DestroyView {{{expectedViewName}}}");
+            .AppendLine("\tIF: Always")
+            .AppendLine($"\t\tDO: DestroyView {{{expectedViewName}}}");
         using var stream = sb.ToString().ToStream();
 
         var metaReader = new MetafReader(new MetafNavReader());
@@ -609,8 +608,8 @@ public class MetafReaderTests
         var expectedViewDefinition = fixture.Create<string>();
         var sb = new StringBuilder()
             .AppendLine("STATE: {Default}")
-            .AppendLine("   IF: Always")
-            .AppendLine($"       DO: CreateView {{{expectedViewName}}} {{{expectedViewDefinition}}}");
+            .AppendLine("\tIF: Always")
+            .AppendLine($"\t\tDO: CreateView {{{expectedViewName}}} {{{expectedViewDefinition}}}");
         using var stream = sb.ToString().ToStream();
 
         var metaReader = new MetafReader(new MetafNavReader());
@@ -635,8 +634,8 @@ public class MetafReaderTests
         var expectedState = fixture.Create<string>();
         var sb = new StringBuilder()
             .AppendLine("STATE: {Default}")
-            .AppendLine("   IF: Always")
-            .AppendLine($"       DO: SetWatchdog {expectedRange} {expectedTime} {{{expectedState}}}");
+            .AppendLine("\tIF: Always")
+            .AppendLine($"\t\tDO: SetWatchdog {expectedRange} {expectedTime} {{{expectedState}}}");
         using var stream = sb.ToString().ToStream();
 
         var metaReader = new MetafReader(new MetafNavReader());
@@ -659,11 +658,11 @@ public class MetafReaderTests
     {
         var sb = new StringBuilder()
             .AppendLine("STATE: {Default}")
-            .AppendLine("   IF: Always")
-            .AppendLine("       DO: DoAll")
-            .AppendLine("           None")
-            .AppendLine("           None")
-            .AppendLine("           None");
+            .AppendLine("\tIF: Always")
+            .AppendLine("\t\tDO: DoAll")
+            .AppendLine("\t\t\t\tNone")
+            .AppendLine("\t\t\t\tNone")
+            .AppendLine("\t\t\t\tNone");
         using var stream = sb.ToString().ToStream();
 
         var metaReader = new MetafReader(new MetafNavReader());
@@ -687,8 +686,8 @@ public class MetafReaderTests
         var expectedNavName = fixture.Create<string>();
         var sb = new StringBuilder()
             .AppendLine("STATE: {Default}")
-            .AppendLine("   IF: Always")
-            .AppendLine($"       DO: EmbedNav {expectedNavRef} {{{expectedNavName}}}")
+            .AppendLine("\tIF: Always")
+            .AppendLine($"\t\tDO: EmbedNav {expectedNavRef} {{{expectedNavName}}}")
             .AppendLine($"NAV: {expectedNavRef} once")
             .AppendLine($"pnt 0.1 0.2 0.3");
         using var stream = sb.ToString().ToStream();
@@ -724,8 +723,8 @@ public class MetafReaderTests
             .AppendLine($"NAV: {expectedNavRef} once")
             .AppendLine($"pnt 0.1 0.2 0.3")
             .AppendLine("STATE: {Default}")
-            .AppendLine("   IF: Always")
-            .AppendLine($"       DO: EmbedNav {expectedNavRef} {{{expectedNavName}}}");
+            .AppendLine("\tIF: Always")
+            .AppendLine($"\t\tDO: EmbedNav {expectedNavRef} {{{expectedNavName}}}");
         using var stream = sb.ToString().ToStream();
 
         var metaReader = new MetafReader(new MetafNavReader());
@@ -759,8 +758,8 @@ public class MetafReaderTests
             .AppendLine($"NAV: {expectedNavRef} once")
             .AppendLine($"pnt 0.1 0.2 0.3")
             .AppendLine("STATE: {Default}")
-            .AppendLine("   IF: Always")
-            .AppendLine($"       DO: EmbedNav {expectedNavRef} {{{expectedNavName}}} {{1.0 2.0 3.0 4.0 5.0 6.0 7.0}}");
+            .AppendLine("\tIF: Always")
+            .AppendLine($"\t\tDO: EmbedNav {expectedNavRef} {{{expectedNavName}}} {{1.0 2.0 3.0 4.0 5.0 6.0 7.0}}");
         using var stream = sb.ToString().ToStream();
 
         var metaReader = new MetafReader(new MetafNavReader());
@@ -808,8 +807,8 @@ public class MetafReaderTests
         var expectedFileName = fixture.Create<string>();
         var sb = new StringBuilder()
             .AppendLine("STATE: {Default}")
-            .AppendLine("   IF: Always")
-            .AppendLine($"       DO: CreateView {{{expectedViewName}}} {{:{expectedFileName}}}");
+            .AppendLine("\tIF: Always")
+            .AppendLine($"\t\tDO: CreateView {{{expectedViewName}}} {{:{expectedFileName}}}");
         using var stream = sb.ToString().ToStream();
 
         fss.Setup(f => f.FileExists(expectedFileName)).Returns(true);
@@ -840,8 +839,8 @@ public class MetafReaderTests
         var expectedFileName = fixture.Create<string>();
         var sb = new StringBuilder()
             .AppendLine("STATE: {Default}")
-            .AppendLine("   IF: Always")
-            .AppendLine($"       DO: CreateView {{{expectedViewName}}} {{:{expectedFileName}}}");
+            .AppendLine("\tIF: Always")
+            .AppendLine($"\t\tDO: CreateView {{{expectedViewName}}} {{:{expectedFileName}}}");
         using var stream = sb.ToString().ToStream();
 
         fss.Setup(f => f.FileExists(expectedFileName)).Returns(false);
@@ -934,5 +933,127 @@ public class MetafReaderTests
         Assert.AreEqual(ConditionType.Never, ec2.Data[0].Type);
         Assert.AreEqual(ConditionType.Always, ec2.Data[1].Type);
         Assert.AreEqual(ConditionType.Never, ec2.Data[2].Type);
+    }
+
+    [TestMethod]
+    [DataRow(0)]
+    [DataRow(2)]
+    [DataRow(3)]
+    public async Task ReadMetaAsync_ConditionMissingIndentation_ThrowsException(int count)
+    {
+        var sb = new StringBuilder()
+            .AppendLine("STATE: {Default}")
+            .Append('\t', count).AppendLine("IF: Never")
+            .AppendLine("\t\tDO: None");
+        using var stream = sb.ToString().ToStream();
+
+        var metaReader = new MetafReader(new MetafNavReader());
+
+        var ex = await Assert.ThrowsExceptionAsync<MetaParserException>(() => metaReader.ReadMetaAsync(stream));
+        Assert.AreEqual("Condition definition must be indented once", ex.Message);
+    }
+
+    [TestMethod]
+    [DataRow(0)]
+    [DataRow(1)]
+    [DataRow(3)]
+    public async Task ReadMetaAsync_ActionMissingIndentation_ThrowsException(int count)
+    {
+        var sb = new StringBuilder()
+            .AppendLine("STATE: {Default}")
+            .AppendLine("\tIF: Never")
+            .Append('\t', count).AppendLine("DO: None");
+        using var stream = sb.ToString().ToStream();
+
+        var metaReader = new MetafReader(new MetafNavReader());
+
+        var ex = await Assert.ThrowsExceptionAsync<MetaParserException>(() => metaReader.ReadMetaAsync(stream));
+        Assert.AreEqual("Action definition must be indented twice", ex.Message);
+    }
+
+    [TestMethod]
+    public async Task ReadMetaAsync_ActionInsideDoAllIsIndentedTooManyTimes_ThrowsException()
+    {
+        var sb = new StringBuilder()
+            .AppendLine("STATE: {Default}")
+            .AppendLine("\tIF: Never")
+            .AppendLine("\t\tDO: DoAll")
+            .AppendLine("\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tNone");
+        using var stream = sb.ToString().ToStream();
+
+        var metaReader = new MetafReader(new MetafNavReader());
+
+        var ex = await Assert.ThrowsExceptionAsync<MetaParserException>(() => metaReader.ReadMetaAsync(stream));
+        Assert.AreEqual("Too many tabs in action definition (Expected: '4'; Actual: '21')", ex.Message);
+    }
+
+    [TestMethod]
+    public async Task ReadMetaAsync_ConditionInsideAllIsIndentedTooManyTimes_ThrowsException()
+    {
+        var sb = new StringBuilder()
+            .AppendLine("STATE: {Default}")
+            .AppendLine("\tIF: All")
+            .AppendLine("\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tNever")
+            .AppendLine("\t\tDO: None");
+        using var stream = sb.ToString().ToStream();
+
+        var metaReader = new MetafReader(new MetafNavReader());
+
+        var ex = await Assert.ThrowsExceptionAsync<MetaParserException>(() => metaReader.ReadMetaAsync(stream));
+        Assert.AreEqual("Too many tabs in condition definition (Expected: '3'; Actual: '24')", ex.Message);
+    }
+
+    [TestMethod]
+    public async Task ReadMetaAsync_HappyPath_EmbedNavOnlyTransformsOneNav()
+    {
+        var expectedNavRef = "_" + Guid.NewGuid().ToString().Replace("-", "");
+        var expectedNavName = fixture.Create<string>();
+        var expectedNavName2 = fixture.Create<string>();
+        var sb = new StringBuilder()
+            .AppendLine($"NAV: {expectedNavRef} once")
+            .AppendLine($"pnt 0.1 0.2 0.3")
+            .AppendLine("STATE: {Default}")
+            .AppendLine("\tIF: Always")
+            .AppendLine($"\t\tDO: EmbedNav {expectedNavRef} {{{expectedNavName}}}")
+            .AppendLine("\tIF: Always")
+            .AppendLine($"\t\tDO: EmbedNav {expectedNavRef} {{{expectedNavName2}}} {{1.0 2.0 3.0 4.0 5.0 6.0 7.0}}");
+        using var stream = sb.ToString().ToStream();
+
+        var metaReader = new MetafReader(new MetafNavReader());
+
+        var meta = await metaReader.ReadMetaAsync(stream);
+
+        Assert.IsNotNull(meta);
+        Assert.AreEqual(2, meta.Rules.Count);
+
+        Assert.AreEqual(ActionType.EmbeddedNavRoute, meta.Rules[0].Action.Type);
+        Assert.IsInstanceOfType<EmbeddedNavRouteMetaAction>(meta.Rules[0].Action);
+        var ec = meta.Rules[0].Action as EmbeddedNavRouteMetaAction;
+
+        Assert.AreEqual(expectedNavName, ec.Data.name);
+        Assert.IsNotNull(ec.Data.nav);
+        Assert.IsInstanceOfType<List<NavNode>>(ec.Data.nav.Data);
+        var navNodeList = ec.Data.nav.Data as List<NavNode>;
+
+        Assert.AreEqual(1, navNodeList.Count);
+        Assert.IsInstanceOfType<NavNodePoint>(navNodeList[0]);
+        Assert.AreEqual(0.1, navNodeList[0].Point.x);
+        Assert.AreEqual(0.2, navNodeList[0].Point.y);
+        Assert.AreEqual(0.3, navNodeList[0].Point.z);
+
+        Assert.AreEqual(ActionType.EmbeddedNavRoute, meta.Rules[1].Action.Type);
+        Assert.IsInstanceOfType<EmbeddedNavRouteMetaAction>(meta.Rules[1].Action);
+        ec = meta.Rules[1].Action as EmbeddedNavRouteMetaAction;
+
+        Assert.AreEqual(expectedNavName2, ec.Data.name);
+        Assert.IsNotNull(ec.Data.nav);
+        Assert.IsInstanceOfType<List<NavNode>>(ec.Data.nav.Data);
+        navNodeList = ec.Data.nav.Data as List<NavNode>;
+
+        Assert.AreEqual(1, navNodeList.Count);
+        Assert.IsInstanceOfType<NavNodePoint>(navNodeList[0]);
+        Assert.AreEqual(5.5, navNodeList[0].Point.x);
+        Assert.AreEqual(7.1, navNodeList[0].Point.y);
+        Assert.AreEqual(7.3, navNodeList[0].Point.z);
     }
 }

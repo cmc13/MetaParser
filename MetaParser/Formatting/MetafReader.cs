@@ -9,26 +9,25 @@ namespace MetaParser.Formatting;
 
 static class MetafExtensions
 {
-    public static async IAsyncEnumerable<string> StreamLines(this StreamReader reader)
-    {
-        while (!reader.EndOfStream)
-            yield return await reader.ReadLineAsync().ConfigureAwait(false);
-    }
-
     public static string UnescapeString(this string str) => str.Replace("{{", "{").Replace("}}", "}");
 
-    public static void ApplyTransform(this NavRoute route, double[] transform)
+    public static NavRoute ApplyTransform(this NavRoute nav, double[] transform)
     {
-        if (route.Data is List<NavNode> nodes)
-        {
-            foreach (var node in nodes)
-                node.ApplyTransform(transform);
-        }
+        if (nav.Data is List<NavNode> nodes)
+            return new() { Type = nav.Type, Data = nodes.Select(n => n.ApplyTransform(transform)).ToList() };
+        return nav;
     }
 
-    public static void ApplyTransform(this NavNode node, double[] transform)
+    public static NavNode ApplyTransform(this NavNode node, double[] transform)
     {
-        node.Point = node.Point.ApplyTransform(transform);
+        var newNode = NavNode.Create(node.Type);
+
+        var dataProperty = newNode.GetType().GetProperty("Data");
+        dataProperty?.SetValue(newNode, dataProperty.GetValue(node));
+
+        newNode.Point = node.Point.ApplyTransform(transform);
+
+        return newNode;
     }
 
     public static (double, double, double) ApplyTransform(this (double x, double y, double z) pt, double[] transform)
@@ -43,6 +42,22 @@ static class MetafExtensions
 
 public class MetafReader : IMetaReader
 {
+    private class EmbeddedNavRouteMetaActionWithTransform
+        : EmbeddedNavRouteMetaAction
+    {
+        public EmbeddedNavRouteMetaActionWithTransform(EmbeddedNavRouteMetaAction a)
+        {
+            Data = a.Data;
+        }
+
+        public double[] Transform { get; set; }
+
+        public void ApplyTransform()
+        {
+            Data = (Data.name, Data.nav.ApplyTransform(Transform));
+        }
+    }
+
     private static readonly string DOUBLE_REGEX = @"[+\-]?(([1-9]\d*\.|\d?\.)(\d+([eE][+\-]?[0-9]+)|[0-9]+)|([1-9]\d*|0))";
     private static readonly Regex EmptyLineRegex = new(@"^\s*(~~.*)?$", RegexOptions.Compiled);
     private static readonly Regex StateNavRegex = new(@"^\s*(?<op>STATE|NAV):", RegexOptions.Compiled);
@@ -158,7 +173,6 @@ public class MetafReader : IMetaReader
         var meta = new Meta();
         using var reader = new StreamReader(stream);
         var navReferences = new Dictionary<string, NavRoute>();
-        var navTransforms = new Dictionary<string, double[]>();
         string line = await reader.ReadLineAsync().ConfigureAwait(false);
 
         do
@@ -171,7 +185,7 @@ public class MetafReader : IMetaReader
                 var m = StateNavRegex.Match(line);
                 if (m.Groups["op"].Value == "STATE")
                 {
-                    line = await ParseStateAsync(line.Substring(m.Index + m.Length), reader, meta, navReferences, navTransforms);
+                    line = await ParseStateAsync(line.Substring(m.Index + m.Length), reader, meta, navReferences);
                 }
                 else if (m.Groups["op"].Value == "NAV")
                 {
@@ -182,17 +196,29 @@ public class MetafReader : IMetaReader
             }
         } while (line != null);
 
-        // apply transforms
-        foreach (var nav in navReferences)
-        {
-            if (navTransforms.TryGetValue(nav.Key, out var transform))
-                nav.Value.ApplyTransform(transform);
-        }
+        ApplyTransforms(meta);
 
         return meta;
     }
 
-    private async Task<string> ParseStateAsync(string line, TextReader reader, Meta meta, Dictionary<string, NavRoute> navReferences, Dictionary<string, double[]> navTransforms)
+    private static void ApplyTransforms(Meta meta)
+    {
+        IEnumerable<EmbeddedNavRouteMetaActionWithTransform> GetTransforms(MetaAction action) => action switch
+        {
+            EmbeddedNavRouteMetaActionWithTransform a => new[] { a },
+            AllMetaAction ama => ama.Data.SelectMany(GetTransforms),
+            _ => Enumerable.Empty<EmbeddedNavRouteMetaActionWithTransform>()
+        };
+
+        // apply transforms
+        foreach (var rule in meta.Rules)
+        {
+            foreach (var a in GetTransforms(rule.Action))
+                a.ApplyTransform();
+        }
+    }
+
+    private async Task<string> ParseStateAsync(string line, TextReader reader, Meta meta, Dictionary<string, NavRoute> navReferences)
     {
         Match m = StateRegex.Match(line);
         if (!m.Success)
@@ -210,7 +236,7 @@ public class MetafReader : IMetaReader
 
             if (IfRegex.IsMatch(line))
             {
-                (line, var rule) = await ParseRuleAsync(line, reader, state, navReferences, navTransforms);
+                (line, var rule) = await ParseRuleAsync(line, reader, state, navReferences);
                 if (rule != null)
                 {
                     meta.Rules.Add(rule);
@@ -223,7 +249,7 @@ public class MetafReader : IMetaReader
         return line;
     }
 
-    private async Task<(string, Rule)> ParseRuleAsync(string line, TextReader reader, string state, Dictionary<string, NavRoute> navReferences, Dictionary<string, double[]> navTransforms)
+    private async Task<(string, Rule)> ParseRuleAsync(string line, TextReader reader, string state, Dictionary<string, NavRoute> navReferences)
     {
         var m = IfRegex.Match(line);
         if (!m.Success)
@@ -239,7 +265,7 @@ public class MetafReader : IMetaReader
         else if (m.Groups["tabs"].Length != 2)
             throw new MetaParserException("Action definition must be indented twice");
 
-        (line, var action) = await ParseActionAsync(line.Substring(m.Index + m.Length), reader, 0, navReferences, navTransforms);
+        (line, var action) = await ParseActionAsync(line.Substring(m.Index + m.Length), reader, 0, navReferences);
 
         return (line, new Rule()
         {
@@ -249,7 +275,7 @@ public class MetafReader : IMetaReader
         });
     }
 
-    private async Task<(string, MetaAction)> ParseActionAsync(string line, TextReader reader, int indentLevel, Dictionary<string, NavRoute> navReferences, Dictionary<string, double[]> navTransforms)
+    private async Task<(string, MetaAction)> ParseActionAsync(string line, TextReader reader, int indentLevel, Dictionary<string, NavRoute> navReferences)
     {
         // skip whitespace
         while (line != null && EmptyLineRegex.IsMatch(line))
@@ -277,7 +303,7 @@ public class MetafReader : IMetaReader
 
             while (line != null && !StateNavRegex.IsMatch(line) && !IfRegex.IsMatch(line))
             {
-                (line, var c) = await ParseActionAsync(line, reader, indentLevel != 0 ? indentLevel + 1 : 4, navReferences, navTransforms).ConfigureAwait(false);
+                (line, var c) = await ParseActionAsync(line, reader, indentLevel != 0 ? indentLevel + 1 : 4, navReferences).ConfigureAwait(false);
                 if (c != null)
                     ((AllMetaAction)action).Data.Add(c);
                 else
@@ -286,7 +312,7 @@ public class MetafReader : IMetaReader
         }
         else if (ActionList.ContainsKey(m.Groups["action"].Value))
         {
-            action = await ParseActionLineAsync(m, line.Substring(m.Groups["action"].Index + m.Groups["action"].Length), navReferences, navTransforms).ConfigureAwait(false);
+            action = await ParseActionLineAsync(m, line.Substring(m.Groups["action"].Index + m.Groups["action"].Length), navReferences).ConfigureAwait(false);
 
             do { line = await reader.ReadLineAsync().ConfigureAwait(false); } while (line != null && EmptyLineRegex.IsMatch(line));
         }
@@ -296,7 +322,7 @@ public class MetafReader : IMetaReader
         return (line, action);
     }
 
-    private async Task<MetaAction> ParseActionLineAsync(Match m, string line, Dictionary<string, NavRoute> navReferences, Dictionary<string, double[]> navTransforms)
+    private async Task<MetaAction> ParseActionLineAsync(Match m, string line, Dictionary<string, NavRoute> navReferences)
     {
         var action = MetaAction.CreateMetaAction(ActionList[m.Groups["action"].Value]);
 
@@ -309,14 +335,10 @@ public class MetafReader : IMetaReader
 
         switch (action)
         {
-            case MetaAction a when a.Type == ActionType.None || a.Type == ActionType.DestroyAllViews || a.Type == ActionType.WatchdogClear || a.Type == ActionType.ReturnFromCall:
-                break;
-
             case EmbeddedNavRouteMetaAction a:
                 if (!navReferences.TryGetValue(m.Groups["navRef"].Value, out var nav))
                 {
-                    nav = new();
-                    navReferences.Add(m.Groups["navRef"].Value, nav);
+                    nav = navReferences[m.Groups["navRef"].Value] = new();
                 }
 
                 a.Data = (m.Groups["navName"].Value, nav);
@@ -328,7 +350,10 @@ public class MetafReader : IMetaReader
                     if (!m2.Success)
                         throw new MetaParserException("Invalid nav transform");
 
-                    navTransforms.Add(m.Groups["navRef"].Value, m2.Groups["d"].Captures.Select(c => double.Parse(c.Value)).ToArray());
+                    action = new EmbeddedNavRouteMetaActionWithTransform(a)
+                    {
+                        Transform = m2.Groups["d"].Captures.Select(c => double.Parse(c.Value)).ToArray()
+                    };
                 }
                 break;
 
@@ -463,9 +488,6 @@ public class MetafReader : IMetaReader
 
             case Condition<int> c when c.Type == ConditionType.SecondsInStateGE || c.Type == ConditionType.SecondsInStatePersistGE || c.Type == ConditionType.BurdenPercentGE || c.Type == ConditionType.MainPackSlotsLE:
                 c.Data = int.Parse(m.Groups["arg"].Value);
-                break;
-
-            case Condition<int> _:
                 break;
 
             case NoMonstersInDistanceCondition c:
