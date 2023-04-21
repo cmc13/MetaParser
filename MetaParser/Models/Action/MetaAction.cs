@@ -1,21 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.Runtime.Serialization;
 
 namespace MetaParser.Models
 {
-    [Serializable]
-    public abstract class MetaAction : ISerializable
+    public abstract class MetaAction
     {
         public abstract ActionType Type { get; protected init; }
 
         protected MetaAction() { }
-
-        protected MetaAction(SerializationInfo info, StreamingContext context)
-        {
-            Type = (ActionType)info.GetValue(nameof(Type), typeof(ActionType));
-        }
 
         public static MetaAction CreateMetaAction(ActionType actionType) => actionType switch
         {
@@ -37,11 +30,6 @@ namespace MetaParser.Models
             ActionType.CreateView => new CreateViewMetaAction(),
             _ => throw new Exception($"Invalid action type ({actionType})"),
         };
-
-        public virtual void GetObjectData(SerializationInfo info, StreamingContext context)
-        {
-            info.AddValue(nameof(Type), typeof(ActionType));
-        }
     }
 
     public class MetaAction<T> : MetaAction
@@ -57,24 +45,12 @@ namespace MetaParser.Models
 
         protected MetaAction() : base() { }
 
-        protected MetaAction(SerializationInfo info, StreamingContext context)
-            : base(info, context)
-        {
-            Data = (T)info.GetValue(nameof(Data), typeof(T));
-        }
-
         public override string ToString() => Type switch
         {
             ActionType.SetState => $"Set State: {Data}",
             ActionType.ChatCommand => $"Chat: {Data}",
             _ => Type.GetDescription()
         };
-
-        public override void GetObjectData(SerializationInfo info, StreamingContext context)
-        {
-            base.GetObjectData(info, context);
-            info.AddValue(nameof(Data), Data, typeof(T));
-        }
     }
 
     public class TableMetaAction : MetaAction<OrderedDictionary>
@@ -130,7 +106,11 @@ namespace MetaParser.Models
             set => Data["e"] = value;
         }
 
-        public override string ToString() => $"Expr: {Expression}";
+        public override string ToString() => Type switch
+        {
+            ActionType.ChatWithExpression => $"Chat Expr: {Expression}",
+            _ => $"Expr: {Expression}"
+        };
     }
 
     public class AllMetaAction : MetaAction<List<MetaAction>>
@@ -234,21 +214,6 @@ namespace MetaParser.Models
         public EmbeddedNavRouteMetaAction() : base(ActionType.EmbeddedNavRoute)
         { }
 
-        protected EmbeddedNavRouteMetaAction(SerializationInfo info, StreamingContext context)
-            : base()
-        {
-            Type = (ActionType)info.GetValue(nameof(Type), typeof(ActionType));
-            var name = (string)info.GetValue("Name", typeof(string));
-            var nav = (NavRoute)info.GetValue("Nav", typeof(NavRoute));
-        }
-
         public override string ToString() => "Load Embedded Nav Route";
-
-        public override void GetObjectData(SerializationInfo info, StreamingContext context)
-        {
-            info.AddValue(nameof(Type), Type, typeof(ActionType));
-            info.AddValue("Name", Data.name, typeof(string));
-            info.AddValue("Nav", Data.nav, typeof(NavRoute));
-        }
     }
 }

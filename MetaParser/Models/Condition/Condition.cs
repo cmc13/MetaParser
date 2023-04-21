@@ -1,21 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.Runtime.Serialization;
 
 namespace MetaParser.Models;
 
-[Serializable]
-public abstract class Condition : ISerializable
+public abstract class Condition
 {
     public ConditionType Type { get; protected init; }
 
     protected Condition() { }
-
-    protected Condition(SerializationInfo info, StreamingContext context)
-    {
-        Type = (ConditionType)info.GetValue(nameof(Type), typeof(ConditionType));
-    }
 
     public static Condition CreateCondition(ConditionType conditionType) => conditionType switch
     {
@@ -47,13 +40,8 @@ public abstract class Condition : ISerializable
         ConditionType.MonsterCountWithinDistance => new MonsterCountWithinDistanceCondition(),
         ConditionType.MonstersWithPriorityWithinDistance => new MonstersWithPriorityWithinDistanceCondition(),
         ConditionType.TimeLeftOnSpellGE => new TimeLeftOnSpellGECondition(),
-        _ => throw new Exception("Invalid Meta condition"),
+        _ => throw new Exception($"Invalid Meta condition: {conditionType}"),
     };
-
-    public virtual void GetObjectData(SerializationInfo info, StreamingContext context)
-    {
-        info.AddValue(nameof(Type), Type, typeof(ConditionType));
-    }
 }
 
 public class Condition<T>
@@ -73,11 +61,6 @@ public class Condition<T>
     public Condition(ConditionType type)
     {
         Type = type;
-    }
-
-    protected Condition(SerializationInfo info, StreamingContext context) : base(info, context)
-    {
-        Data = (T)info.GetValue(nameof(Data), typeof(T));
     }
 
     public override string ToString() => Type switch

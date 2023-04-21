@@ -69,67 +69,66 @@ public class UndefinedStateMetaValidator : IMetaValidator
 {
     public IEnumerable<MetaValidationResult> ValidateMeta(Meta meta)
     {
-        IEnumerable<string> HasUnreachableState(IEnumerable<string> states, MetaAction action)
-        {
-            if (action is CallStateMetaAction cs && !states.Contains(cs.CallState))
-                yield return cs.CallState;
-            if (action is CallStateMetaAction cs2 && !states.Contains(cs2.ReturnState))
-                yield return cs2.ReturnState;
-            if (action.Type == ActionType.SetState && action is MetaAction<string> s && !states.Contains(s.Data ?? ""))
-                yield return s.Data ?? "";
-            if (action is WatchdogSetMetaAction ws && !states.Contains(ws.State))
-                yield return ws.State;
-            if (action is AllMetaAction aa && aa.Data.Any(d => HasUnreachableState(states, d) != null))
-            {
-                foreach (var state in aa.Data.SelectMany(d => HasUnreachableState(states, d)))
-                    yield return state;
-            }
-            if (action is CreateViewMetaAction vwa)
-            {
-                XElement xml = null;
-                try
-                {
-                    xml = XElement.Parse(vwa.ViewDefinition);
-                }
-                catch { }
-                if (xml != null)
-                {
-                    foreach (var state in xml
-                        .Descendants("control")
-                        .Where(x => x.Attribute("type").Value == "button")
-                        .Select(x => x.Attribute("setstate")?.Value)
-                        .Where(v => v != null && !states.Contains(v))
-                        .Distinct())
-                    {
-                        yield return state;
-                    }
-                }
-            }
-            if (action.Type == ActionType.ChatCommand && action is MetaAction<string> cca)
-            {
-                var match = Regex.Match(cca.Data, @"^/vt\s*setmetastate\s*(.*)$");
-                if (match != null && match.Success && !states.Contains(match.Groups[1].Value.TrimEnd()))
-                    yield return match.Groups[1].Value.TrimEnd();
-            }
-            if (action is EmbeddedNavRouteMetaAction na)
-            {
-                if (na.Data.nav.Data is IEnumerable<NavNode> navList)
-                {
-                    foreach (var chatNav in navList.OfType<NavNodeChat>())
-                    {
-                        var match = Regex.Match(chatNav.Data, @"^/vt\s*setmetastate\s*(.*)$");
-                        if (match != null && match.Success && !states.Contains(match.Groups[1].Value.TrimEnd()))
-                            yield return match.Groups[1].Value.TrimEnd();
-                    }
-                }
-            }
-        }
-
         var states = meta.Rules.Select(r => r.State).Distinct();
         foreach (var r in meta.Rules.Select(r => (r, HasUnreachableState(states, r.Action).Distinct())))
         {
             foreach (var state in r.Item2)
                 yield return new MetaValidationResult(meta, r.r, $"Undefined state detected: {state}");
+        }
+    }
+
+    private static IEnumerable<string> HasUnreachableState(IEnumerable<string> states, MetaAction action) => action switch
+    {
+        CallStateMetaAction cs when !states.Contains(cs.CallState) => new[] { cs.CallState },
+        CallStateMetaAction cs when !states.Contains(cs.ReturnState) => new[] { cs.ReturnState },
+        MetaAction<string> s when s.Type == ActionType.SetState && !states.Contains(s.Data ?? "") => new[] { s.Data ?? "" },
+        WatchdogSetMetaAction ws when !states.Contains(ws.State) => new[] { ws.State },
+        AllMetaAction ama => ama.Data.SelectMany(a => HasUnreachableState(states, a)),
+        CreateViewMetaAction vwa => GetCreateViewStates(vwa).Where(state => !states.Contains(state)),
+        MetaAction<string> s when s.Type == ActionType.ChatCommand => GetChatCommandStates(s).Where(state => !states.Contains(state)),
+        EmbeddedNavRouteMetaAction na => GetNavStateChanges(na).Where(state => !states.Contains(state)),
+        _ => Enumerable.Empty<string>()
+    };
+
+    private static IEnumerable<string> GetNavStateChanges(EmbeddedNavRouteMetaAction na)
+    {
+        if (na.Data.nav.Data is IEnumerable<NavNode> navList)
+        {
+            foreach (var chatNav in navList.OfType<NavNodeChat>())
+            {
+                var match = Regex.Match(chatNav.Data, @"^/vt\s*setmetastate\s*(.*)$");
+                if (match != null && match.Success)
+                    yield return match.Groups[1].Value.TrimEnd();
+            }
+        }
+    }
+
+    private static IEnumerable<string> GetChatCommandStates(MetaAction<string> cca)
+    {
+        var match = Regex.Match(cca.Data, @"^/vt\s*setmetastate\s*(.*)$");
+        if (match != null && match.Success)
+            yield return match.Groups[1].Value.TrimEnd();
+    }
+
+    private static IEnumerable<string> GetCreateViewStates(CreateViewMetaAction vwa)
+    {
+        XElement xml = null;
+        try
+        {
+            xml = XElement.Parse(vwa.ViewDefinition);
+        }
+        catch { }
+        if (xml != null)
+        {
+            foreach (var state in xml
+                .Descendants("control")
+                .Where(x => x.Attribute("type").Value == "button")
+                .Select(x => x.Attribute("setstate")?.Value)
+                .Where(v => v != null)
+                .Distinct())
+            {
+                yield return state;
+            }
         }
     }
 }
@@ -138,69 +137,30 @@ public class EmptyMultipleConditionValidator : IMetaValidator
 {
     public IEnumerable<MetaValidationResult> ValidateMeta(Meta meta)
     {
-        bool HasEmptyCondition(Condition c)
-        {
-            if (c is MultipleCondition mc)
-            {
-                if (mc.Data.Count == 0 || mc.Data.Any(HasEmptyCondition))
-                    return true;
-            }
-
-            return false;
-        }
-
         return meta.Rules.Where(r => HasEmptyCondition(r.Condition))
             .Select(r => new MetaValidationResult(meta, r, "Empty multiple condition detected"));
     }
+
+    private static bool HasEmptyCondition(Condition c) =>
+        c is MultipleCondition mc && (mc.Data.Count == 0 || mc.Data.Any(HasEmptyCondition));
 }
 
 public class EmptyMultipleActionValidator : IMetaValidator
 {
     public IEnumerable<MetaValidationResult> ValidateMeta(Meta meta)
     {
-        bool HasEmptyAction(MetaAction c)
-        {
-            if (c is AllMetaAction mc)
-            {
-                if (mc.Data.Count == 0 || mc.Data.Any(HasEmptyAction))
-                    return true;
-            }
-
-            return false;
-        }
-
         return meta.Rules.Where(r => HasEmptyAction(r.Action))
             .Select(r => new MetaValidationResult(meta, r, "Empty multiple action detected"));
     }
+
+    private static bool HasEmptyAction(MetaAction c) =>
+        c is AllMetaAction mc && (mc.Data.Count == 0 || mc.Data.Any(HasEmptyAction));
 }
 
 public class VTankOptionValidator : IMetaValidator
 {
     public IEnumerable<MetaValidationResult> ValidateMeta(Meta meta)
     {
-        IEnumerable<string> InvalidVTankOption(MetaAction c)
-        {
-            if (c is AllMetaAction mc)
-            {
-                foreach (var op in mc.Data.SelectMany(InvalidVTankOption))
-                    yield return op;
-            }
-            else if (c is SetVTOptionMetaAction sc)
-            {
-                if (!VTankOptionsExtensions.TryParse(sc.Option, out _))
-                {
-                    yield return sc.Option;
-                }
-            }
-            else if (c is GetVTOptionMetaAction gc)
-            {
-                if (!VTankOptionsExtensions.TryParse(gc.Option, out _))
-                {
-                    yield return gc.Option;
-                }
-            }
-        }
-
         foreach (var rule in meta.Rules)
         {
             var opt = InvalidVTankOption(rule.Action).ToArray();
@@ -210,36 +170,31 @@ public class VTankOptionValidator : IMetaValidator
             }
         }
     }
+
+    private static IEnumerable<string> InvalidVTankOption(MetaAction c) => c switch
+    {
+        GetVTOptionMetaAction gc when !VTankOptionsExtensions.TryParse(gc.Option, out _) => new[] { gc.Option },
+        SetVTOptionMetaAction sc when !VTankOptionsExtensions.TryParse(sc.Option, out _) => new[] { sc.Option },
+        AllMetaAction ama => ama.Data.SelectMany(InvalidVTankOption),
+        _ => Enumerable.Empty<string>()
+    };
 }
 
 public class VTankOptionValueValidator : IMetaValidator
 {
     public IEnumerable<MetaValidationResult> ValidateMeta(Meta meta)
     {
-        IEnumerable<(string op, string vv)> GetInvalidOptionValues(MetaAction action)
-        {
-            if (action is AllMetaAction am)
-            {
-                foreach (var ac in am.Data)
-                {
-                    foreach (var result in GetInvalidOptionValues(ac))
-                        yield return result;
-                }
-            }
-            else if (action is SetVTOptionMetaAction so)
-            {
-                if (VTankOptionsExtensions.TryParse(so.Option, out var opt))
-                {
-                    if (!opt.IsValidValue(so.Value))
-                        yield return (so.Option, so.Value);
-                }
-            }
-        }
-
         return meta.Rules
             .SelectMany(r => GetInvalidOptionValues(r.Action)
                 .Select(t => new MetaValidationResult(meta, r, $"Invalid value for {t.op} option: {t.vv}")));
     }
+
+    private static IEnumerable<(string op, string vv)> GetInvalidOptionValues(MetaAction action) => action switch
+    {
+        SetVTOptionMetaAction so when VTankOptionsExtensions.TryParse(so.Option, out var opt) && !opt.IsValidValue(so.Value) => new[] { (so.Option, so.Value) },
+        AllMetaAction ama => ama.Data.SelectMany(GetInvalidOptionValues),
+        _ => Enumerable.Empty<(string, string)>()
+    };
 }
 
 public class VacuouslyTrueConditionValidator : IMetaValidator
@@ -301,18 +256,6 @@ public class DuplicateViewNameValidator : IMetaValidator
     {
         var viewNames = new Dictionary<string, int>();
         var viewRules = new Dictionary<Rule, List<string>>();
-        IEnumerable<string> GetViewNames(MetaAction action)
-        {
-            if (action is CreateViewMetaAction cma)
-            {
-                yield return cma.ViewName;
-            }
-            else if (action is AllMetaAction ama)
-            {
-                foreach (var view in ama.Data.SelectMany(GetViewNames))
-                    yield return view;
-            }
-        }
 
         foreach (var rule in meta.Rules)
         {
@@ -339,90 +282,84 @@ public class DuplicateViewNameValidator : IMetaValidator
                 yield return new MetaValidationResult(meta, rule, $"View name declared multiple times: {kv.Key}");
         }
     }
+
+    private static IEnumerable<string> GetViewNames(MetaAction action) => action switch
+    {
+        CreateViewMetaAction cma => new[] { cma.ViewName },
+        AllMetaAction ama => ama.Data.SelectMany(GetViewNames),
+        _ => Enumerable.Empty<string>()
+    };
 }
 
 public class UndefinedViewNameValidator : IMetaValidator
 {
     public IEnumerable<MetaValidationResult> ValidateMeta(Meta meta)
     {
-        IEnumerable<string> GetViewNames(MetaAction action)
-        {
-            if (action is CreateViewMetaAction cma)
-            {
-                yield return cma.ViewName;
-            }
-            else if (action is AllMetaAction ama)
-            {
-                foreach (var a in ama.Data.SelectMany(GetViewNames))
-                    yield return a;
-            }
-        }
-
         var viewNames = meta.Rules.SelectMany(r => GetViewNames(r.Action)).Distinct().ToList();
-
-        IEnumerable<string> GetUndefinedViewNames(MetaAction action)
-        {
-            if (action is DestroyViewMetaAction dma)
-            {
-                if (!viewNames.Contains(dma.ViewName))
-                    yield return dma.ViewName;
-            }
-            else if (action is AllMetaAction ama)
-            {
-                foreach (var vw in ama.Data.SelectMany(GetUndefinedViewNames))
-                    yield return vw;
-            }
-        }
 
         foreach (var rule in meta.Rules)
         {
-            foreach (var view in GetUndefinedViewNames(rule.Action).Distinct())
+            foreach (var view in GetUndefinedViewNames(rule.Action, viewNames).Distinct())
                 yield return new MetaValidationResult(meta, rule, $"Undefined view name: {view}");
         }
     }
+
+    private static IEnumerable<string> GetUndefinedViewNames(MetaAction action, IEnumerable<string> viewNames) => action switch
+    {
+        DestroyViewMetaAction dma when !viewNames.Contains(dma.ViewName) => new[] { dma.ViewName },
+        AllMetaAction ama => ama.Data.SelectMany(a => GetUndefinedViewNames(a, viewNames)),
+        _ => Enumerable.Empty<string>()
+    };
+
+    private static IEnumerable<string> GetViewNames(MetaAction action) => action switch
+    {
+        CreateViewMetaAction cma => new[] { cma.ViewName },
+        AllMetaAction ama => ama.Data.SelectMany(GetViewNames),
+        _ => Enumerable.Empty<string>()
+    };
 }
 
 public class ValidXMLViewValidator : IMetaValidator
 {
-    public IEnumerable<MetaValidationResult> ValidateMeta(Meta meta)
+    private static readonly XmlSchema schema;
+
+    static ValidXMLViewValidator()
     {
         using var str = File.OpenRead("Assets/VTankView.xsd");
-        var schema = XmlSchema.Read(str, null);
+        schema = XmlSchema.Read(str, null);
+    }
 
-        bool IsValidXMLView(MetaAction action)
-        {
-            if (action is CreateViewMetaAction cva)
-            {
-                try
-                {
-                    var doc = new XmlDocument();
-                    doc.LoadXml(cva.ViewDefinition);
-                    doc.Schemas.Add(schema);
-
-                    doc.Validate(null);
-                }
-                catch (XmlSchemaValidationException)
-                {
-                    return false;
-                }
-                catch (XmlException)
-                {
-                    return false;
-                }
-            }
-            else if (action is AllMetaAction ama)
-            {
-                if (ama.Data.Any(a => !IsValidXMLView(a)))
-                    return false;
-            }
-
-            return true;
-        }
-
+    public IEnumerable<MetaValidationResult> ValidateMeta(Meta meta)
+    {
         return meta.Rules
             .Where(r => !IsValidXMLView(r.Action))
             .Select(r => new MetaValidationResult(meta, r, "Invalid View XML format"));
     }
+
+    private static bool ValidateXML(string xml)
+    {
+        try
+        {
+            var doc = new XmlDocument();
+            doc.LoadXml(xml);
+            doc.Schemas.Add(schema);
+
+            doc.Validate(null);
+        }
+        catch (Exception ex) when (ex is XmlSchemaValidationException || ex is XmlException)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    private static bool IsValidXMLView(MetaAction action) => action switch
+    {
+        CreateViewMetaAction cva => ValidateXML(cva.ViewDefinition),
+        AllMetaAction ama => ama.Data.All(IsValidXMLView),
+        _ => true
+    };
 }
 
 public class MetaExpressionValidator
@@ -734,33 +671,19 @@ public class MetaExpressionValidator
         return parser.parse();
     }
 
-    private static IEnumerable<MetaValidationResult> CheckConditionMetaExpressions(Meta m, Rule r, Condition c)
+    private static IEnumerable<MetaValidationResult> CheckConditionMetaExpressions(Meta m, Rule r, Condition c) => c switch
     {
-        if (c is ExpressionCondition ec)
-        {
-            return CheckExpression(m, r, ec.Expression);
-        }
-        else if (c is MultipleCondition mc)
-        {
-            return mc.Data.SelectMany(cc => CheckConditionMetaExpressions(m, r, cc));
-        }
+        ExpressionCondition ec => CheckExpression(m, r, ec.Expression),
+        MultipleCondition mc => mc.Data.SelectMany(cc => CheckConditionMetaExpressions(m, r, cc)),
+        _ => Enumerable.Empty<MetaValidationResult>()
+    };
 
-        return Enumerable.Empty<MetaValidationResult>();
-    }
-
-    private static IEnumerable<MetaValidationResult> CheckActionMetaExpressions(Meta m, Rule r, MetaAction a)
+    private static IEnumerable<MetaValidationResult> CheckActionMetaExpressions(Meta m, Rule r, MetaAction a) => a switch
     {
-        if (a is ExpressionMetaAction ec)
-        {
-            return CheckExpression(m, r, ec.Expression);
-        }
-        else if (a is AllMetaAction mc)
-        {
-            return mc.Data.SelectMany(aa => CheckActionMetaExpressions(m, r, aa));
-        }
-
-        return Enumerable.Empty<MetaValidationResult>();
-    }
+        ExpressionMetaAction ec when ec.Type == ActionType.ExpressionAct => CheckExpression(m, r, ec.Expression),
+        AllMetaAction mc => mc.Data.SelectMany(aa => CheckActionMetaExpressions(m, r, aa)),
+        _ => Enumerable.Empty<MetaValidationResult>()
+    };
 
     private static IEnumerable<MetaValidationResult> CheckExpression(Meta m, Rule r, string expression)
     {
@@ -775,7 +698,7 @@ public class MetaExpressionValidator
             }
 
             var visitor = new FunctionNameVisitor();
-            var functionNames = visitor.Visit(ctx).Where(f => !VTANK_EXPRESSION_FUNCTIONS.Contains(f));
+            var functionNames = visitor.Visit(ctx)?.Where(f => !VTANK_EXPRESSION_FUNCTIONS.Contains(f));
             if (functionNames != null)
             {
                 foreach (var fn in functionNames)

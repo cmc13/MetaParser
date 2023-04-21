@@ -37,10 +37,9 @@ public class DefaultNavReaderTests
     [TestMethod]
     public async Task ReadNavFollowAsync_InvalidTargetId_ThrowsException()
     {
-        var expectedTargetName = fixture.Create<string>();
         var expectedTargetId = fixture.Create<string>();
         var sb = new StringBuilder()
-            .AppendLine(expectedTargetName)
+            .AppendLine(fixture.Create<string>())
             .AppendLine(expectedTargetId.ToString());
         using var reader = new StringReader(sb.ToString());
 
@@ -82,13 +81,11 @@ public class DefaultNavReaderTests
     public async Task ReadNavNodeAsync_InvalidXCoordinate_ThrowsException()
     {
         var expectedX = fixture.Create<string>();
-        var expectedY = fixture.Create<double>();
-        var expectedZ = fixture.Create<double>();
         var expectedSpellId = (int)fixture.Create<RecallSpellId>();
         var sb = new StringBuilder()
             .AppendLine(expectedX.ToString())
-            .AppendLine(expectedY.ToString())
-            .AppendLine(expectedZ.ToString())
+            .AppendLine(fixture.Create<double>().ToString())
+            .AppendLine(fixture.Create<double>().ToString())
             .AppendLine("0")
             .AppendLine(expectedSpellId.ToString());
         using var reader = new StringReader(sb.ToString());
@@ -98,20 +95,18 @@ public class DefaultNavReaderTests
         var navReader = new DefaultNavReader();
 
         var ex = await Assert.ThrowsExceptionAsync<MetaParserException>(() => navReader.ReadNavNodeAsync(reader, node));
-        Assert.AreEqual($"Invalid nav route node -- x coordinate (Expected: <Int32>; Actual: '{expectedX}')", ex.Message);
+        Assert.AreEqual($"Invalid point specification -- x coordinate (Expected: <Double>; Actual: '{expectedX}')", ex.Message);
     }
 
     [TestMethod]
     public async Task ReadNavNodeAsync_InvalidYCoordinate_ThrowsException()
     {
-        var expectedX = fixture.Create<double>();
         var expectedY = fixture.Create<string>();
-        var expectedZ = fixture.Create<double>();
         var expectedSpellId = (int)fixture.Create<RecallSpellId>();
         var sb = new StringBuilder()
-            .AppendLine(expectedX.ToString())
+            .AppendLine(fixture.Create<double>().ToString())
             .AppendLine(expectedY.ToString())
-            .AppendLine(expectedZ.ToString())
+            .AppendLine(fixture.Create<double>().ToString())
             .AppendLine("0")
             .AppendLine(expectedSpellId.ToString());
         using var reader = new StringReader(sb.ToString());
@@ -121,19 +116,17 @@ public class DefaultNavReaderTests
         var navReader = new DefaultNavReader();
 
         var ex = await Assert.ThrowsExceptionAsync<MetaParserException>(() => navReader.ReadNavNodeAsync(reader, node));
-        Assert.AreEqual($"Invalid nav route node -- y coordinate (Expected: <Int32>; Actual: '{expectedY}')", ex.Message);
+        Assert.AreEqual($"Invalid point specification -- y coordinate (Expected: <Double>; Actual: '{expectedY}')", ex.Message);
     }
 
     [TestMethod]
     public async Task ReadNavNodeAsync_InvalidZCoordinate_ThrowsException()
     {
-        var expectedX = fixture.Create<double>();
-        var expectedY = fixture.Create<double>();
         var expectedZ = fixture.Create<string>();
         var expectedSpellId = (int)fixture.Create<RecallSpellId>();
         var sb = new StringBuilder()
-            .AppendLine(expectedX.ToString())
-            .AppendLine(expectedY.ToString())
+            .AppendLine(fixture.Create<double>().ToString())
+            .AppendLine(fixture.Create<double>().ToString())
             .AppendLine(expectedZ.ToString())
             .AppendLine("0")
             .AppendLine(expectedSpellId.ToString());
@@ -144,7 +137,7 @@ public class DefaultNavReaderTests
         var navReader = new DefaultNavReader();
 
         var ex = await Assert.ThrowsExceptionAsync<MetaParserException>(() => navReader.ReadNavNodeAsync(reader, node));
-        Assert.AreEqual($"Invalid nav route node -- z coordinate (Expected: <Int32>; Actual: '{expectedZ}')", ex.Message);
+        Assert.AreEqual($"Invalid point specification -- z coordinate (Expected: <Double>; Actual: '{expectedZ}')", ex.Message);
     }
 
     [TestMethod]
@@ -177,14 +170,11 @@ public class DefaultNavReaderTests
     [TestMethod]
     public async Task ReadNavNodeAsync_PortalObsNodeWithInvalidPortalId_ThrowsException()
     {
-        var expectedX = fixture.Create<double>();
-        var expectedY = fixture.Create<double>();
-        var expectedZ = fixture.Create<double>();
         var expectedPortalId = fixture.Create<string>();
         var sb = new StringBuilder()
-            .AppendLine(expectedX.ToString())
-            .AppendLine(expectedY.ToString())
-            .AppendLine(expectedZ.ToString())
+            .AppendLine(fixture.Create<double>().ToString())
+            .AppendLine(fixture.Create<double>().ToString())
+            .AppendLine(fixture.Create<double>().ToString())
             .AppendLine("0")
             .AppendLine(expectedPortalId.ToString());
         using var reader = new StringReader(sb.ToString());
@@ -227,14 +217,11 @@ public class DefaultNavReaderTests
     [TestMethod]
     public async Task ReadNavNodeAsync_PauseNodeWithInvalidPauseTime_ThrowsException()
     {
-        var expectedX = fixture.Create<double>();
-        var expectedY = fixture.Create<double>();
-        var expectedZ = fixture.Create<double>();
         var expectedPauseTime = fixture.Create<string>();
         var sb = new StringBuilder()
-            .AppendLine(expectedX.ToString())
-            .AppendLine(expectedY.ToString())
-            .AppendLine(expectedZ.ToString())
+            .AppendLine(fixture.Create<double>().ToString())
+            .AppendLine(fixture.Create<double>().ToString())
+            .AppendLine(fixture.Create<double>().ToString())
             .AppendLine("0")
             .AppendLine(expectedPauseTime.ToString());
         using var reader = new StringReader(sb.ToString());
@@ -307,18 +294,14 @@ public class DefaultNavReaderTests
     [TestMethod]
     public async Task ReadNavNodeAsync_OpenVendorNodeWithInvalidVendorId_ThrowsException()
     {
-        var expectedX = fixture.Create<double>();
-        var expectedY = fixture.Create<double>();
-        var expectedZ = fixture.Create<double>();
         var expectedVendorId = fixture.Create<string>();
-        var expectedVendorName = fixture.Create<string>();
         var sb = new StringBuilder()
-            .AppendLine(expectedX.ToString())
-            .AppendLine(expectedY.ToString())
-            .AppendLine(expectedZ.ToString())
+            .AppendLine(fixture.Create<double>().ToString())
+            .AppendLine(fixture.Create<double>().ToString())
+            .AppendLine(fixture.Create<double>().ToString())
             .AppendLine("0")
             .AppendLine(expectedVendorId.ToString())
-            .AppendLine(expectedVendorName);
+            .AppendLine(fixture.Create<string>());
         using var reader = new StringReader(sb.ToString());
 
         NavNodeOpenVendor node = new();
@@ -372,25 +355,18 @@ public class DefaultNavReaderTests
     [TestMethod]
     public async Task ReadNavNodeAsync_PortalNodeWithInvalidObjectClass_ThrowsException()
     {
-        var expectedX = fixture.Create<double>();
-        var expectedY = fixture.Create<double>();
-        var expectedZ = fixture.Create<double>();
         var expectedClass = int.MaxValue;
-        var expectedObjectName = fixture.Create<string>();
-        var expectedTX = fixture.Create<double>();
-        var expectedTY = fixture.Create<double>();
-        var expectedTZ = fixture.Create<double>();
         var sb = new StringBuilder()
-            .AppendLine(expectedX.ToString())
-            .AppendLine(expectedY.ToString())
-            .AppendLine(expectedZ.ToString())
+            .AppendLine(fixture.Create<double>().ToString())
+            .AppendLine(fixture.Create<double>().ToString())
+            .AppendLine(fixture.Create<double>().ToString())
             .AppendLine("0")
-            .AppendLine(expectedObjectName)
+            .AppendLine(fixture.Create<string>())
             .AppendLine(expectedClass.ToString())
             .AppendLine(bool.TrueString)
-            .AppendLine(expectedTX.ToString())
-            .AppendLine(expectedTY.ToString())
-            .AppendLine(expectedTZ.ToString());
+            .AppendLine(fixture.Create<double>().ToString())
+            .AppendLine(fixture.Create<double>().ToString())
+            .AppendLine(fixture.Create<double>().ToString());
         using var reader = new StringReader(sb.ToString());
 
         NavNodePortal node = new();
@@ -404,25 +380,19 @@ public class DefaultNavReaderTests
     [TestMethod]
     public async Task ReadNavNodeAsync_PortalNodeWithInvalidTargetX_ThrowsException()
     {
-        var expectedX = fixture.Create<double>();
-        var expectedY = fixture.Create<double>();
-        var expectedZ = fixture.Create<double>();
         var expectedClass = (int)fixture.Create<ObjectClass>();
-        var expectedObjectName = fixture.Create<string>();
         var expectedTX = fixture.Create<string>();
-        var expectedTY = fixture.Create<double>();
-        var expectedTZ = fixture.Create<double>();
         var sb = new StringBuilder()
-            .AppendLine(expectedX.ToString())
-            .AppendLine(expectedY.ToString())
-            .AppendLine(expectedZ.ToString())
+            .AppendLine(fixture.Create<double>().ToString())
+            .AppendLine(fixture.Create<double>().ToString())
+            .AppendLine(fixture.Create<double>().ToString())
             .AppendLine("0")
-            .AppendLine(expectedObjectName)
+            .AppendLine(fixture.Create<string>())
             .AppendLine(expectedClass.ToString())
             .AppendLine(bool.TrueString)
             .AppendLine(expectedTX.ToString())
-            .AppendLine(expectedTY.ToString())
-            .AppendLine(expectedTZ.ToString());
+            .AppendLine(fixture.Create<double>().ToString())
+            .AppendLine(fixture.Create<double>().ToString());
         using var reader = new StringReader(sb.ToString());
 
         NavNodePortal node = new();
@@ -430,31 +400,25 @@ public class DefaultNavReaderTests
         var navReader = new DefaultNavReader();
 
         var ex = await Assert.ThrowsExceptionAsync<MetaParserException>(() => navReader.ReadNavNodeAsync(reader, node));
-        Assert.AreEqual($"Invalid portal nav route node (Expected: <Double>; Actual: '{expectedTX}')", ex.Message);
+        Assert.AreEqual($"Invalid point specification -- x coordinate (Expected: <Double>; Actual: '{expectedTX}')", ex.Message);
     }
 
     [TestMethod]
     public async Task ReadNavNodeAsync_PortalNodeWithInvalidTargetY_ThrowsException()
     {
-        var expectedX = fixture.Create<double>();
-        var expectedY = fixture.Create<double>();
-        var expectedZ = fixture.Create<double>();
         var expectedClass = (int)fixture.Create<ObjectClass>();
-        var expectedObjectName = fixture.Create<string>();
-        var expectedTX = fixture.Create<double>();
         var expectedTY = fixture.Create<string>();
-        var expectedTZ = fixture.Create<double>();
         var sb = new StringBuilder()
-            .AppendLine(expectedX.ToString())
-            .AppendLine(expectedY.ToString())
-            .AppendLine(expectedZ.ToString())
+            .AppendLine(fixture.Create<double>().ToString())
+            .AppendLine(fixture.Create<double>().ToString())
+            .AppendLine(fixture.Create<double>().ToString())
             .AppendLine("0")
-            .AppendLine(expectedObjectName)
+            .AppendLine(fixture.Create<string>())
             .AppendLine(expectedClass.ToString())
             .AppendLine(bool.TrueString)
-            .AppendLine(expectedTX.ToString())
+            .AppendLine(fixture.Create<double>().ToString())
             .AppendLine(expectedTY.ToString())
-            .AppendLine(expectedTZ.ToString());
+            .AppendLine(fixture.Create<double>().ToString());
         using var reader = new StringReader(sb.ToString());
 
         NavNodePortal node = new();
@@ -462,30 +426,24 @@ public class DefaultNavReaderTests
         var navReader = new DefaultNavReader();
 
         var ex = await Assert.ThrowsExceptionAsync<MetaParserException>(() => navReader.ReadNavNodeAsync(reader, node));
-        Assert.AreEqual($"Invalid portal nav route node (Expected: <Double>; Actual: '{expectedTY}')", ex.Message);
+        Assert.AreEqual($"Invalid point specification -- y coordinate (Expected: <Double>; Actual: '{expectedTY}')", ex.Message);
     }
 
     [TestMethod]
     public async Task ReadNavNodeAsync_PortalNodeWithInvalidTargetZ_ThrowsException()
     {
-        var expectedX = fixture.Create<double>();
-        var expectedY = fixture.Create<double>();
-        var expectedZ = fixture.Create<double>();
         var expectedClass = (int)fixture.Create<ObjectClass>();
-        var expectedObjectName = fixture.Create<string>();
-        var expectedTX = fixture.Create<double>();
-        var expectedTY = fixture.Create<double>();
         var expectedTZ = fixture.Create<string>();
         var sb = new StringBuilder()
-            .AppendLine(expectedX.ToString())
-            .AppendLine(expectedY.ToString())
-            .AppendLine(expectedZ.ToString())
+            .AppendLine(fixture.Create<double>().ToString())
+            .AppendLine(fixture.Create<double>().ToString())
+            .AppendLine(fixture.Create<double>().ToString())
             .AppendLine("0")
-            .AppendLine(expectedObjectName)
+            .AppendLine(fixture.Create<string>())
             .AppendLine(expectedClass.ToString())
             .AppendLine(bool.TrueString)
-            .AppendLine(expectedTX.ToString())
-            .AppendLine(expectedTY.ToString())
+            .AppendLine(fixture.Create<double>().ToString())
+            .AppendLine(fixture.Create<double>().ToString())
             .AppendLine(expectedTZ.ToString());
         using var reader = new StringReader(sb.ToString());
 
@@ -494,7 +452,7 @@ public class DefaultNavReaderTests
         var navReader = new DefaultNavReader();
 
         var ex = await Assert.ThrowsExceptionAsync<MetaParserException>(() => navReader.ReadNavNodeAsync(reader, node));
-        Assert.AreEqual($"Invalid portal nav route node (Expected: <Double>; Actual: '{expectedTZ}')", ex.Message);
+        Assert.AreEqual($"Invalid point specification -- z coordinate (Expected: <Double>; Actual: '{expectedTZ}')", ex.Message);
     }
 
     [TestMethod]
@@ -540,25 +498,18 @@ public class DefaultNavReaderTests
     [TestMethod]
     public async Task ReadNavNodeAsync_NPCChatNodeWithInvalidObjectClass_ThrowsException()
     {
-        var expectedX = fixture.Create<double>();
-        var expectedY = fixture.Create<double>();
-        var expectedZ = fixture.Create<double>();
         var expectedClass = int.MaxValue;
-        var expectedObjectName = fixture.Create<string>();
-        var expectedTX = fixture.Create<double>();
-        var expectedTY = fixture.Create<double>();
-        var expectedTZ = fixture.Create<double>();
         var sb = new StringBuilder()
-            .AppendLine(expectedX.ToString())
-            .AppendLine(expectedY.ToString())
-            .AppendLine(expectedZ.ToString())
+            .AppendLine(fixture.Create<double>().ToString())
+            .AppendLine(fixture.Create<double>().ToString())
+            .AppendLine(fixture.Create<double>().ToString())
             .AppendLine("0")
-            .AppendLine(expectedObjectName)
+            .AppendLine(fixture.Create<string>())
             .AppendLine(expectedClass.ToString())
             .AppendLine(bool.TrueString)
-            .AppendLine(expectedTX.ToString())
-            .AppendLine(expectedTY.ToString())
-            .AppendLine(expectedTZ.ToString());
+            .AppendLine(fixture.Create<double>().ToString())
+            .AppendLine(fixture.Create<double>().ToString())
+            .AppendLine(fixture.Create<double>().ToString());
         using var reader = new StringReader(sb.ToString());
 
         NavNodeNPCChat node = new();
@@ -574,25 +525,18 @@ public class DefaultNavReaderTests
     [DataRow(ObjectClass.Portal)]
     public async Task ReadNavNodeAsync_NPCChatNodeWithObjectClassOtherThanNPC_ThrowsException(ObjectClass objectClass)
     {
-        var expectedX = fixture.Create<double>();
-        var expectedY = fixture.Create<double>();
-        var expectedZ = fixture.Create<double>();
         var expectedClass = (int)objectClass;
-        var expectedObjectName = fixture.Create<string>();
-        var expectedTX = fixture.Create<double>();
-        var expectedTY = fixture.Create<double>();
-        var expectedTZ = fixture.Create<double>();
         var sb = new StringBuilder()
-            .AppendLine(expectedX.ToString())
-            .AppendLine(expectedY.ToString())
-            .AppendLine(expectedZ.ToString())
+            .AppendLine(fixture.Create<double>().ToString())
+            .AppendLine(fixture.Create<double>().ToString())
+            .AppendLine(fixture.Create<double>().ToString())
             .AppendLine("0")
-            .AppendLine(expectedObjectName)
+            .AppendLine(fixture.Create<string>())
             .AppendLine(expectedClass.ToString())
             .AppendLine(bool.TrueString)
-            .AppendLine(expectedTX.ToString())
-            .AppendLine(expectedTY.ToString())
-            .AppendLine(expectedTZ.ToString());
+            .AppendLine(fixture.Create<double>().ToString())
+            .AppendLine(fixture.Create<double>().ToString())
+            .AppendLine(fixture.Create<double>().ToString());
         using var reader = new StringReader(sb.ToString());
 
         NavNodeNPCChat node = new();
@@ -606,25 +550,19 @@ public class DefaultNavReaderTests
     [TestMethod]
     public async Task ReadNavNodeAsync_NPCChatNodeWithInvalidTargetX_ThrowsException()
     {
-        var expectedX = fixture.Create<double>();
-        var expectedY = fixture.Create<double>();
-        var expectedZ = fixture.Create<double>();
         var expectedClass = (int)ObjectClass.NPC;
-        var expectedObjectName = fixture.Create<string>();
         var expectedTX = fixture.Create<string>();
-        var expectedTY = fixture.Create<double>();
-        var expectedTZ = fixture.Create<double>();
         var sb = new StringBuilder()
-            .AppendLine(expectedX.ToString())
-            .AppendLine(expectedY.ToString())
-            .AppendLine(expectedZ.ToString())
+            .AppendLine(fixture.Create<double>().ToString())
+            .AppendLine(fixture.Create<double>().ToString())
+            .AppendLine(fixture.Create<double>().ToString())
             .AppendLine("0")
-            .AppendLine(expectedObjectName)
+            .AppendLine(fixture.Create<string>())
             .AppendLine(expectedClass.ToString())
             .AppendLine(bool.TrueString)
             .AppendLine(expectedTX.ToString())
-            .AppendLine(expectedTY.ToString())
-            .AppendLine(expectedTZ.ToString());
+            .AppendLine(fixture.Create<double>().ToString())
+            .AppendLine(fixture.Create<double>().ToString());
         using var reader = new StringReader(sb.ToString());
 
         NavNodeNPCChat node = new();
@@ -632,31 +570,25 @@ public class DefaultNavReaderTests
         var navReader = new DefaultNavReader();
 
         var ex = await Assert.ThrowsExceptionAsync<MetaParserException>(() => navReader.ReadNavNodeAsync(reader, node));
-        Assert.AreEqual($"Invalid npc nav route node (Expected: <Double>; Actual: '{expectedTX}')", ex.Message);
+        Assert.AreEqual($"Invalid point specification -- x coordinate (Expected: <Double>; Actual: '{expectedTX}')", ex.Message);
     }
 
     [TestMethod]
     public async Task ReadNavNodeAsync_NPCChatNodeWithInvalidTargetY_ThrowsException()
     {
-        var expectedX = fixture.Create<double>();
-        var expectedY = fixture.Create<double>();
-        var expectedZ = fixture.Create<double>();
         var expectedClass = (int)ObjectClass.NPC;
-        var expectedObjectName = fixture.Create<string>();
-        var expectedTX = fixture.Create<double>();
         var expectedTY = fixture.Create<string>();
-        var expectedTZ = fixture.Create<double>();
         var sb = new StringBuilder()
-            .AppendLine(expectedX.ToString())
-            .AppendLine(expectedY.ToString())
-            .AppendLine(expectedZ.ToString())
+            .AppendLine(fixture.Create<double>().ToString())
+            .AppendLine(fixture.Create<double>().ToString())
+            .AppendLine(fixture.Create<double>().ToString())
             .AppendLine("0")
-            .AppendLine(expectedObjectName)
+            .AppendLine(fixture.Create<string>())
             .AppendLine(expectedClass.ToString())
             .AppendLine(bool.TrueString)
-            .AppendLine(expectedTX.ToString())
+            .AppendLine(fixture.Create<double>().ToString())
             .AppendLine(expectedTY.ToString())
-            .AppendLine(expectedTZ.ToString());
+            .AppendLine(fixture.Create<double>().ToString());
         using var reader = new StringReader(sb.ToString());
 
         NavNodeNPCChat node = new();
@@ -664,30 +596,24 @@ public class DefaultNavReaderTests
         var navReader = new DefaultNavReader();
 
         var ex = await Assert.ThrowsExceptionAsync<MetaParserException>(() => navReader.ReadNavNodeAsync(reader, node));
-        Assert.AreEqual($"Invalid npc nav route node (Expected: <Double>; Actual: '{expectedTY}')", ex.Message);
+        Assert.AreEqual($"Invalid point specification -- y coordinate (Expected: <Double>; Actual: '{expectedTY}')", ex.Message);
     }
 
     [TestMethod]
     public async Task ReadNavNodeAsync_NPCChatNodeWithInvalidTargetZ_ThrowsException()
     {
-        var expectedX = fixture.Create<double>();
-        var expectedY = fixture.Create<double>();
-        var expectedZ = fixture.Create<double>();
         var expectedClass = (int)ObjectClass.NPC;
-        var expectedObjectName = fixture.Create<string>();
-        var expectedTX = fixture.Create<double>();
-        var expectedTY = fixture.Create<double>();
         var expectedTZ = fixture.Create<string>();
         var sb = new StringBuilder()
-            .AppendLine(expectedX.ToString())
-            .AppendLine(expectedY.ToString())
-            .AppendLine(expectedZ.ToString())
+            .AppendLine(fixture.Create<double>().ToString())
+            .AppendLine(fixture.Create<double>().ToString())
+            .AppendLine(fixture.Create<double>().ToString())
             .AppendLine("0")
-            .AppendLine(expectedObjectName)
+            .AppendLine(fixture.Create<string>())
             .AppendLine(expectedClass.ToString())
             .AppendLine(bool.TrueString)
-            .AppendLine(expectedTX.ToString())
-            .AppendLine(expectedTY.ToString())
+            .AppendLine(fixture.Create<double>().ToString())
+            .AppendLine(fixture.Create<double>().ToString())
             .AppendLine(expectedTZ.ToString());
         using var reader = new StringReader(sb.ToString());
 
@@ -696,32 +622,25 @@ public class DefaultNavReaderTests
         var navReader = new DefaultNavReader();
 
         var ex = await Assert.ThrowsExceptionAsync<MetaParserException>(() => navReader.ReadNavNodeAsync(reader, node));
-        Assert.AreEqual($"Invalid npc nav route node (Expected: <Double>; Actual: '{expectedTZ}')", ex.Message);
+        Assert.AreEqual($"Invalid point specification -- z coordinate (Expected: <Double>; Actual: '{expectedTZ}')", ex.Message);
     }
 
     [TestMethod]
     public async Task ReadNavNodeAsync_NPCChatNodeWithInvalidTrueString_ThrowsException()
     {
-        var expectedX = fixture.Create<double>();
-        var expectedY = fixture.Create<double>();
-        var expectedZ = fixture.Create<double>();
         var expectedClass = (int)ObjectClass.NPC;
-        var expectedObjectName = fixture.Create<string>();
-        var expectedTX = fixture.Create<double>();
-        var expectedTY = fixture.Create<double>();
-        var expectedTZ = fixture.Create<double>();
         var invalidTrueString = fixture.Create<string>();
         var sb = new StringBuilder()
-            .AppendLine(expectedX.ToString())
-            .AppendLine(expectedY.ToString())
-            .AppendLine(expectedZ.ToString())
+            .AppendLine(fixture.Create<double>().ToString())
+            .AppendLine(fixture.Create<double>().ToString())
+            .AppendLine(fixture.Create<double>().ToString())
             .AppendLine("0")
-            .AppendLine(expectedObjectName)
+            .AppendLine(fixture.Create<string>())
             .AppendLine(expectedClass.ToString())
             .AppendLine(invalidTrueString)
-            .AppendLine(expectedTX.ToString())
-            .AppendLine(expectedTY.ToString())
-            .AppendLine(expectedTZ.ToString());
+            .AppendLine(fixture.Create<double>().ToString())
+            .AppendLine(fixture.Create<double>().ToString())
+            .AppendLine(fixture.Create<double>().ToString());
         using var reader = new StringReader(sb.ToString());
 
         NavNodeNPCChat node = new();
@@ -768,20 +687,15 @@ public class DefaultNavReaderTests
     [TestMethod]
     public async Task ReadNavNodeAsync_JumpNodeWithInvalidHeading_ReadsJumpNode()
     {
-        var expectedX = fixture.Create<double>();
-        var expectedY = fixture.Create<double>();
-        var expectedZ = fixture.Create<double>();
         var expectedHeading = fixture.Create<string>();
-        var expectedShift = fixture.Create<bool>();
-        var expectedDelay = fixture.Create<double>();
         var sb = new StringBuilder()
-            .AppendLine(expectedX.ToString())
-            .AppendLine(expectedY.ToString())
-            .AppendLine(expectedZ.ToString())
+            .AppendLine(fixture.Create<double>().ToString())
+            .AppendLine(fixture.Create<double>().ToString())
+            .AppendLine(fixture.Create<double>().ToString())
             .AppendLine("0")
             .AppendLine(expectedHeading.ToString())
-            .AppendLine(expectedShift ? bool.TrueString : bool.FalseString)
-            .AppendLine(expectedDelay.ToString());
+            .AppendLine(fixture.Create<bool>() ? bool.TrueString : bool.FalseString)
+            .AppendLine(fixture.Create<double>().ToString());
         using var reader = new StringReader(sb.ToString());
 
         NavNodeJump node = new();
@@ -795,20 +709,15 @@ public class DefaultNavReaderTests
     [TestMethod]
     public async Task ReadNavNodeAsync_JumpNodeWithInvalidShift_ReadsJumpNode()
     {
-        var expectedX = fixture.Create<double>();
-        var expectedY = fixture.Create<double>();
-        var expectedZ = fixture.Create<double>();
-        var expectedHeading = fixture.Create<double>();
         var expectedShift = fixture.Create<string>();
-        var expectedDelay = fixture.Create<double>();
         var sb = new StringBuilder()
-            .AppendLine(expectedX.ToString())
-            .AppendLine(expectedY.ToString())
-            .AppendLine(expectedZ.ToString())
+            .AppendLine(fixture.Create<double>().ToString())
+            .AppendLine(fixture.Create<double>().ToString())
+            .AppendLine(fixture.Create<double>().ToString())
             .AppendLine("0")
-            .AppendLine(expectedHeading.ToString())
+            .AppendLine(fixture.Create<double>().ToString())
             .AppendLine(expectedShift)
-            .AppendLine(expectedDelay.ToString());
+            .AppendLine(fixture.Create<double>().ToString());
         using var reader = new StringReader(sb.ToString());
 
         NavNodeJump node = new();
@@ -822,19 +731,14 @@ public class DefaultNavReaderTests
     [TestMethod]
     public async Task ReadNavNodeAsync_JumpNodeWithInvalidDelay_ReadsJumpNode()
     {
-        var expectedX = fixture.Create<double>();
-        var expectedY = fixture.Create<double>();
-        var expectedZ = fixture.Create<double>();
-        var expectedHeading = fixture.Create<double>();
-        var expectedShift = fixture.Create<bool>();
         var expectedDelay = fixture.Create<string>();
         var sb = new StringBuilder()
-            .AppendLine(expectedX.ToString())
-            .AppendLine(expectedY.ToString())
-            .AppendLine(expectedZ.ToString())
+            .AppendLine(fixture.Create<double>().ToString())
+            .AppendLine(fixture.Create<double>().ToString())
+            .AppendLine(fixture.Create<double>().ToString())
             .AppendLine("0")
-            .AppendLine(expectedHeading.ToString())
-            .AppendLine(expectedShift ? bool.TrueString : bool.FalseString)
+            .AppendLine(fixture.Create<double>().ToString())
+            .AppendLine(fixture.Create<bool>() ? bool.TrueString : bool.FalseString)
             .AppendLine(expectedDelay.ToString());
         using var reader = new StringReader(sb.ToString());
 

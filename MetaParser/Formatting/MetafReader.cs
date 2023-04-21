@@ -287,7 +287,7 @@ public class MetafReader : IMetaReader
         var m = ActionRegex.Match(line);
         if (!m.Success)
             throw new MetaParserException("Invalid action definition");
-        else if (m.Groups["tabs"].Length > indentLevel)
+        else if (indentLevel > 0 && m.Groups["tabs"].Length > indentLevel)
             throw new MetaParserException("Too many tabs in action definition", indentLevel.ToString(), m.Groups["tabs"].Length.ToString());
         else if (m.Groups["tabs"].Length < indentLevel)
             return (line, null);
@@ -425,7 +425,7 @@ public class MetafReader : IMetaReader
         var m = ConditionRegex.Match(line);
         if (!m.Success)
             throw new MetaParserException("Invalid condition definition");
-        else if (m.Groups["tabs"].Length > indentLevel)
+        else if (indentLevel > 0 && m.Groups["tabs"].Length > indentLevel)
             throw new MetaParserException("Too many tabs in condition definition", indentLevel.ToString(), m.Groups["tabs"].Length.ToString());
         else if (m.Groups["tabs"].Length < indentLevel)
             return (line, null);

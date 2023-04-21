@@ -55,8 +55,8 @@
             <Menu DockPanel.Dock="Top">
                 <MenuItem Header="_File">
                     <MenuItem Header="_New Meta File" Command="{Binding NewFileCommand}" InputGestureText="Ctrl+N" Icon="{StaticResource NewFileIcon}" />
-                    <MenuItem Header="_Open Meta File..." Command="{Binding OpenFileCommand}" InputGestureText="Ctrl+O" Icon="{StaticResource OpenFileIcon}" />
-                    <MenuItem Header="_Import Meta File" Command="{Binding ImportFileCommand}" InputGestureText="Ctrl+I" Icon="{StaticResource ImportFileIcon}" />
+                    <MenuItem Header="_Open Meta File…" Command="{Binding OpenFileCommand}" InputGestureText="Ctrl+O" Icon="{StaticResource OpenFileIcon}" />
+                    <MenuItem Header="_Import Meta File…" Command="{Binding ImportFileCommand}" InputGestureText="Ctrl+I" Icon="{StaticResource ImportFileIcon}" />
                     <Separator />
                     <MenuItem Command="{Binding SaveFileCommand}" InputGestureText="Ctrl+S" Icon="{StaticResource SaveIcon}">
                         <MenuItem.Header>
@@ -95,10 +95,10 @@
             <ToolBarTray DockPanel.Dock="Top" IsLocked="True">
                 <ToolBar Band="1" BandIndex="1" Loaded="ToolBar_Loaded" Background="Transparent">
                     <Button Command="{Binding NewFileCommand}" ToolTip="New File (Ctrl+N)" Content="{StaticResource NewFileIcon}" />
-                    <Button Command="{Binding OpenFileCommand}" ToolTip="Open File... (Ctrl+O)" Content="{StaticResource OpenFileIcon}" />
+                    <Button Command="{Binding OpenFileCommand}" ToolTip="Open File… (Ctrl+O)" Content="{StaticResource OpenFileIcon}" />
                     <Button Command="{Binding ImportFileCommand}" ToolTip="Import File (Ctrl+I)" Content="{StaticResource ImportFileIcon}" />
                     <Button Command="{Binding SaveFileCommand}" ToolTip="Save File (Ctrl+S)" Content="{StaticResource SaveIcon}" />
-                    <Button Command="{Binding SaveFileAsCommand}" ToolTip="Save File As... (Ctrl+Shift+S)" Content="{StaticResource SaveAsIcon}" />
+                    <Button Command="{Binding SaveFileAsCommand}" ToolTip="Save File As… (Ctrl+Shift+S)" Content="{StaticResource SaveAsIcon}" />
                     <Separator />
                     <Button Command="{Binding MetaViewModel.CutCommand}" ToolTip="Cut Rule (Ctrl+X)" Content="{StaticResource CutIcon}" />
                     <Button Command="{Binding MetaViewModel.CopyCommand}" ToolTip="Copy Rule (Ctrl+C)" Content="{StaticResource CopyIcon}" />

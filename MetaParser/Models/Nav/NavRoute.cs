@@ -1,69 +1,48 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Runtime.Serialization;
 
-namespace MetaParser.Models
+namespace MetaParser.Models;
+
+public class NavRoute
 {
-    public class NavRoute : ISerializable
+    private NavType type;
+
+    public NavType Type
     {
-        private NavType type;
-
-        public NavType Type
+        get => type;
+        set
         {
-            get => type;
-            set
+            if (Type != value)
             {
-                if (Type != value)
+                if (type == NavType.Follow || (value != NavType.Follow && Data == null))
                 {
-                    if (type == NavType.Follow || (value != NavType.Follow && Data == null))
-                    {
-                        Data = new List<NavNode>();
-                    }
-                    else if (value == NavType.Follow)
-                    {
-                        Data = new NavFollow();
-                    }
-
-                    type = value;
+                    Data = new List<NavNode>();
                 }
+                else if (value == NavType.Follow)
+                {
+                    Data = new NavFollow();
+                }
+
+                type = value;
             }
         }
+    }
 
-        public object Data { get; set; }
+    public object Data { get; set; }
 
-        public NavRoute() { }
+    public NavRoute() { }
 
-        protected NavRoute(SerializationInfo info, StreamingContext context)
+    public override string ToString()
+    {
+        if (Type == NavType.Follow)
         {
-            Type = (NavType)info.GetValue(nameof(Type), typeof(NavType));
-            if (Type == NavType.Follow)
-            {
-                Data = info.GetValue(nameof(Data), typeof(NavFollow));
-            }
-            else
-            {
-                Data = info.GetValue(nameof(Data), typeof(List<NavNode>)) ?? new List<NavNode>();
-            }
+            return Data.ToString();
         }
-
-        public override string ToString()
+        else if (Data is List<NavNode> nodes)
         {
-            if (Type == NavType.Follow)
-            {
-                return Data.ToString();
-            }
-            else if (Data is List<NavNode> nodes)
-            {
-                return $"{Type} ({nodes.Count})";
-            }
-
-            throw new InvalidOperationException("Invalid nav spec");
+            return $"{Type} ({nodes.Count})";
         }
 
-        public virtual void GetObjectData(SerializationInfo info, StreamingContext context)
-        {
-            info.AddValue(nameof(Type), Type, typeof(NavType));
-            info.AddValue(nameof(Data), Data, Data.GetType());
-        }
+        throw new InvalidOperationException("Invalid nav spec");
     }
 }

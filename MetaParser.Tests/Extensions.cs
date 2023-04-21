@@ -1,18 +1,16 @@
 ﻿using System.IO;
 using System.Text;
 
-namespace MetaParser.Tests
+namespace MetaParser.Tests;
+
+static class Extensions
 {
-    static class Extensions
+    public static Stream ToStream(this string str)
     {
-        public static Stream ToStream(this string str)
-        {
-            var stream = new MemoryStream();
-            using var writer = new StreamWriter(stream, Encoding.UTF8, leaveOpen: true);
-            writer.Write(str);
-            writer.Flush();
-            stream.Position = 0;
-            return stream;
-        }
+        var bytes = Encoding.UTF8.GetBytes(str);
+        var stream = new MemoryStream();
+        stream.Write(bytes, 0, bytes.Length);
+        stream.Seek(0, SeekOrigin.Begin);
+        return stream;
     }
 }
