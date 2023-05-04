@@ -65,8 +65,11 @@ public class UnreachableStateMetaValidator : IMetaValidator
     };
 }
 
-public class UndefinedStateMetaValidator : IMetaValidator
+public partial class UndefinedStateMetaValidator : IMetaValidator
 {
+    [GeneratedRegex(@"^/vt\s*setmetastate\s*(.*)$")]
+    private static partial Regex SMSRegex();
+
     public IEnumerable<MetaValidationResult> ValidateMeta(Meta meta)
     {
         var states = meta.Rules.Select(r => r.State).Distinct();
@@ -96,7 +99,7 @@ public class UndefinedStateMetaValidator : IMetaValidator
         {
             foreach (var chatNav in navList.OfType<NavNodeChat>())
             {
-                var match = Regex.Match(chatNav.Data, @"^/vt\s*setmetastate\s*(.*)$");
+                var match = SMSRegex().Match(chatNav.Data);
                 if (match != null && match.Success)
                     yield return match.Groups[1].Value.TrimEnd();
             }
@@ -105,7 +108,7 @@ public class UndefinedStateMetaValidator : IMetaValidator
 
     private static IEnumerable<string> GetChatCommandStates(MetaAction<string> cca)
     {
-        var match = Regex.Match(cca.Data, @"^/vt\s*setmetastate\s*(.*)$");
+        var match = SMSRegex().Match(cca.Data);
         if (match != null && match.Success)
             yield return match.Groups[1].Value.TrimEnd();
     }

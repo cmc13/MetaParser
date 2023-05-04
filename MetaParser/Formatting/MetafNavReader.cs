@@ -7,26 +7,48 @@ using System.Threading.Tasks;
 
 namespace MetaParser.Formatting;
 
-public class MetafNavReader : INavReader
+public partial class MetafNavReader : INavReader
 {
-    private static readonly string DOUBLE_REGEX = @"[+\-]?(([1-9]\d*\.|\d?\.)(\d+([eE][+\-]?[0-9]+)|[0-9]+)|([1-9]\d*|0))";
-    private static readonly Regex EmptyLineRegex = new(@"^\s*(~~.*)?$", RegexOptions.Compiled);
-    private static readonly Regex NavLineRegex = new(@"^\s*NAV:", RegexOptions.Compiled);
-    private static readonly Regex NavRegex = new(@"^\s*(?<navRef>[a-zA-Z_][a-zA-Z0-9_]*)\s*(?<navType>circular|linear|once|follow)\s*(~~.*)?", RegexOptions.Compiled);
-    private static readonly Regex NavTypeRegex = new(@"^\s*(?<nodeType>pnt|prt|rcl|pau|cht|vnd|ptl|tlk|jmp|chk)", RegexOptions.Compiled);
-    private static readonly Regex PointRegex = new($@"^\s*(?<x>{DOUBLE_REGEX})\s*(?<y>{DOUBLE_REGEX})\s*(?<z>{DOUBLE_REGEX})", RegexOptions.Compiled);
-    private static readonly Regex PointDefRegex = new(@"^\s*pnt|prt|rcl|pau|cht|vnd|ptl|tlk|chk|jmp", RegexOptions.Compiled);
+    private const string DOUBLE_REGEX = @"[+\-]?(([1-9]\d*\.|\d?\.)(\d+([eE][+\-]?[0-9]+)|[0-9]+)|([1-9]\d*|0))";
+    [GeneratedRegex(@"^\s*(~~.*)?$")]
+    private static partial Regex EmptyLineRegex();
+    [GeneratedRegex(@"^\s*NAV:")]
+    private static partial Regex NavLineRegex();
+    [GeneratedRegex(@"^\s*(?<navRef>[a-zA-Z_][a-zA-Z0-9_]*)\s*(?<navType>circular|linear|once|follow)\s*(~~.*)?")]
+    private static partial Regex NavRegex();
+    [GeneratedRegex(@"^\s*(?<nodeType>pnt|prt|rcl|pau|cht|vnd|ptl|tlk|jmp|chk)")]
+    private static partial Regex NavTypeRegex();
+    [GeneratedRegex($@"^\s*(?<x>{DOUBLE_REGEX})\s*(?<y>{DOUBLE_REGEX})\s*(?<z>{DOUBLE_REGEX})")]
+    private static partial Regex PointRegex();
+    [GeneratedRegex(@"^\s*pnt|prt|rcl|pau|cht|vnd|ptl|tlk|chk|jmp")]
+    private static partial Regex PointDefRegex();
+    [GeneratedRegex(@"^\s*flw\s*(?<id>[0-9a-fA-F]+)\s*{(?<name>([^{}]|{{|}})*)}\s*(~~.*)?$")]
+    private static partial Regex FollowRegex();
+    [GeneratedRegex(@"^\s*(?<id>[0-9a-fA-F]+)\s*(~~.*)?$")]
+    private static partial Regex PortalObsRegex();
+    [GeneratedRegex(@"^\s*{(?<spell>([^{}]|{{|}})*)}\s*(~~.*)?$")]
+    private static partial Regex RecallRegex();
+    [GeneratedRegex(@"^\s*(?<time>" + DOUBLE_REGEX + @")\s*(~~.*)?$")]
+    private static partial Regex PauseRegex();
+    [GeneratedRegex(@"^\s*{(?<chat>([^{}]|{{|}})*)}\s*(~~.*)?$")]
+    private static partial Regex ChatRegex();
+    [GeneratedRegex(@"^\s*(?<id>[a-fA-F0-9]+)\s*{(?<name>([^{}]|{{|}})*)}\s*(~~.*)?$")]
+    private static partial Regex VendorRegex();
+    [GeneratedRegex(@"^\s*(?<oc>\d+)\s*{(?<name>([^{}]|{{|}})*)}\s*(~~.*)?$")]
+    private static partial Regex PortalRegex();
+    [GeneratedRegex(@"^\s*(?<heading>" + DOUBLE_REGEX + @")\s*{(?<tf>True|False)}\s*(?<time>" + DOUBLE_REGEX + @")\s*(~~.*)?$")]
+    private static partial Regex JumpRegex();
+
     private static readonly Dictionary<string, Regex> NavNodeRegex = new()
     {
-        { "flw", new(@"^\s*flw\s*(?<id>[0-9a-fA-F]+)\s*{(?<name>([^{}]|{{|}})*)}\s*(~~.*)?$", RegexOptions.Compiled) },
-        { "prt", new(@"^\s*(?<id>[0-9a-fA-F]+)\s*(~~.*)?$", RegexOptions.Compiled) },
-        { "rcl", new(@"^\s*{(?<spell>([^{}]|{{|}})*)}\s*(~~.*)?$", RegexOptions.Compiled) },
-        { "pau", new(@"^\s*(?<time>" + DOUBLE_REGEX + @")\s*(~~.*)?$", RegexOptions.Compiled) },
-        { "cht", new(@"^\s*{(?<chat>([^{}]|{{|}})*)}\s*(~~.*)?$", RegexOptions.Compiled) },
-        { "vnd", new(@"^\s*(?<id>[a-fA-F0-9]+)\s*{(?<name>([^{}]|{{|}})*)}\s*(~~.*)?$", RegexOptions.Compiled) },
-        { "ptl", new(@"^\s*(?<oc>\d+)\s*{(?<name>([^{}]|{{|}})*)}\s*(~~.*)?$", RegexOptions.Compiled) },
-        { "tlk", new(@"^\s*(?<oc>\d+)\s*{(?<name>([^{}]|{{|}})*)}\s*(~~.*)?$", RegexOptions.Compiled) },
-        { "jmp", new(@"^\s*(?<heading>" + DOUBLE_REGEX + @")\s*{(?<tf>True|False)}\s*(?<time>" + DOUBLE_REGEX + @")\s*(~~.*)?$", RegexOptions.Compiled) }
+        { "prt", PortalObsRegex() },
+        { "rcl", RecallRegex() },
+        { "pau", PauseRegex() },
+        { "cht", ChatRegex() },
+        { "vnd", VendorRegex() },
+        { "ptl", PortalRegex() },
+        { "tlk", PortalRegex() },
+        { "jmp", JumpRegex() }
     };
 
     private static readonly Dictionary<string, RecallSpellId> RecallSpellList = new()
@@ -63,9 +85,9 @@ public class MetafNavReader : INavReader
     {
         string line;
 
-        do { line = await reader.ReadLineAsync().ConfigureAwait(false); } while (line != null && EmptyLineRegex.IsMatch(line));
+        do { line = await reader.ReadLineAsync().ConfigureAwait(false); } while (line != null && EmptyLineRegex().IsMatch(line));
 
-        var m = NavLineRegex.Match(line);
+        var m = NavLineRegex().Match(line);
         if (!m.Success)
             throw new MetaParserException("Invalid nav declaration", "NAV: ...", line);
 
@@ -77,13 +99,13 @@ public class MetafNavReader : INavReader
     {
         if (line == null)
         {
-            do { line = await reader.ReadLineAsync().ConfigureAwait(false); } while (line != null && EmptyLineRegex.IsMatch(line));
+            do { line = await reader.ReadLineAsync().ConfigureAwait(false); } while (line != null && EmptyLineRegex().IsMatch(line));
         }
 
         if (line == null)
             return (line, null);
 
-        var m = NavRegex.Match(line);
+        var m = NavRegex().Match(line);
         if (!m.Success)
             throw new MetaParserException("Invalid nav declaration", "<nav reference> [circular|once|follow|linear]", line);
 
@@ -105,7 +127,7 @@ public class MetafNavReader : INavReader
             await ReadNavFollowAsync(reader, follow);
             route.Data = follow;
 
-            do { line = await reader.ReadLineAsync().ConfigureAwait(false); } while (line != null && EmptyLineRegex.IsMatch(line));
+            do { line = await reader.ReadLineAsync().ConfigureAwait(false); } while (line != null && EmptyLineRegex().IsMatch(line));
         }
         else
         {
@@ -114,12 +136,12 @@ public class MetafNavReader : INavReader
 
             do
             {
-                do { line = await reader.ReadLineAsync().ConfigureAwait(false); } while (line != null && EmptyLineRegex.IsMatch(line));
+                do { line = await reader.ReadLineAsync().ConfigureAwait(false); } while (line != null && EmptyLineRegex().IsMatch(line));
 
-                if (line != null && PointDefRegex.IsMatch(line))
+                if (line != null && PointDefRegex().IsMatch(line))
                     list.Add(ParseNavNode(line));
             }
-            while (line != null && PointDefRegex.IsMatch(line));
+            while (line != null && PointDefRegex().IsMatch(line));
         }
 
         return (line, route);
@@ -129,7 +151,7 @@ public class MetafNavReader : INavReader
     {
         string line;
 
-        do { line = await reader.ReadLineAsync().ConfigureAwait(false); } while (line != null && EmptyLineRegex.IsMatch(line));
+        do { line = await reader.ReadLineAsync().ConfigureAwait(false); } while (line != null && EmptyLineRegex().IsMatch(line));
 
         if (line == null)
             return;
@@ -139,7 +161,7 @@ public class MetafNavReader : INavReader
 
     private NavNode ParseNavNode(string line)
     {
-        var m = NavTypeRegex.Match(line);
+        var m = NavTypeRegex().Match(line);
         if (!m.Success)
             throw new MetaParserException("Invalid nav node definition", "pnt|prt|rcl|pau|cht|vnd|ptl|tlk|chk|jmp ...", line);
 
@@ -253,7 +275,7 @@ public class MetafNavReader : INavReader
 
     private static (double x, double y, double z) ParsePoint(ref string line)
     {
-        var m = PointRegex.Match(line);
+        var m = PointRegex().Match(line);
         if (!m.Success)
             throw new MetaParserException("Invalid nav point definition", "<x> <y> <z> ...", line);
 
@@ -270,12 +292,12 @@ public class MetafNavReader : INavReader
     {
         string line;
 
-        do { line = await reader.ReadLineAsync().ConfigureAwait(false); } while (line != null && EmptyLineRegex.IsMatch(line));
+        do { line = await reader.ReadLineAsync().ConfigureAwait(false); } while (line != null && EmptyLineRegex().IsMatch(line));
 
         if (line == null)
             return;
 
-        var m = NavNodeRegex["flw"].Match(line);
+        var m = FollowRegex().Match(line);
         if (!m.Success)
             throw new MetaParserException("Invalid nav follow definition", "flw <hex number> {<target name>}", line);
 

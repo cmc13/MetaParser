@@ -7,40 +7,7 @@ using System.Threading.Tasks;
 
 namespace MetaParser.Formatting;
 
-static class MetafExtensions
-{
-    public static string UnescapeString(this string str) => str.Replace("{{", "{").Replace("}}", "}");
-
-    public static NavRoute ApplyTransform(this NavRoute nav, double[] transform)
-    {
-        if (nav.Data is List<NavNode> nodes)
-            return new() { Type = nav.Type, Data = nodes.Select(n => n.ApplyTransform(transform)).ToList() };
-        return nav;
-    }
-
-    public static NavNode ApplyTransform(this NavNode node, double[] transform)
-    {
-        var newNode = NavNode.Create(node.Type);
-
-        var dataProperty = newNode.GetType().GetProperty("Data");
-        dataProperty?.SetValue(newNode, dataProperty.GetValue(node));
-
-        newNode.Point = node.Point.ApplyTransform(transform);
-
-        return newNode;
-    }
-
-    public static (double, double, double) ApplyTransform(this (double x, double y, double z) pt, double[] transform)
-    {
-        return (
-                transform[0] * pt.x + transform[1] * pt.y + transform[4],
-                transform[2] * pt.x + transform[3] * pt.y + transform[5],
-                transform[6] + pt.z
-            );
-    }
-}
-
-public class MetafReader : IMetaReader
+public partial class MetafReader : IMetaReader
 {
     private class EmbeddedNavRouteMetaActionWithTransform
         : EmbeddedNavRouteMetaAction
@@ -58,53 +25,79 @@ public class MetafReader : IMetaReader
         }
     }
 
-    private static readonly string DOUBLE_REGEX = @"[+\-]?(([1-9]\d*\.|\d?\.)(\d+([eE][+\-]?[0-9]+)|[0-9]+)|([1-9]\d*|0))";
-    private static readonly Regex EmptyLineRegex = new(@"^\s*(~~.*)?$", RegexOptions.Compiled);
-    private static readonly Regex StateNavRegex = new(@"^\s*(?<op>STATE|NAV):", RegexOptions.Compiled);
-    private static readonly Regex StateRegex = new(@"^\s*{(?<state>([^{}]|{{|}})*)}\s*(~~.*)?", RegexOptions.Compiled);
-    private static readonly Regex IfRegex = new(@"^(?<tabs>\t*)(?<op>IF:)", RegexOptions.Compiled);
-    private static readonly Regex DoRegex = new(@"^(?<tabs>\t*)(?<op>DO:)", RegexOptions.Compiled);
-    private static readonly Regex ConditionRegex = new(@"^(?<tabs>\t*)\s*(?<cond>\S*)", RegexOptions.Compiled);
-    private static readonly Regex ActionRegex = new(@"^(?<tabs>\t*)\s*(?<action>\S*)", RegexOptions.Compiled);
-    private static readonly Regex SingleIntRegex = new(@"^\s*(?<arg>\d+)\s*(~~.*)?", RegexOptions.Compiled);
-    private static readonly Regex SingleStringRegex = new(@"^\s*{(?<arg>([^{}]|{{|}})*)}\s*(~~.*)?", RegexOptions.Compiled);
-    private static readonly Regex ItemCountRegex = new(@"^\s*(?<count>\d+)\s*{(?<item>([^{}]|{{|}})*)}\s*(~~.*)?");
-    private static readonly Regex LandCellRegex = new(@"^\s*(?<cell>[0-9a-fA-F]+)\s*(~~.*)?", RegexOptions.Compiled);
-    private static readonly Regex DoubleStringRegex = new(@"^\s*{(?<arg1>([^{}]|{{|}})*)}\s*{(?<arg2>([^{}]|{{|}})*)}\s*(~~.*)?", RegexOptions.Compiled);
-    private static readonly Regex NavTransformRegex = new(@"^\s*" + @"(?<d>" + DOUBLE_REGEX + @")(\s+(?<d>" + DOUBLE_REGEX + @")){6}\s*$", RegexOptions.Compiled);
-    private static readonly Regex DistanceRegex = new(@"^\s*(?<distance>" + DOUBLE_REGEX + @")\s*(~~.*)?", RegexOptions.Compiled);
+    private const string DOUBLE_REGEX = @"[+\-]?(([1-9]\d*\.|\d?\.)(\d+([eE][+\-]?[0-9]+)|[0-9]+)|([1-9]\d*|0))";
+
+    [GeneratedRegex(@"^\s*(~~.*)?$")]
+    private static partial Regex EmptyLineRegex();
+    [GeneratedRegex(@"^\s*(?<op>STATE|NAV):")]
+    private static partial Regex StateNavRegex();
+    [GeneratedRegex(@"^\s*{(?<state>([^{}]|{{|}})*)}\s*(~~.*)?")]
+    private static partial Regex StateRegex();
+    [GeneratedRegex(@"^(?<tabs>\t*)(?<op>IF:)")]
+    private static partial Regex IfRegex();
+    [GeneratedRegex(@"^(?<tabs>\t*)(?<op>DO:)")]
+    private static partial Regex DoRegex();
+    [GeneratedRegex(@"^(?<tabs>\t*)\s*(?<cond>\S*)")]
+    private static partial Regex ConditionRegex();
+    [GeneratedRegex(@"^(?<tabs>\t*)\s*(?<action>\S*)")]
+    private static partial Regex ActionRegex();
+    [GeneratedRegex(@"^\s*(?<arg>\d+)\s*(~~.*)?")]
+    private static partial Regex SingleIntRegex();
+    [GeneratedRegex(@"^\s*{(?<arg>([^{}]|{{|}})*)}\s*(~~.*)?")]
+    private static partial Regex SingleStringRegex();
+    [GeneratedRegex(@"^\s*(?<count>\d+)\s*{(?<item>([^{}]|{{|}})*)}\s*(~~.*)?")]
+    private static partial Regex ItemCountRegex();
+    [GeneratedRegex(@"^\s*(?<cell>[0-9a-fA-F]+)\s*(~~.*)?")]
+    private static partial Regex LandCellRegex();
+    [GeneratedRegex(@"^\s*{(?<arg1>([^{}]|{{|}})*)}\s*{(?<arg2>([^{}]|{{|}})*)}\s*(~~.*)?")]
+    private static partial Regex DoubleStringRegex();
+    [GeneratedRegex(@"^\s*" + @"(?<d>" + DOUBLE_REGEX + @")(\s+(?<d>" + DOUBLE_REGEX + @")){6}\s*$")]
+    private static partial Regex NavTransformRegex();
+    [GeneratedRegex(@"^\s*(?<distance>" + DOUBLE_REGEX + @")\s*(~~.*)?")]
+    private static partial Regex DistanceRegex();
+    [GeneratedRegex(@"^\s*(?<count>\d+)\s*(?<distance>" + DOUBLE_REGEX + @")\s*(?<priority>\d+)\s*(~~.*)?")]
+    private static partial Regex MobsInDist_PriorityRegex();
+    [GeneratedRegex(@"^\s*(?<count>\d+)\s*(?<distance>" + DOUBLE_REGEX + @")\s*{(?<name>([^{}]|{{|}})*)}\s*(~~.*)?")]
+    private static partial Regex MobsInDist_NameRegex();
+    [GeneratedRegex(@"\s*(?<seconds>\d+)\s*(?<spell>\d+)\s*(~~.*)?")]
+    private static partial Regex SecsOnSpellGERegex();
+    [GeneratedRegex(@"\s*(?<navRef>[a-zA-Z_][a-zA-Z0-9_]*)\s*{(?<navName>([^{}]|{{|}})*)}(\s+{(?<xf>([^{}]|{{|}})*)})?\s*(~~.*)?")]
+    private static partial Regex EmbedNavRegex();
+    [GeneratedRegex(@"^\s*(?<range>" + DOUBLE_REGEX + @")\s*(?<time>\d+)\s*{(?<state>([^{}]|{{|}})*)}\s*(~~.*)?")]
+    private static partial Regex SetWatchdogRegex();
+
     private static readonly Dictionary<string, Regex> ConditionListRegex = new()
     {
-        { "NoMobsInDist",           DistanceRegex },
-        { "Expr",                   SingleStringRegex },
-        { "ChatCapture",            DoubleStringRegex },
-        { "ChatMatch",              SingleStringRegex },
-        { "MobsInDist_Priority",    new(@"^\s*(?<count>\d+)\s*(?<distance>" + DOUBLE_REGEX + @")\s*(?<priority>\d+)\s*(~~.*)?", RegexOptions.Compiled) },
-        { "DistToRteGE",            DistanceRegex },
-        { "PSecsInStateGE",         SingleIntRegex },
-        { "SecsInStateGE",          SingleIntRegex },
-        { "BuPercentGE",            SingleIntRegex },
-        { "MainSlotsLE",            SingleIntRegex },
-        { "ItemCountLE",            ItemCountRegex },
-        { "ItemCountGE",            ItemCountRegex },
-        { "CellE",                  LandCellRegex },
-        { "BlockE",                 LandCellRegex },
-        { "MobsInDist_Name",        new(@"^\s*(?<count>\d+)\s*(?<distance>" + DOUBLE_REGEX + @")\s*{(?<name>([^{}]|{{|}})*)}\s*(~~.*)?", RegexOptions.Compiled) },
-        { "SecsOnSpellGE",          new(@"\s*(?<seconds>\d+)\s*(?<spell>\d+)\s*(~~.*)?", RegexOptions.Compiled) }
+        { "NoMobsInDist",           DistanceRegex() },
+        { "Expr",                   SingleStringRegex() },
+        { "ChatCapture",            DoubleStringRegex() },
+        { "ChatMatch",              SingleStringRegex() },
+        { "MobsInDist_Priority",    MobsInDist_PriorityRegex() },
+        { "DistToRteGE",            DistanceRegex() },
+        { "PSecsInStateGE",         SingleIntRegex() },
+        { "SecsInStateGE",          SingleIntRegex() },
+        { "BuPercentGE",            SingleIntRegex() },
+        { "MainSlotsLE",            SingleIntRegex() },
+        { "ItemCountLE",            ItemCountRegex() },
+        { "ItemCountGE",            ItemCountRegex() },
+        { "CellE",                  LandCellRegex() },
+        { "BlockE",                 LandCellRegex() },
+        { "MobsInDist_Name",        MobsInDist_NameRegex() },
+        { "SecsOnSpellGE",          SecsOnSpellGERegex() }
     };
     private static readonly Dictionary<string, Regex> ActionListRegex = new()
     {
-        { "EmbedNav",       new(@"\s*(?<navRef>[a-zA-Z_][a-zA-Z0-9_]*)\s*{(?<navName>([^{}]|{{|}})*)}(\s+{(?<xf>([^{}]|{{|}})*)})?\s*(~~.*)?", RegexOptions.Compiled) },
-        { "Chat",           SingleStringRegex },
-        { "SetState",       SingleStringRegex },
-        { "ChatExpr",       SingleStringRegex },
-        { "DoExpr",         SingleStringRegex },
-        { "SetOpt",         DoubleStringRegex },
-        { "GetOpt",         DoubleStringRegex },
-        { "CallState",      DoubleStringRegex },
-        { "DestroyView",    SingleStringRegex },
-        { "CreateView",     DoubleStringRegex },
-        { "SetWatchdog",    new(@"^\s*(?<range>" + DOUBLE_REGEX + @")\s*(?<time>\d+)\s*{(?<state>([^{}]|{{|}})*)}\s*(~~.*)?", RegexOptions.Compiled) }
+        { "EmbedNav",       EmbedNavRegex() },
+        { "Chat",           SingleStringRegex() },
+        { "SetState",       SingleStringRegex() },
+        { "ChatExpr",       SingleStringRegex() },
+        { "DoExpr",         SingleStringRegex() },
+        { "SetOpt",         DoubleStringRegex() },
+        { "GetOpt",         DoubleStringRegex() },
+        { "CallState",      SingleStringRegex() },
+        { "DestroyView",    SingleStringRegex() },
+        { "CreateView",     DoubleStringRegex() },
+        { "SetWatchdog",    SetWatchdogRegex() }
     };
 
     private static readonly Dictionary<string, ConditionType> ConditionList = new()
@@ -177,12 +170,12 @@ public class MetafReader : IMetaReader
 
         do
         {
-            while (line != null && EmptyLineRegex.IsMatch(line))
+            while (line != null && EmptyLineRegex().IsMatch(line))
                 line = await reader.ReadLineAsync().ConfigureAwait(false);
 
             if (line != null)
             {
-                var m = StateNavRegex.Match(line);
+                var m = StateNavRegex().Match(line);
                 if (m.Groups["op"].Value == "STATE")
                 {
                     line = await ParseStateAsync(line.Substring(m.Index + m.Length), reader, meta, navReferences);
@@ -220,7 +213,7 @@ public class MetafReader : IMetaReader
 
     private async Task<string> ParseStateAsync(string line, TextReader reader, Meta meta, Dictionary<string, NavRoute> navReferences)
     {
-        Match m = StateRegex.Match(line);
+        Match m = StateRegex().Match(line);
         if (!m.Success)
             throw new MetaParserException("Invalid state definition", "{<state name>}", line);
 
@@ -229,12 +222,12 @@ public class MetafReader : IMetaReader
         line = line.Substring(m.Index + m.Length);
 
         // Parse Rules
-        while (line != null && !StateNavRegex.IsMatch(line))
+        while (line != null && !StateNavRegex().IsMatch(line))
         {
-            while (line != null && EmptyLineRegex.IsMatch(line))
+            while (line != null && EmptyLineRegex().IsMatch(line))
                 line = await reader.ReadLineAsync().ConfigureAwait(false);
 
-            if (IfRegex.IsMatch(line))
+            if (IfRegex().IsMatch(line))
             {
                 (line, var rule) = await ParseRuleAsync(line, reader, state, navReferences);
                 if (rule != null)
@@ -251,7 +244,7 @@ public class MetafReader : IMetaReader
 
     private async Task<(string, Rule)> ParseRuleAsync(string line, TextReader reader, string state, Dictionary<string, NavRoute> navReferences)
     {
-        var m = IfRegex.Match(line);
+        var m = IfRegex().Match(line);
         if (!m.Success)
             throw new MetaParserException("Invalid condition definition", "IF:", line);
         else if (m.Groups["tabs"].Length != 1)
@@ -259,7 +252,7 @@ public class MetafReader : IMetaReader
 
         (line, var cond) = await ParseConditionAsync(line.Substring(m.Index + m.Length), reader, 0);
 
-        m = DoRegex.Match(line);
+        m = DoRegex().Match(line);
         if (!m.Success)
             throw new MetaParserException("Invalid action definition", "DO:", line);
         else if (m.Groups["tabs"].Length != 2)
@@ -278,13 +271,13 @@ public class MetafReader : IMetaReader
     private async Task<(string, MetaAction)> ParseActionAsync(string line, TextReader reader, int indentLevel, Dictionary<string, NavRoute> navReferences)
     {
         // skip whitespace
-        while (line != null && EmptyLineRegex.IsMatch(line))
+        while (line != null && EmptyLineRegex().IsMatch(line))
             line = await reader.ReadLineAsync().ConfigureAwait(false);
 
-        if (line == null || StateNavRegex.IsMatch(line) || IfRegex.IsMatch(line))
+        if (line == null || StateNavRegex().IsMatch(line) || IfRegex().IsMatch(line))
             return (line, null);
 
-        var m = ActionRegex.Match(line);
+        var m = ActionRegex().Match(line);
         if (!m.Success)
             throw new MetaParserException("Invalid action definition");
         else if (indentLevel > 0 && m.Groups["tabs"].Length > indentLevel)
@@ -298,10 +291,10 @@ public class MetafReader : IMetaReader
             action = MetaAction.CreateMetaAction(ActionType.Multiple);
 
             line = line.Substring(m.Groups["action"].Index + m.Groups["action"].Length);
-            while (line != null && EmptyLineRegex.IsMatch(line))
+            while (line != null && EmptyLineRegex().IsMatch(line))
                 line = await reader.ReadLineAsync().ConfigureAwait(false);
 
-            while (line != null && !StateNavRegex.IsMatch(line) && !IfRegex.IsMatch(line))
+            while (line != null && !StateNavRegex().IsMatch(line) && !IfRegex().IsMatch(line))
             {
                 (line, var c) = await ParseActionAsync(line, reader, indentLevel != 0 ? indentLevel + 1 : 4, navReferences).ConfigureAwait(false);
                 if (c != null)
@@ -314,7 +307,7 @@ public class MetafReader : IMetaReader
         {
             action = await ParseActionLineAsync(m, line.Substring(m.Groups["action"].Index + m.Groups["action"].Length), navReferences).ConfigureAwait(false);
 
-            do { line = await reader.ReadLineAsync().ConfigureAwait(false); } while (line != null && EmptyLineRegex.IsMatch(line));
+            do { line = await reader.ReadLineAsync().ConfigureAwait(false); } while (line != null && EmptyLineRegex().IsMatch(line));
         }
         else
             throw new MetaParserException($"Invalid action type: {m.Groups["action"].Value}");
@@ -346,7 +339,7 @@ public class MetafReader : IMetaReader
                 // transform
                 if (m.Groups["xf"].Success)
                 {
-                    var m2 = NavTransformRegex.Match(m.Groups["xf"].Value);
+                    var m2 = NavTransformRegex().Match(m.Groups["xf"].Value);
                     if (!m2.Success)
                         throw new MetaParserException("Invalid nav transform");
 
@@ -416,13 +409,13 @@ public class MetafReader : IMetaReader
     private async Task<(string, Condition)> ParseConditionAsync(string line, TextReader reader, int indentLevel)
     {
         // skip whitespace
-        while (line != null && EmptyLineRegex.IsMatch(line))
+        while (line != null && EmptyLineRegex().IsMatch(line))
             line = await reader.ReadLineAsync().ConfigureAwait(false);
 
-        if (line == null || StateNavRegex.IsMatch(line) || DoRegex.IsMatch(line))
+        if (line == null || StateNavRegex().IsMatch(line) || DoRegex().IsMatch(line))
             return (line, null);
 
-        var m = ConditionRegex.Match(line);
+        var m = ConditionRegex().Match(line);
         if (!m.Success)
             throw new MetaParserException("Invalid condition definition");
         else if (indentLevel > 0 && m.Groups["tabs"].Length > indentLevel)
@@ -443,10 +436,10 @@ public class MetafReader : IMetaReader
                 cond = Condition.CreateCondition(m.Groups["cond"].Value == "All" ? ConditionType.All : ConditionType.Any);
 
                 line = line.Substring(m.Groups["cond"].Index + m.Groups["cond"].Length);
-                while (line != null && EmptyLineRegex.IsMatch(line))
+                while (line != null && EmptyLineRegex().IsMatch(line))
                     line = await reader.ReadLineAsync().ConfigureAwait(false);
 
-                while (line != null && !StateNavRegex.IsMatch(line) && !DoRegex.IsMatch(line))
+                while (line != null && !StateNavRegex().IsMatch(line) && !DoRegex().IsMatch(line))
                 {
                     (line, var c) = await ParseConditionAsync(line, reader, indentLevel != 0 ? indentLevel + 1 : 3);
                     if (c != null)
@@ -457,9 +450,9 @@ public class MetafReader : IMetaReader
                 break;
 
             case string s when ConditionList.ContainsKey(s):
-                cond = ParseConditionLine(m, line.Substring(m.Groups["cond"].Index + m.Groups["cond"].Length));
+                cond = ParseConditionLine(s, line.Substring(m.Groups["cond"].Index + m.Groups["cond"].Length));
 
-                do { line = await reader.ReadLineAsync().ConfigureAwait(false); } while (line != null && EmptyLineRegex.IsMatch(line));
+                do { line = await reader.ReadLineAsync().ConfigureAwait(false); } while (line != null && EmptyLineRegex().IsMatch(line));
                 break;
 
             default:
@@ -469,69 +462,69 @@ public class MetafReader : IMetaReader
         return (line, cond);
     }
 
-    private Condition ParseConditionLine(Match m, string line)
+    private Condition ParseConditionLine(string condString, string line)
     {
-        var cond = Condition.CreateCondition(ConditionList[m.Groups["cond"].Value]);
+        var cond = Condition.CreateCondition(ConditionList[condString]);
 
-        if (ConditionListRegex.ContainsKey(m.Groups["cond"].Value))
+        if (ConditionListRegex.ContainsKey(condString))
         {
-            m = ConditionListRegex[m.Groups["cond"].Value].Match(line);
+            var m = ConditionListRegex[condString].Match(line);
             if (!m.Success)
                 throw new MetaParserException($"Invalid {cond.Type} condition definition");
-        }
 
-        switch (cond)
-        {
-            case Condition<int> c when c.Type == ConditionType.LandBlockE || c.Type == ConditionType.LandCellE:
-                c.Data = int.Parse(m.Groups["cell"].Value, System.Globalization.NumberStyles.HexNumber);
-                break;
+            switch (cond)
+            {
+                case Condition<int> c when c.Type == ConditionType.LandBlockE || c.Type == ConditionType.LandCellE:
+                    c.Data = int.Parse(m.Groups["cell"].Value, System.Globalization.NumberStyles.HexNumber);
+                    break;
 
-            case Condition<int> c when c.Type == ConditionType.SecondsInStateGE || c.Type == ConditionType.SecondsInStatePersistGE || c.Type == ConditionType.BurdenPercentGE || c.Type == ConditionType.MainPackSlotsLE:
-                c.Data = int.Parse(m.Groups["arg"].Value);
-                break;
+                case Condition<int> c when c.Type == ConditionType.SecondsInStateGE || c.Type == ConditionType.SecondsInStatePersistGE || c.Type == ConditionType.BurdenPercentGE || c.Type == ConditionType.MainPackSlotsLE:
+                    c.Data = int.Parse(m.Groups["arg"].Value);
+                    break;
 
-            case NoMonstersInDistanceCondition c:
-                c.Distance = double.Parse(m.Groups["distance"].Value);
-                break;
+                case NoMonstersInDistanceCondition c:
+                    c.Distance = double.Parse(m.Groups["distance"].Value);
+                    break;
 
-            case ExpressionCondition c:
-                c.Expression = m.Groups["arg"].Value.UnescapeString();
-                break;
+                case ExpressionCondition c:
+                    c.Expression = m.Groups["arg"].Value.UnescapeString();
+                    break;
 
-            case ChatMessageCaptureCondition c:
-                c.Pattern = m.Groups["arg1"].Value.UnescapeString();
-                c.Color = m.Groups["arg2"].Value.UnescapeString();
-                break;
+                case ChatMessageCaptureCondition c:
+                    c.Pattern = m.Groups["arg1"].Value.UnescapeString();
+                    c.Color = m.Groups["arg2"].Value.UnescapeString();
+                    break;
 
-            case Condition<string> c:
-                c.Data = m.Groups["arg"].Value.UnescapeString();
-                break;
+                case Condition<string> c:
+                    c.Data = m.Groups["arg"].Value.UnescapeString();
+                    break;
 
-            case MonstersWithPriorityWithinDistanceCondition c:
-                c.Count = int.Parse(m.Groups["count"].Value);
-                c.Distance = double.Parse(m.Groups["distance"].Value);
-                c.Priority = int.Parse(m.Groups["priority"].Value);
-                break;
+                case MonstersWithPriorityWithinDistanceCondition c:
+                    c.Count = int.Parse(m.Groups["count"].Value);
+                    c.Distance = double.Parse(m.Groups["distance"].Value);
+                    c.Priority = int.Parse(m.Groups["priority"].Value);
+                    break;
 
-            case DistanceToAnyRoutePointGECondition c:
-                c.Distance = double.Parse(m.Groups["distance"].Value);
-                break;
+                case DistanceToAnyRoutePointGECondition c:
+                    c.Distance = double.Parse(m.Groups["distance"].Value);
+                    break;
 
-            case ItemCountCondition c:
-                c.Count = int.Parse(m.Groups["count"].Value);
-                c.ItemName = m.Groups["item"].Value.UnescapeString();
-                break;
+                case ItemCountCondition c:
+                    c.Count = int.Parse(m.Groups["count"].Value);
+                    c.ItemName = m.Groups["item"].Value.UnescapeString();
+                    break;
 
-            case MonsterCountWithinDistanceCondition c:
-                c.Count = int.Parse(m.Groups["count"].Value);
-                c.Distance = double.Parse(m.Groups["distance"].Value);
-                c.MonsterNameRx = m.Groups["name"].Value.UnescapeString();
-                break;
+                case MonsterCountWithinDistanceCondition c:
+                    c.Count = int.Parse(m.Groups["count"].Value);
+                    c.Distance = double.Parse(m.Groups["distance"].Value);
+                    c.MonsterNameRx = m.Groups["name"].Value.UnescapeString();
+                    break;
 
-            case TimeLeftOnSpellGECondition c:
-                c.Seconds = int.Parse(m.Groups["seconds"].Value);
-                c.SpellId = int.Parse(m.Groups["spell"].Value);
-                break;
+                case TimeLeftOnSpellGECondition c:
+                    c.Seconds = int.Parse(m.Groups["seconds"].Value);
+                    c.SpellId = int.Parse(m.Groups["spell"].Value);
+                    break;
+            }
         }
 
         return cond;

@@ -6,15 +6,17 @@ using System.Windows.Data;
 
 namespace MetaParser.WPF.Converters
 {
-    public class ComparisonToVisibilityConverter : IValueConverter
+    public partial class ComparisonToVisibilityConverter : IValueConverter
     {
-        private static readonly Regex r = new(@"^([><!]?=?)(\d+(?:\.\d+)?)$", RegexOptions.Compiled);
+        [GeneratedRegex(@"^([><!]?=?)(\d+(?:\.\d+)?)$")]
+        private static partial Regex ComparisonRegex();
+
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             var result = true;
             if (value is IComparable c && parameter is string s)
             {
-                var match = r.Match(s);
+                var match = ComparisonRegex().Match(s);
                 if (match != null && match.Success)
                 {
                     object p = (match.Groups[2].Value.Contains('.') || value.GetType() == typeof(double)) ?
