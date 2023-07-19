@@ -4,6 +4,8 @@ public class ViewString
 {
     public string String { get; set; }
 
+    public int Length => String.Length;
+
     public static implicit operator string(ViewString vs) => vs.String;
     public static explicit operator ViewString(string s) => new ViewString { String = s };
 

@@ -47,7 +47,7 @@ public class DefaultNavReaderTests
         var navReader = new DefaultNavReader();
 
         var ex = await Assert.ThrowsExceptionAsync<MetaParserException>(() => navReader.ReadNavFollowAsync(reader, follow));
-        Assert.AreEqual($"Invalid nav follow target id (Expected: <Int32>; Actual: '{expectedTargetId}')", ex.Message);
+        Assert.AreEqual($"Invalid int (Expected: <Int32>; Actual: '{expectedTargetId}')", ex.Message);
     }
 
     [TestMethod]
@@ -95,7 +95,7 @@ public class DefaultNavReaderTests
         var navReader = new DefaultNavReader();
 
         var ex = await Assert.ThrowsExceptionAsync<MetaParserException>(() => navReader.ReadNavNodeAsync(reader, node));
-        Assert.AreEqual($"Invalid point specification -- x coordinate (Expected: <Double>; Actual: '{expectedX}')", ex.Message);
+        Assert.AreEqual($"Invalid double (Expected: <Double>; Actual: '{expectedX}')", ex.Message);
     }
 
     [TestMethod]
@@ -116,7 +116,7 @@ public class DefaultNavReaderTests
         var navReader = new DefaultNavReader();
 
         var ex = await Assert.ThrowsExceptionAsync<MetaParserException>(() => navReader.ReadNavNodeAsync(reader, node));
-        Assert.AreEqual($"Invalid point specification -- y coordinate (Expected: <Double>; Actual: '{expectedY}')", ex.Message);
+        Assert.AreEqual($"Invalid double (Expected: <Double>; Actual: '{expectedY}')", ex.Message);
     }
 
     [TestMethod]
@@ -137,7 +137,7 @@ public class DefaultNavReaderTests
         var navReader = new DefaultNavReader();
 
         var ex = await Assert.ThrowsExceptionAsync<MetaParserException>(() => navReader.ReadNavNodeAsync(reader, node));
-        Assert.AreEqual($"Invalid point specification -- z coordinate (Expected: <Double>; Actual: '{expectedZ}')", ex.Message);
+        Assert.AreEqual($"Invalid double (Expected: <Double>; Actual: '{expectedZ}')", ex.Message);
     }
 
     [TestMethod]
@@ -184,7 +184,7 @@ public class DefaultNavReaderTests
         var navReader = new DefaultNavReader();
 
         var ex = await Assert.ThrowsExceptionAsync<MetaParserException>(() => navReader.ReadNavNodeAsync(reader, node));
-        Assert.AreEqual($"Invalid portal nav route node (portal id) (Expected: <Int32>; Actual: '{expectedPortalId}')", ex.Message);
+        Assert.AreEqual($"Invalid int (Expected: <Int32>; Actual: '{expectedPortalId}')", ex.Message);
     }
 
     [TestMethod]
@@ -231,7 +231,7 @@ public class DefaultNavReaderTests
         var navReader = new DefaultNavReader();
 
         var ex = await Assert.ThrowsExceptionAsync<MetaParserException>(() => navReader.ReadNavNodeAsync(reader, node));
-        Assert.AreEqual($"Invalid pause nav route node (pause time) (Expected: <Double>; Actual: '{expectedPauseTime}')", ex.Message);
+        Assert.AreEqual($"Invalid double (Expected: <Double>; Actual: '{expectedPauseTime}')", ex.Message);
     }
 
     [TestMethod]
@@ -309,7 +309,7 @@ public class DefaultNavReaderTests
         var navReader = new DefaultNavReader();
 
         var ex = await Assert.ThrowsExceptionAsync<MetaParserException>(() => navReader.ReadNavNodeAsync(reader, node));
-        Assert.AreEqual($"Invalid open vendor nav route node (vendor id) (Expected: <Int32>; Actual: '{expectedVendorId}')", ex.Message);
+        Assert.AreEqual($"Invalid int (Expected: <Int32>; Actual: '{expectedVendorId}')", ex.Message);
     }
 
     [TestMethod]
@@ -374,7 +374,7 @@ public class DefaultNavReaderTests
         var navReader = new DefaultNavReader();
 
         var ex = await Assert.ThrowsExceptionAsync<MetaParserException>(() => navReader.ReadNavNodeAsync(reader, node));
-        Assert.AreEqual($"Invalid portal nav route node (Expected: <Int32>; Actual: '{expectedClass}')", ex.Message);
+        Assert.AreEqual($"Unknown ObjectClass: 2147483647", ex.Message);
     }
 
     [TestMethod]
@@ -400,7 +400,7 @@ public class DefaultNavReaderTests
         var navReader = new DefaultNavReader();
 
         var ex = await Assert.ThrowsExceptionAsync<MetaParserException>(() => navReader.ReadNavNodeAsync(reader, node));
-        Assert.AreEqual($"Invalid point specification -- x coordinate (Expected: <Double>; Actual: '{expectedTX}')", ex.Message);
+        Assert.AreEqual($"Invalid double (Expected: <Double>; Actual: '{expectedTX}')", ex.Message);
     }
 
     [TestMethod]
@@ -426,7 +426,7 @@ public class DefaultNavReaderTests
         var navReader = new DefaultNavReader();
 
         var ex = await Assert.ThrowsExceptionAsync<MetaParserException>(() => navReader.ReadNavNodeAsync(reader, node));
-        Assert.AreEqual($"Invalid point specification -- y coordinate (Expected: <Double>; Actual: '{expectedTY}')", ex.Message);
+        Assert.AreEqual($"Invalid double (Expected: <Double>; Actual: '{expectedTY}')", ex.Message);
     }
 
     [TestMethod]
@@ -452,7 +452,7 @@ public class DefaultNavReaderTests
         var navReader = new DefaultNavReader();
 
         var ex = await Assert.ThrowsExceptionAsync<MetaParserException>(() => navReader.ReadNavNodeAsync(reader, node));
-        Assert.AreEqual($"Invalid point specification -- z coordinate (Expected: <Double>; Actual: '{expectedTZ}')", ex.Message);
+        Assert.AreEqual($"Invalid double (Expected: <Double>; Actual: '{expectedTZ}')", ex.Message);
     }
 
     [TestMethod]
@@ -517,7 +517,7 @@ public class DefaultNavReaderTests
         var navReader = new DefaultNavReader();
 
         var ex = await Assert.ThrowsExceptionAsync<MetaParserException>(() => navReader.ReadNavNodeAsync(reader, node));
-        Assert.AreEqual($"Invalid npc nav route node (Expected: '37'; Actual: '2147483647')", ex.Message);
+        Assert.AreEqual($"Unknown ObjectClass: 2147483647", ex.Message);
     }
 
     [TestMethod]
@@ -544,7 +544,7 @@ public class DefaultNavReaderTests
         var navReader = new DefaultNavReader();
 
         var ex = await Assert.ThrowsExceptionAsync<MetaParserException>(() => navReader.ReadNavNodeAsync(reader, node));
-        Assert.AreEqual($"Invalid npc nav route node (Expected: '37'; Actual: '{(int)objectClass}')", ex.Message);
+        Assert.AreEqual($"Object class must be NPC type for npc chat node (Expected: '37'; Actual: '{(int)objectClass}')", ex.Message);
     }
 
     [TestMethod]
@@ -570,7 +570,7 @@ public class DefaultNavReaderTests
         var navReader = new DefaultNavReader();
 
         var ex = await Assert.ThrowsExceptionAsync<MetaParserException>(() => navReader.ReadNavNodeAsync(reader, node));
-        Assert.AreEqual($"Invalid point specification -- x coordinate (Expected: <Double>; Actual: '{expectedTX}')", ex.Message);
+        Assert.AreEqual($"Invalid double (Expected: <Double>; Actual: '{expectedTX}')", ex.Message);
     }
 
     [TestMethod]
@@ -596,7 +596,7 @@ public class DefaultNavReaderTests
         var navReader = new DefaultNavReader();
 
         var ex = await Assert.ThrowsExceptionAsync<MetaParserException>(() => navReader.ReadNavNodeAsync(reader, node));
-        Assert.AreEqual($"Invalid point specification -- y coordinate (Expected: <Double>; Actual: '{expectedTY}')", ex.Message);
+        Assert.AreEqual($"Invalid double (Expected: <Double>; Actual: '{expectedTY}')", ex.Message);
     }
 
     [TestMethod]
@@ -622,7 +622,7 @@ public class DefaultNavReaderTests
         var navReader = new DefaultNavReader();
 
         var ex = await Assert.ThrowsExceptionAsync<MetaParserException>(() => navReader.ReadNavNodeAsync(reader, node));
-        Assert.AreEqual($"Invalid point specification -- z coordinate (Expected: <Double>; Actual: '{expectedTZ}')", ex.Message);
+        Assert.AreEqual($"Invalid double (Expected: <Double>; Actual: '{expectedTZ}')", ex.Message);
     }
 
     [TestMethod]
@@ -703,7 +703,7 @@ public class DefaultNavReaderTests
         var navReader = new DefaultNavReader();
 
         var ex = await Assert.ThrowsExceptionAsync<MetaParserException>(() => navReader.ReadNavNodeAsync(reader, node));
-        Assert.AreEqual($"Invalid jump nav route node (Expected: <Double>; Actual: '{expectedHeading}')", ex.Message);
+        Assert.AreEqual($"Invalid double (Expected: <Double>; Actual: '{expectedHeading}')", ex.Message);
     }
 
     [TestMethod]
@@ -747,7 +747,7 @@ public class DefaultNavReaderTests
         var navReader = new DefaultNavReader();
 
         var ex = await Assert.ThrowsExceptionAsync<MetaParserException>(() => navReader.ReadNavNodeAsync(reader, node));
-        Assert.AreEqual($"Invalid jump nav route node (Expected: <Double>; Actual: '{expectedDelay}')", ex.Message);
+        Assert.AreEqual($"Invalid double (Expected: <Double>; Actual: '{expectedDelay}')", ex.Message);
     }
 
     [TestMethod]
@@ -795,6 +795,6 @@ public class DefaultNavReaderTests
         var navReader = new DefaultNavReader();
 
         var ex = await Assert.ThrowsExceptionAsync<MetaParserException>(() => navReader.ReadNavAsync(reader));
-        Assert.AreEqual("Invalid nav type (Expected: '1|2|3|4'; Actual: '2147483647')", ex.Message);
+        Assert.AreEqual("Unknown NavType: 2147483647", ex.Message);
     }
 }

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace MetaParser.Tests
@@ -86,8 +87,9 @@ namespace MetaParser.Tests
         {
             var r = new Random();
             var chars = Enumerable.Range('a', 'z' - 'a' + 1).Select(i => (char)i).Except(new[] { 's' }).ToList();
+            var expectedDesignator = chars.Skip(r.Next(0, chars.Count)).First().ToString();
             var sb = new StringBuilder()
-                .AppendLine(chars.Skip(r.Next(0, chars.Count)).First().ToString())
+                .AppendLine(expectedDesignator)
                 .AppendLine("asdf")
                 .ToString();
             using var reader = new StringReader(sb);
@@ -95,7 +97,8 @@ namespace MetaParser.Tests
 
             var f = new DefaultMetaReader(new DefaultNavReader());
 
-            await Assert.ThrowsExceptionAsync<Exception>(() => f.ReadActionAsync(reader, action));
+            var ex = await Assert.ThrowsExceptionAsync<MetaParserException>(() => f.ReadActionAsync(reader, action));
+            Assert.AreEqual($"Invalid set state meta action (Expected: 's'; Actual: '{expectedDesignator}')", ex.Message);
         }
 
         [TestMethod]
@@ -120,8 +123,9 @@ namespace MetaParser.Tests
         {
             var r = new Random();
             var chars = Enumerable.Range('a', 'z' - 'a' + 1).Select(i => (char)i).Except(new[] { 'i' }).ToList();
+            var expectedDesignator = chars.Skip(r.Next(0, chars.Count)).First().ToString();
             var sb = new StringBuilder()
-                .AppendLine(chars.Skip(r.Next(0, chars.Count)).First().ToString())
+                .AppendLine(expectedDesignator)
                 .AppendLine("0")
                 .ToString();
             using var reader = new StringReader(sb);
@@ -129,7 +133,8 @@ namespace MetaParser.Tests
 
             var f = new DefaultMetaReader(new DefaultNavReader());
 
-            await Assert.ThrowsExceptionAsync<Exception>(() => f.ReadActionAsync(reader, action));
+            var ex = await Assert.ThrowsExceptionAsync<MetaParserException>(() => f.ReadActionAsync(reader, action));
+            Assert.AreEqual($"Invalid return meta action (Expected: 'i'; Actual: '{expectedDesignator}')", ex.Message);
         }
 
         [TestMethod]
@@ -144,7 +149,8 @@ namespace MetaParser.Tests
 
             var f = new DefaultMetaReader(new DefaultNavReader());
 
-            await Assert.ThrowsExceptionAsync<Exception>(() => f.ReadActionAsync(reader, action));
+            var ex = await Assert.ThrowsExceptionAsync<MetaParserException>(() => f.ReadActionAsync(reader, action));
+            Assert.AreEqual("Invalid return meta action (Expected: '<int>'; Actual: 'asdf')", ex.Message);
         }
 
         [TestMethod]
@@ -230,7 +236,8 @@ namespace MetaParser.Tests
             var action = MetaAction.CreateMetaAction(ActionType.DestroyAllViews) as TableMetaAction;
 
             var f = new DefaultMetaReader(new DefaultNavReader());
-            await Assert.ThrowsExceptionAsync<MetaParserException>(() => f.ReadActionAsync(reader, action));
+            var ex = await Assert.ThrowsExceptionAsync<MetaParserException>(() => f.ReadActionAsync(reader, action));
+            Assert.AreEqual("Invalid table row key type (Expected: 's'; Actual: 'r')", ex.Message);
         }
 
         [TestMethod]
@@ -263,7 +270,8 @@ namespace MetaParser.Tests
             var action = MetaAction.CreateMetaAction(ActionType.DestroyAllViews) as TableMetaAction;
 
             var f = new DefaultMetaReader(new DefaultNavReader());
-            await Assert.ThrowsExceptionAsync<MetaParserException>(() => f.ReadActionAsync(reader, action));
+            var ex = await Assert.ThrowsExceptionAsync<MetaParserException>(() => f.ReadActionAsync(reader, action));
+            Assert.IsTrue(Regex.IsMatch(ex.Message, @"Invalid table value type \(Expected: 's\|i\|d'; Actual: '[qwe]'\)"));
         }
 
         [TestMethod]
@@ -305,7 +313,8 @@ namespace MetaParser.Tests
             var action = MetaAction.CreateMetaAction(ActionType.DestroyAllViews) as TableMetaAction;
 
             var f = new DefaultMetaReader(new DefaultNavReader());
-            await Assert.ThrowsExceptionAsync<MetaParserException>(() => f.ReadActionAsync(reader, action));
+            var ex = await Assert.ThrowsExceptionAsync<MetaParserException>(() => f.ReadActionAsync(reader, action));
+            Assert.IsTrue(Regex.IsMatch(ex.Message, @"Invalid table value \(Expected: <(Int32|Double)>; Actual: '[0-9a-f-]*'\)"));
         }
 
         [TestMethod]
@@ -365,7 +374,8 @@ namespace MetaParser.Tests
             var action = MetaAction.CreateMetaAction(ActionType.Multiple) as AllMetaAction;
 
             var f = new DefaultMetaReader(new DefaultNavReader());
-            await Assert.ThrowsExceptionAsync<Exception>(() => f.ReadActionAsync(reader, action));
+            var ex = await Assert.ThrowsExceptionAsync<MetaParserException>(() => f.ReadActionAsync(reader, action));
+            Assert.AreEqual("Invalid all meta rule (Expected: 'i'; Actual: 'j')", ex.Message);
         }
 
         [TestMethod]
@@ -488,21 +498,24 @@ namespace MetaParser.Tests
             var condition = Condition.CreateCondition(ConditionType.Never) as Condition<int>;
 
             var f = new DefaultMetaReader(new DefaultNavReader());
-            await Assert.ThrowsExceptionAsync<MetaParserException>(() => f.ReadConditionAsync(reader, condition));
+            var ex = await Assert.ThrowsExceptionAsync<MetaParserException>(() => f.ReadConditionAsync(reader, condition));
+            Assert.AreEqual("Invalid meta condition identifier (Expected: 'i'; Actual: 'j')", ex.Message);
         }
 
         [TestMethod]
         public async Task ReadConditionAsync_ConditionIntWithInvalidIntValue_Throws()
         {
+            var expectedValue = fixture.Create<string>();
             var sb = new StringBuilder()
                 .AppendLine("i")
-                .AppendLine(fixture.Create<string>());
+                .AppendLine(expectedValue);
 
             using var reader = new StringReader(sb.ToString());
             var condition = Condition.CreateCondition(ConditionType.Never) as Condition<int>;
 
             var f = new DefaultMetaReader(new DefaultNavReader());
-            await Assert.ThrowsExceptionAsync<MetaParserException>(() => f.ReadConditionAsync(reader, condition));
+            var ex = await Assert.ThrowsExceptionAsync<MetaParserException>(() => f.ReadConditionAsync(reader, condition));
+            Assert.AreEqual($"Invalid meta condition value (Expected: '<int>'; Actual: '{expectedValue}')", ex.Message);
         }
 
         [TestMethod]
@@ -530,10 +543,11 @@ namespace MetaParser.Tests
                 .AppendLine(fixture.Create<string>());
 
             using var reader = new StringReader(sb.ToString());
-            var condition = Condition.CreateCondition(ConditionType.Never) as Condition<int>;
+            var condition = Condition.CreateCondition(ConditionType.ChatMessage);
 
             var f = new DefaultMetaReader(new DefaultNavReader());
-            await Assert.ThrowsExceptionAsync<MetaParserException>(() => f.ReadConditionAsync(reader, condition));
+            var ex = await Assert.ThrowsExceptionAsync<MetaParserException>(() => f.ReadConditionAsync(reader, condition));
+            Assert.AreEqual("Invalid meta condition identifier (Expected: 's'; Actual: 'b')", ex.Message);
         }
 
         [TestMethod]
@@ -604,7 +618,8 @@ namespace MetaParser.Tests
             var condition = Condition.CreateCondition(ConditionType.Not) as NotCondition;
 
             var f = new DefaultMetaReader(new DefaultNavReader());
-            await Assert.ThrowsExceptionAsync<MetaParserException>(() => f.ReadConditionAsync(reader, condition));
+            var ex = await Assert.ThrowsExceptionAsync<MetaParserException>(() => f.ReadConditionAsync(reader, condition));
+            Assert.AreEqual("Invalid condition count (Expected: <Int32>; Actual: 'asdf')", ex.Message);
         }
 
         [TestMethod]

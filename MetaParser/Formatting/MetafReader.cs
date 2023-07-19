@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 
 namespace MetaParser.Formatting;
 
+using static MetafRegex;
+
 public partial class MetafReader : IMetaReader
 {
     private class EmbeddedNavRouteMetaActionWithTransform
@@ -24,47 +26,6 @@ public partial class MetafReader : IMetaReader
             Data = (Data.name, Data.nav.ApplyTransform(Transform));
         }
     }
-
-    private const string DOUBLE_REGEX = @"[+\-]?(([1-9]\d*\.|\d?\.)(\d+([eE][+\-]?[0-9]+)|[0-9]+)|([1-9]\d*|0))";
-
-    [GeneratedRegex(@"^\s*(~~.*)?$")]
-    private static partial Regex EmptyLineRegex();
-    [GeneratedRegex(@"^\s*(?<op>STATE|NAV):")]
-    private static partial Regex StateNavRegex();
-    [GeneratedRegex(@"^\s*{(?<state>([^{}]|{{|}})*)}\s*(~~.*)?")]
-    private static partial Regex StateRegex();
-    [GeneratedRegex(@"^(?<tabs>\t*)(?<op>IF:)")]
-    private static partial Regex IfRegex();
-    [GeneratedRegex(@"^(?<tabs>\t*)(?<op>DO:)")]
-    private static partial Regex DoRegex();
-    [GeneratedRegex(@"^(?<tabs>\t*)\s*(?<cond>\S*)")]
-    private static partial Regex ConditionRegex();
-    [GeneratedRegex(@"^(?<tabs>\t*)\s*(?<action>\S*)")]
-    private static partial Regex ActionRegex();
-    [GeneratedRegex(@"^\s*(?<arg>\d+)\s*(~~.*)?")]
-    private static partial Regex SingleIntRegex();
-    [GeneratedRegex(@"^\s*{(?<arg>([^{}]|{{|}})*)}\s*(~~.*)?")]
-    private static partial Regex SingleStringRegex();
-    [GeneratedRegex(@"^\s*(?<count>\d+)\s*{(?<item>([^{}]|{{|}})*)}\s*(~~.*)?")]
-    private static partial Regex ItemCountRegex();
-    [GeneratedRegex(@"^\s*(?<cell>[0-9a-fA-F]+)\s*(~~.*)?")]
-    private static partial Regex LandCellRegex();
-    [GeneratedRegex(@"^\s*{(?<arg1>([^{}]|{{|}})*)}\s*{(?<arg2>([^{}]|{{|}})*)}\s*(~~.*)?")]
-    private static partial Regex DoubleStringRegex();
-    [GeneratedRegex(@"^\s*" + @"(?<d>" + DOUBLE_REGEX + @")(\s+(?<d>" + DOUBLE_REGEX + @")){6}\s*$")]
-    private static partial Regex NavTransformRegex();
-    [GeneratedRegex(@"^\s*(?<distance>" + DOUBLE_REGEX + @")\s*(~~.*)?")]
-    private static partial Regex DistanceRegex();
-    [GeneratedRegex(@"^\s*(?<count>\d+)\s*(?<distance>" + DOUBLE_REGEX + @")\s*(?<priority>\d+)\s*(~~.*)?")]
-    private static partial Regex MobsInDist_PriorityRegex();
-    [GeneratedRegex(@"^\s*(?<count>\d+)\s*(?<distance>" + DOUBLE_REGEX + @")\s*{(?<name>([^{}]|{{|}})*)}\s*(~~.*)?")]
-    private static partial Regex MobsInDist_NameRegex();
-    [GeneratedRegex(@"\s*(?<seconds>\d+)\s*(?<spell>\d+)\s*(~~.*)?")]
-    private static partial Regex SecsOnSpellGERegex();
-    [GeneratedRegex(@"\s*(?<navRef>[a-zA-Z_][a-zA-Z0-9_]*)\s*{(?<navName>([^{}]|{{|}})*)}(\s+{(?<xf>([^{}]|{{|}})*)})?\s*(~~.*)?")]
-    private static partial Regex EmbedNavRegex();
-    [GeneratedRegex(@"^\s*(?<range>" + DOUBLE_REGEX + @")\s*(?<time>\d+)\s*{(?<state>([^{}]|{{|}})*)}\s*(~~.*)?")]
-    private static partial Regex SetWatchdogRegex();
 
     private static readonly Dictionary<string, Regex> ConditionListRegex = new()
     {
@@ -94,7 +55,7 @@ public partial class MetafReader : IMetaReader
         { "DoExpr",         SingleStringRegex() },
         { "SetOpt",         DoubleStringRegex() },
         { "GetOpt",         DoubleStringRegex() },
-        { "CallState",      SingleStringRegex() },
+        { "CallState",      DoubleStringRegex() },
         { "DestroyView",    SingleStringRegex() },
         { "CreateView",     DoubleStringRegex() },
         { "SetWatchdog",    SetWatchdogRegex() }
@@ -384,7 +345,7 @@ public partial class MetafReader : IMetaReader
                 // Check for XML file
                 if (a.ViewDefinition.StartsWith(':'))
                 {
-                    var fileName = a.ViewDefinition.Substring(1).Trim();
+                    var fileName = a.ViewDefinition[1..].Trim();
                     if (fileSystemService.FileExists(fileName))
                     {
                         using var fs = fileSystemService.OpenFileForReadAccess(fileName);

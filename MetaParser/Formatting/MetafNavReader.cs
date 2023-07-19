@@ -7,38 +7,10 @@ using System.Threading.Tasks;
 
 namespace MetaParser.Formatting;
 
+using static MetafRegex;
+
 public partial class MetafNavReader : INavReader
 {
-    private const string DOUBLE_REGEX = @"[+\-]?(([1-9]\d*\.|\d?\.)(\d+([eE][+\-]?[0-9]+)|[0-9]+)|([1-9]\d*|0))";
-    [GeneratedRegex(@"^\s*(~~.*)?$")]
-    private static partial Regex EmptyLineRegex();
-    [GeneratedRegex(@"^\s*NAV:")]
-    private static partial Regex NavLineRegex();
-    [GeneratedRegex(@"^\s*(?<navRef>[a-zA-Z_][a-zA-Z0-9_]*)\s*(?<navType>circular|linear|once|follow)\s*(~~.*)?")]
-    private static partial Regex NavRegex();
-    [GeneratedRegex(@"^\s*(?<nodeType>pnt|prt|rcl|pau|cht|vnd|ptl|tlk|jmp|chk)")]
-    private static partial Regex NavTypeRegex();
-    [GeneratedRegex($@"^\s*(?<x>{DOUBLE_REGEX})\s*(?<y>{DOUBLE_REGEX})\s*(?<z>{DOUBLE_REGEX})")]
-    private static partial Regex PointRegex();
-    [GeneratedRegex(@"^\s*pnt|prt|rcl|pau|cht|vnd|ptl|tlk|chk|jmp")]
-    private static partial Regex PointDefRegex();
-    [GeneratedRegex(@"^\s*flw\s*(?<id>[0-9a-fA-F]+)\s*{(?<name>([^{}]|{{|}})*)}\s*(~~.*)?$")]
-    private static partial Regex FollowRegex();
-    [GeneratedRegex(@"^\s*(?<id>[0-9a-fA-F]+)\s*(~~.*)?$")]
-    private static partial Regex PortalObsRegex();
-    [GeneratedRegex(@"^\s*{(?<spell>([^{}]|{{|}})*)}\s*(~~.*)?$")]
-    private static partial Regex RecallRegex();
-    [GeneratedRegex(@"^\s*(?<time>" + DOUBLE_REGEX + @")\s*(~~.*)?$")]
-    private static partial Regex PauseRegex();
-    [GeneratedRegex(@"^\s*{(?<chat>([^{}]|{{|}})*)}\s*(~~.*)?$")]
-    private static partial Regex ChatRegex();
-    [GeneratedRegex(@"^\s*(?<id>[a-fA-F0-9]+)\s*{(?<name>([^{}]|{{|}})*)}\s*(~~.*)?$")]
-    private static partial Regex VendorRegex();
-    [GeneratedRegex(@"^\s*(?<oc>\d+)\s*{(?<name>([^{}]|{{|}})*)}\s*(~~.*)?$")]
-    private static partial Regex PortalRegex();
-    [GeneratedRegex(@"^\s*(?<heading>" + DOUBLE_REGEX + @")\s*{(?<tf>True|False)}\s*(?<time>" + DOUBLE_REGEX + @")\s*(~~.*)?$")]
-    private static partial Regex JumpRegex();
-
     private static readonly Dictionary<string, Regex> NavNodeRegex = new()
     {
         { "prt", PortalObsRegex() },

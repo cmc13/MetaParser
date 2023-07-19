@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace MetaParser.Formatting;
@@ -17,11 +16,7 @@ public class DefaultNavReader : INavReader
         if (!line.Equals("uTank2 NAV 1.2"))
             throw new MetaParserException("Invalid nav route", "uTank2 NAV 1.2", line);
 
-        line = await reader.ReadLineAsync().ConfigureAwait(false);
-        if (!int.TryParse(line, out var navTypeInt) || !Enum.IsDefined(typeof(NavType), navTypeInt))
-            throw new MetaParserException("Invalid nav type", string.Join('|', Enum.GetValues<NavType>().Cast<int>()), line);
-
-        route.Type = (NavType)navTypeInt;
+        route.Type = await reader.ReadEnumAsync<NavType>().ConfigureAwait(false);
 
         if (route.Type == NavType.Follow)
         {
@@ -39,11 +34,9 @@ public class DefaultNavReader : INavReader
 
             for (var i = 0; i < nodeCount; ++i)
             {
-                line = await reader.ReadLineAsync().ConfigureAwait(false);
-                if (!int.TryParse(line, out var navNodeTypeInt) || !Enum.IsDefined(typeof(NavNodeType), navNodeTypeInt))
-                    throw new MetaParserException("Invalid nav node type", typeof(int), line);
+                var navNodeType = await reader.ReadEnumAsync<NavNodeType>().ConfigureAwait(false);
 
-                var navNode = NavNode.Create((NavNodeType)navNodeTypeInt);
+                var navNode = NavNode.Create(navNodeType);
                 list.Add(navNode);
 
                 await ReadNavNodeAsync(reader, navNode).ConfigureAwait(false);
@@ -57,14 +50,8 @@ public class DefaultNavReader : INavReader
 
     public async Task ReadNavFollowAsync(TextReader reader, NavFollow follow)
     {
-        var line = await reader.ReadLineAsync().ConfigureAwait(false);
-        follow.TargetName = line;
-
-        line = await reader.ReadLineAsync().ConfigureAwait(false);
-        if (!int.TryParse(line, out var targetId))
-            throw new MetaParserException("Invalid nav follow target id", typeof(int), line);
-
-        follow.TargetId = targetId;
+        follow.TargetName = await reader.ReadLineAsync().ConfigureAwait(false);
+        follow.TargetId = await reader.ReadIntAsync().ConfigureAwait(false);
     }
 
     private async Task<(double x, double y, double z)> ReadPointAsync(TextReader reader)
@@ -72,9 +59,7 @@ public class DefaultNavReader : INavReader
         var d = new double[3];
         for (var i = 0; i < d.Length; ++i)
         {
-            var line = await reader.ReadLineAsync().ConfigureAwait(false);
-            if (!double.TryParse(line, out d[i]))
-                throw new MetaParserException($"Invalid point specification -- {"xyz"[i]} coordinate", typeof(double), line);
+            d[i] = await reader.ReadDoubleAsync().ConfigureAwait(false);
         }
 
         return (d[0], d[1], d[2]);
@@ -90,39 +75,23 @@ public class DefaultNavReader : INavReader
 
         if (node is NavNodePortalObs portalObs)
         {
-            line = await reader.ReadLineAsync().ConfigureAwait(false);
-            if (!int.TryParse(line, out var portalId))
-                throw new MetaParserException("Invalid portal nav route node (portal id)", typeof(int), line);
-
-            portalObs.Data = portalId;
+            portalObs.Data = await reader.ReadIntAsync().ConfigureAwait(false);
         }
         else if (node is NavNodeRecall recall)
         {
-            line = await reader.ReadLineAsync().ConfigureAwait(false);
-            if (!int.TryParse(line, out var recallSpellIdInt) || !Enum.IsDefined(typeof(RecallSpellId), recallSpellIdInt))
-                throw new MetaParserException("Invalid recall nav route node (spell id)", typeof(int), line);
-
-            recall.Data = (RecallSpellId)recallSpellIdInt;
+            recall.Data = await reader.ReadEnumAsync<RecallSpellId>().ConfigureAwait(false);
         }
         else if (node is NavNodePause pause)
         {
-            line = await reader.ReadLineAsync().ConfigureAwait(false);
-            if (!double.TryParse(line, out var pauseTime))
-                throw new MetaParserException("Invalid pause nav route node (pause time)", typeof(double), line);
-
-            pause.Data = pauseTime;
+            pause.Data = await reader.ReadDoubleAsync().ConfigureAwait(false);
         }
         else if (node is NavNodeChat chat)
         {
-            line = await reader.ReadLineAsync().ConfigureAwait(false);
-
-            chat.Data = line;
+            chat.Data = await reader.ReadLineAsync().ConfigureAwait(false);
         }
         else if (node is NavNodeOpenVendor openVendor)
         {
-            line = await reader.ReadLineAsync().ConfigureAwait(false);
-            if (!int.TryParse(line, out var vendorId))
-                throw new MetaParserException("Invalid open vendor nav route node (vendor id)", typeof(int), line);
+            var vendorId = await reader.ReadIntAsync().ConfigureAwait(false);
 
             line = await reader.ReadLineAsync().ConfigureAwait(false);
 
@@ -133,9 +102,7 @@ public class DefaultNavReader : INavReader
             line = await reader.ReadLineAsync().ConfigureAwait(false);
             var objectName = line;
 
-            line = await reader.ReadLineAsync().ConfigureAwait(false);
-            if (!int.TryParse(line, out var objectClassInt) || !Enum.IsDefined(typeof(ObjectClass), objectClassInt))
-                throw new MetaParserException("Invalid portal nav route node", typeof(int), line);
+            var objectClass = await reader.ReadEnumAsync<ObjectClass>().ConfigureAwait(false);
 
             line = await reader.ReadLineAsync().ConfigureAwait(false);
             if (!line.Equals(bool.TrueString))
@@ -143,16 +110,16 @@ public class DefaultNavReader : INavReader
 
             var (tx, ty, tz) = await ReadPointAsync(reader).ConfigureAwait(false);
 
-            portal.Data = (objectName, (ObjectClass)objectClassInt, tx, ty, tz);
+            portal.Data = (objectName, objectClass, tx, ty, tz);
         }
         else if (node is NavNodeNPCChat npcChat)
         {
             line = await reader.ReadLineAsync().ConfigureAwait(false);
             var objectName = line;
 
-            line = await reader.ReadLineAsync().ConfigureAwait(false);
-            if (!int.TryParse(line, out var objectClassInt) || !Enum.IsDefined(typeof(ObjectClass), objectClassInt) || objectClassInt != (int)ObjectClass.NPC)
-                throw new MetaParserException("Invalid npc nav route node", ((int)ObjectClass.NPC).ToString(), line);
+            var objectClass = await reader.ReadEnumAsync<ObjectClass>().ConfigureAwait(false);
+            if (objectClass != ObjectClass.NPC)
+                throw new MetaParserException("Object class must be NPC type for npc chat node", ((int)ObjectClass.NPC).ToString(), ((int)objectClass).ToString());
 
             line = await reader.ReadLineAsync().ConfigureAwait(false);
             if (!line.Equals(bool.TrueString))
@@ -160,13 +127,11 @@ public class DefaultNavReader : INavReader
 
             var (tx, ty, tz) = await ReadPointAsync(reader).ConfigureAwait(false);
 
-            npcChat.Data = (objectName, (ObjectClass)objectClassInt, tx, ty, tz);
+            npcChat.Data = (objectName, objectClass, tx, ty, tz);
         }
         else if (node is NavNodeJump jump)
         {
-            line = await reader.ReadLineAsync().ConfigureAwait(false);
-            if (!double.TryParse(line, out var heading))
-                throw new MetaParserException("Invalid jump nav route node", typeof(double), line);
+            var heading = await reader.ReadDoubleAsync().ConfigureAwait(false);
 
             line = await reader.ReadLineAsync().ConfigureAwait(false);
             bool shift;
@@ -177,9 +142,7 @@ public class DefaultNavReader : INavReader
             else
                 throw new MetaParserException("Invalid jump nav route node", $"{bool.TrueString}|{bool.FalseString}", line);
 
-            line = await reader.ReadLineAsync().ConfigureAwait(false);
-            if (!double.TryParse(line, out var delay))
-                throw new MetaParserException("Invalid jump nav route node", typeof(double), line);
+            var delay = await reader.ReadDoubleAsync().ConfigureAwait(false);
 
             jump.Data = (heading, shift, delay);
         }
