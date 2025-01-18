@@ -1,17 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace MetaParser.Models
+namespace MetaParser.Models;
+
+public sealed class Meta
 {
-    public class Meta
+    public Meta()
     {
-        public Meta()
-        {
-        }
-
-        public List<Rule> Rules { get; } = new();
-
-        public Dictionary<string, IEnumerable<Rule>> States => Rules.GroupBy(r => r.State).ToDictionary(g => g.Key, g => g.AsEnumerable());
     }
+
+    public List<Rule> Rules { get; } = [];
+
+    public Dictionary<string, IEnumerable<Rule>> States => Rules.GroupBy(r => r.State).ToDictionary(g => g.Key, g => g.AsEnumerable());
 }

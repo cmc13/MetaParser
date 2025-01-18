@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "MetaParser.Demo": {
-      "commandName": "Project",
-      "commandLineArgs": "\\\\Cameron-pc\\c\\Games\\VirindiPlugins\\VirindiTank\\IBControl.met"
-    }
-  }
-}

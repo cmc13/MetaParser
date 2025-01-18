@@ -1,9 +1,8 @@
-﻿namespace MetaParser.Models
+﻿namespace MetaParser.Models;
+
+public enum ObjectClass
 {
-    public enum ObjectClass
-    {
-        Container = 10,
-        Portal = 14,
-        NPC = 37
-    }
+    Container = 10,
+    Portal = 14,
+    NPC = 37
 }

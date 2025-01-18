@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace MetaParser.Formatting;
 
-public class DefaultMetaReader : IMetaReader
+public sealed class DefaultMetaReader : IMetaReader
 {
     private static readonly string[] headerLines = { "1", "CondAct", "5", "CType", "AType", "CData", "AData", "State", "n", "n", "n", "n", "n" };
     private static readonly string[] tableHeader = { "TABLE", "2", "k", "v", "n", "n" };

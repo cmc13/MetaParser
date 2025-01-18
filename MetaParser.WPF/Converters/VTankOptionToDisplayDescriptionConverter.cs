@@ -5,7 +5,7 @@ using System.Windows.Data;
 
 namespace MetaParser.WPF.Converters
 {
-    public class VTankOptionToDisplayDescriptionConverter : IValueConverter
+    public sealed class VTankOptionToDisplayDescriptionConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {

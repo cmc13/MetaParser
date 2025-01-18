@@ -4,7 +4,7 @@ using System.IO;
 
 namespace MetaParser.WPF.Services;
 
-public class DialogService
+public sealed class DialogService
 {
     private readonly FileSystemService fileSystemService;
     private static readonly string VTANK_DIRECTORY = @"C:\Games\VirindiPlugins\VirindiTank\";

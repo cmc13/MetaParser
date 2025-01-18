@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Windows;
-using System.Windows.Xps.Serialization;
 using WK.Libraries.SharpClipboardNS;
 
 namespace MetaParser.WPF.Services;
 
-public class ClipboardService
+public sealed class ClipboardService
 {
     private readonly SharpClipboard clipboard = new();
 

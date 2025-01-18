@@ -6,7 +6,7 @@ using System.Windows.Data;
 
 namespace MetaParser.WPF.Converters
 {
-    public class CompactFilePathConverter : IValueConverter
+    public sealed class CompactFilePathConverter : IValueConverter
     {
         private static readonly int DEFAULT_COMPACT_LENGTH = 40;
 

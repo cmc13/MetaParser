@@ -2,10 +2,9 @@
 using System.IO;
 using System.Threading.Tasks;
 
-namespace MetaParser.Formatting
+namespace MetaParser.Formatting;
+
+public interface IMetaReader
 {
-    public interface IMetaReader
-    {
-        Task<Meta> ReadMetaAsync(Stream stream);
-    }
+    Task<Meta> ReadMetaAsync(Stream stream);
 }

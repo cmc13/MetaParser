@@ -5,7 +5,7 @@ using System.Windows.Data;
 
 namespace MetaParser.WPF.Converters
 {
-    public class AllConverter : IMultiValueConverter
+    public sealed class AllConverter : IMultiValueConverter
     {
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {

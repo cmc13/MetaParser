@@ -2,12 +2,11 @@
 using System.IO;
 using System.Threading.Tasks;
 
-namespace MetaParser.Formatting
+namespace MetaParser.Formatting;
+
+public interface INavReader
 {
-    public interface INavReader
-    {
-        Task<NavRoute> ReadNavAsync(TextReader reader);
-        Task ReadNavFollowAsync(TextReader reader, NavFollow follow);
-        Task ReadNavNodeAsync(TextReader reader, NavNode node);
-    }
+    Task<NavRoute> ReadNavAsync(TextReader reader);
+    Task ReadNavFollowAsync(TextReader reader, NavFollow follow);
+    Task ReadNavNodeAsync(TextReader reader, NavNode node);
 }

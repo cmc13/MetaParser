@@ -6,7 +6,7 @@ using System.Windows.Media;
 
 namespace MetaParser.WPF.Converters
 {
-    public class IsValidToBrushConverter : IValueConverter
+    public sealed class IsValidToBrushConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {

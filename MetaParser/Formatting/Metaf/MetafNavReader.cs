@@ -9,7 +9,7 @@ namespace MetaParser.Formatting;
 
 using static MetafRegex;
 
-public partial class MetafNavReader : INavReader
+public sealed partial class MetafNavReader : INavReader
 {
     private static readonly Dictionary<string, Regex> NavNodeRegex = new()
     {
@@ -63,7 +63,7 @@ public partial class MetafNavReader : INavReader
         if (!m.Success)
             throw new MetaParserException("Invalid nav declaration", "NAV: ...", line);
 
-        (_, var route) = await ReadNavAsync(line.Substring(m.Index + m.Length), reader, null);
+        (_, var route) = await ReadNavAsync(line[(m.Index + m.Length)..], reader, null);
         return route;
     }
 

@@ -7,7 +7,7 @@ using System.Windows.Data;
 
 namespace MetaParser.WPF.Converters
 {
-    public class ConditionTypeToMinimumValueConverter : IValueConverter
+    public sealed class ConditionTypeToMinimumValueConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {

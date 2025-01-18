@@ -25,8 +25,7 @@ namespace MetaParser.WPF
         {
             if (sender is ToolBar toolbar)
             {
-                var overflowGrid = toolbar.Template.FindName("OverflowGrid", toolbar) as FrameworkElement;
-                if (overflowGrid != null)
+                if (toolbar.Template.FindName("OverflowGrid", toolbar) is FrameworkElement overflowGrid)
                     overflowGrid.Visibility = Visibility.Collapsed;
             }
         }

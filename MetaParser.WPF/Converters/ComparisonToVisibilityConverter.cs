@@ -8,7 +8,7 @@ namespace MetaParser.WPF.Converters
 {
     public partial class ComparisonToVisibilityConverter : IValueConverter
     {
-        [GeneratedRegex(@"^([><!]?=?)(\d+(?:\.\d+)?)$")]
+        [GeneratedRegex(@"^([><!]?=?)(-?\d+(?:\.\d+)?)$")]
         private static partial Regex ComparisonRegex();
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)

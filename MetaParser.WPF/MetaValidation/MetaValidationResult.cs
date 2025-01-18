@@ -2,4 +2,4 @@
 
 namespace MetaParser.WPF.MetaValidation;
 
-public record MetaValidationResult(Meta Meta, Rule Rule, string Message);
+public sealed record MetaValidationResult(Meta Meta, Rule Rule, string Message);

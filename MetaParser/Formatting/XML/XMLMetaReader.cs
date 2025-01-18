@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace MetaParser.Formatting;
 
-public partial class XMLMetaReader : IMetaReader
+public sealed partial class XMLMetaReader : IMetaReader
 {
     private readonly INavReader navReader;
 

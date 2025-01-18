@@ -9,7 +9,7 @@ namespace MetaParser.Formatting;
 
 using static MetafRegex;
 
-public partial class MetafReader : IMetaReader
+public sealed partial class MetafReader : IMetaReader
 {
     private class EmbeddedNavRouteMetaActionWithTransform
         : EmbeddedNavRouteMetaAction

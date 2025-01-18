@@ -1,10 +1,9 @@
-﻿namespace MetaParser.Models
+﻿namespace MetaParser.Models;
+
+public enum NavType
 {
-    public enum NavType
-    {
-        Circular = 1,
-        Linear = 2,
-        Follow = 3,
-        Once = 4
-    }
+    Circular = 1,
+    Linear = 2,
+    Follow = 3,
+    Once = 4
 }

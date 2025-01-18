@@ -5,7 +5,7 @@ using System.Windows.Data;
 
 namespace MetaParser.WPF.Converters
 {
-    public class EnumToDescriptionConverter : IValueConverter
+    public sealed class EnumToDescriptionConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {

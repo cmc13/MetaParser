@@ -12,7 +12,6 @@
         xmlns:dd="urn:gong-wpf-dragdrop"
         mc:Ignorable="d" Background="{StaticResource WindowBackgroundBrush}"
         Height="450" Width="800">
-
     <Window.Title>
         <MultiBinding StringFormat="MetaEditor - {0}{1}">
             <Binding Path="FileNameDisplay" TargetNullValue="New File" />
@@ -54,22 +53,22 @@
         <DockPanel dd:DragDrop.IsDropTarget="True" dd:DragDrop.DropHandler="{Binding}">
             <Menu DockPanel.Dock="Top">
                 <MenuItem Header="_File">
-                    <MenuItem Header="_New Meta File" Command="{Binding NewFileCommand}" InputGestureText="Ctrl+N" Icon="{StaticResource NewFileIcon}" />
-                    <MenuItem Header="_Open Meta File…" Command="{Binding OpenFileCommand}" InputGestureText="Ctrl+O" Icon="{StaticResource OpenFileIcon}" />
-                    <MenuItem Header="_Import Meta File…" Command="{Binding ImportFileCommand}" InputGestureText="Ctrl+I" Icon="{StaticResource ImportFileIcon}" />
+                    <MenuItem Header="_New Meta File" Command="{Binding NewFileCommand}" InputGestureText="Ctrl+N" Icon="{DynamicResource NewFileIcon}" />
+                    <MenuItem Header="_Open Meta File…" Command="{Binding OpenFileCommand}" InputGestureText="Ctrl+O" Icon="{DynamicResource OpenFileIcon}" />
+                    <MenuItem Header="_Import Meta File…" Command="{Binding ImportFileCommand}" InputGestureText="Ctrl+I" Icon="{DynamicResource ImportFileIcon}" />
                     <Separator />
-                    <MenuItem Command="{Binding SaveFileCommand}" InputGestureText="Ctrl+S" Icon="{StaticResource SaveIcon}">
+                    <MenuItem Command="{Binding SaveFileCommand}" InputGestureText="Ctrl+S" Icon="{DynamicResource SaveIcon}">
                         <MenuItem.Header>
                             <AccessText Text="{Binding FileNameDisplay, Converter={StaticResource EscapeAccessTextConverter}, StringFormat=_Save {0}, Mode=OneWay}" />
                         </MenuItem.Header>
                     </MenuItem>
-                    <MenuItem Command="{Binding SaveFileAsCommand}" InputGestureText="Ctrl+Shift+S" Icon="{StaticResource SaveAsIcon}">
+                    <MenuItem Command="{Binding SaveFileAsCommand}" InputGestureText="Ctrl+Shift+S" Icon="{DynamicResource SaveAsIcon}">
                         <MenuItem.Header>
                             <AccessText Text="{Binding FileNameDisplay, Converter={StaticResource EscapeAccessTextConverter}, StringFormat=Save {0} _As..., Mode=OneWay}" />
                         </MenuItem.Header>
                     </MenuItem>
                     <Separator />
-                    <MenuItem Header="Recent _Files" ItemsSource="{Binding RecentFiles, Converter={StaticResource IndexingConverter}}" Icon="{StaticResource HistoryIcon}">
+                    <MenuItem Header="Recent _Files" ItemsSource="{Binding RecentFiles, Converter={StaticResource IndexingConverter}}" Icon="{DynamicResource HistoryIcon}">
                         <MenuItem.ItemContainerStyle>
                             <Style TargetType="MenuItem">
                                 <Setter Property="HeaderTemplate">
@@ -88,29 +87,29 @@
                         </MenuItem.ItemContainerStyle>
                     </MenuItem>
                     <Separator />
-                    <MenuItem Command="{StaticResource fileExitCommand}" InputGestureText="Alt+F4" Icon="{StaticResource CloseIcon}" />
+                    <MenuItem Command="{StaticResource fileExitCommand}" InputGestureText="Alt+F4" Icon="{DynamicResource CloseIcon}" />
                 </MenuItem>
             </Menu>
 
             <ToolBarTray DockPanel.Dock="Top" IsLocked="True">
                 <ToolBar Band="1" BandIndex="1" Loaded="ToolBar_Loaded" Background="Transparent">
-                    <Button Command="{Binding NewFileCommand}" ToolTip="New File (Ctrl+N)" Content="{StaticResource NewFileIcon}" />
-                    <Button Command="{Binding OpenFileCommand}" ToolTip="Open File… (Ctrl+O)" Content="{StaticResource OpenFileIcon}" />
-                    <Button Command="{Binding ImportFileCommand}" ToolTip="Import File (Ctrl+I)" Content="{StaticResource ImportFileIcon}" />
-                    <Button Command="{Binding SaveFileCommand}" ToolTip="Save File (Ctrl+S)" Content="{StaticResource SaveIcon}" />
-                    <Button Command="{Binding SaveFileAsCommand}" ToolTip="Save File As… (Ctrl+Shift+S)" Content="{StaticResource SaveAsIcon}" />
+                    <Button Command="{Binding NewFileCommand}" ToolTip="New File (Ctrl+N)" Content="{DynamicResource NewFileIcon}" />
+                    <Button Command="{Binding OpenFileCommand}" ToolTip="Open File… (Ctrl+O)" Content="{DynamicResource OpenFileIcon}" />
+                    <Button Command="{Binding ImportFileCommand}" ToolTip="Import File (Ctrl+I)" Content="{DynamicResource ImportFileIcon}" />
+                    <Button Command="{Binding SaveFileCommand}" ToolTip="Save File (Ctrl+S)" Content="{DynamicResource SaveIcon}" />
+                    <Button Command="{Binding SaveFileAsCommand}" ToolTip="Save File As… (Ctrl+Shift+S)" Content="{DynamicResource SaveAsIcon}" />
                     <Separator />
-                    <Button Command="{Binding MetaViewModel.CutCommand}" ToolTip="Cut Rule (Ctrl+X)" Content="{StaticResource CutIcon}" />
-                    <Button Command="{Binding MetaViewModel.CopyCommand}" ToolTip="Copy Rule (Ctrl+C)" Content="{StaticResource CopyIcon}" />
-                    <Button Command="{Binding MetaViewModel.PasteCommand}" ToolTip="Paste Rule (Ctrl+V)" Content="{StaticResource PasteIcon}" />
+                    <Button Command="{Binding MetaViewModel.CutCommand}" ToolTip="Cut Rule (Ctrl+X)" Content="{DynamicResource CutIcon}" />
+                    <Button Command="{Binding MetaViewModel.CopyCommand}" ToolTip="Copy Rule (Ctrl+C)" Content="{DynamicResource CopyIcon}" />
+                    <Button Command="{Binding MetaViewModel.PasteCommand}" ToolTip="Paste Rule (Ctrl+V)" Content="{DynamicResource PasteIcon}" />
                     <Separator />
-                    <Button Command="{Binding MetaViewModel.AddCommand}" ToolTip="Add New Rule" Content="{StaticResource AddIcon}" />
-                    <Button Command="{Binding MetaViewModel.RemoveCommand}" ToolTip="Remove Selected Rule" Content="{StaticResource RemoveIcon}" />
-                    <Button Command="{Binding MetaViewModel.MoveUpCommand}" ToolTip="Move Rule Up" Content="{StaticResource MoveUpIcon}" />
-                    <Button Command="{Binding MetaViewModel.MoveDownCommand}" ToolTip="Move Rule Down" Content="{StaticResource MoveDownIcon}" />
+                    <Button Command="{Binding MetaViewModel.AddCommand}" ToolTip="Add New Rule" Content="{DynamicResource AddIcon}" />
+                    <Button Command="{Binding MetaViewModel.RemoveCommand}" ToolTip="Remove Selected Rule" Content="{DynamicResource RemoveIcon}" />
+                    <Button Command="{Binding MetaViewModel.MoveUpCommand}" ToolTip="Move Rule Up" Content="{DynamicResource MoveUpIcon}" />
+                    <Button Command="{Binding MetaViewModel.MoveDownCommand}" ToolTip="Move Rule Down" Content="{DynamicResource MoveDownIcon}" />
                     <Separator />
                     <Button Command="{Binding MetaViewModel.ValidateCommand}" ToolTip="Validate Meta">
-                        <Image Source="Assets/Icons/ValidateDocument_16x.png" Style="{StaticResource DisabledImageStyle}" />
+                        <Image Source="Assets/Icons/ValidateDocument_16x.png" Style="{DynamicResource DisabledImageStyle}" />
                     </Button>
                     <Separator />
                     <ComboBox ItemsSource="{Binding MetaViewModel.StateList}" SelectedItem="{Binding MetaViewModel.SelectedState}" MinWidth="75">

@@ -4,7 +4,7 @@ using System.Windows.Data;
 
 namespace MetaParser.WPF.Converters
 {
-    public class NullToBoolConverter : IValueConverter
+    public sealed class NullToBoolConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {

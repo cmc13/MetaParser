@@ -18,7 +18,7 @@ namespace MetaParser.WPF.ViewModels;
 public partial class MainViewModel
     : ObservableRecipient, IDropTarget
 {
-    private class SimpleDisposable : IDisposable
+    private sealed class SimpleDisposable : IDisposable
     {
         private readonly Action dispAction;
 
@@ -33,10 +33,6 @@ public partial class MainViewModel
     private static readonly string RECENT_FILE_NAME = Path.Combine(FileSystemService.AppDataDirectory, "RecentFiles.json");
     private const int RECENT_FILE_COUNT = 10;
 
-    private MetaViewModel metaViewModel;
-    private string fileName;
-    private bool isBusy;
-    private string busyStatus;
     private readonly FileSystemService fileSystemService;
     private readonly DialogService dialogService;
     private readonly ConditionViewModelFactory conditionViewModelFactory;
@@ -44,89 +40,56 @@ public partial class MainViewModel
     private FileSystemWatcher fw = null;
     private Timer t = null;
 
-    public string FileName
+    [ObservableProperty]
+    private string fileName;
+
+    partial void OnFileNameChanging(string oldValue, string newValue)
     {
-        get => fileName;
-        set
+        if (fw != null)
         {
-            if (fileName != value)
-            {
-                if (fw != null)
-                {
-                    fw.Changed -= Fw_Changed;
-                    fw.Dispose();
-                    fw = null;
-                }    
-
-                fileName = value;
-                OnPropertyChanged(nameof(FileName));
-                OnPropertyChanged(nameof(FileNameDisplay));
-
-                if (!string.IsNullOrEmpty(fileName))
-                {
-                    RecentFiles.RemoveAll(f => f.Equals(fileName));
-                    RecentFiles.Insert(0, fileName);
-
-                    while (RecentFiles.Count > RECENT_FILE_COUNT)
-                        RecentFiles.RemoveAt(RecentFiles.Count - 1);
-
-                    OnPropertyChanged(nameof(RecentFiles));
-
-                    Task.Run(async () =>
-                    {
-                        fileSystemService.TryCreateDirectory(Path.GetDirectoryName(RECENT_FILE_NAME));
-                        using var fs = fileSystemService.OpenFileForWriteAccess(RECENT_FILE_NAME);
-                        await JsonSerializer.SerializeAsync(fs, RecentFiles).ConfigureAwait(false);
-                    });
-
-                    fw = new(Path.GetDirectoryName(fileName), Path.GetFileName(fileName));
-                    fw.Changed += Fw_Changed;
-                    fw.EnableRaisingEvents = true;
-                }
-            }
+            fw.Changed -= Fw_Changed;
+            fw.Dispose();
+            fw = null;
         }
     }
 
-    public bool IsBusy
+    partial void OnFileNameChanged(string oldValue, string newValue)
     {
-        get => isBusy;
-        set
+        OnPropertyChanged(nameof(FileNameDisplay));
+
+        if (!string.IsNullOrEmpty(newValue))
         {
-            if (IsBusy != value)
+            RecentFiles.RemoveAll(f => f.Equals(newValue));
+            RecentFiles.Insert(0, newValue);
+
+            while (RecentFiles.Count > RECENT_FILE_COUNT)
+                RecentFiles.RemoveAt(RecentFiles.Count - 1);
+
+            OnPropertyChanged(nameof(RecentFiles));
+
+            Task.Run(async () =>
             {
-                isBusy = value;
-                OnPropertyChanged(nameof(IsBusy));
-            }
+                fileSystemService.TryCreateDirectory(Path.GetDirectoryName(RECENT_FILE_NAME));
+                using var fs = fileSystemService.OpenFileForWriteAccess(RECENT_FILE_NAME);
+                await JsonSerializer.SerializeAsync(fs, RecentFiles).ConfigureAwait(false);
+            });
+
+            fw = new(Path.GetDirectoryName(newValue), Path.GetFileName(newValue));
+            fw.Changed += Fw_Changed;
+            fw.EnableRaisingEvents = true;
         }
     }
 
-    public string BusyStatus
-    {
-        get => busyStatus;
-        set
-        {
-            if (busyStatus != value)
-            {
-                busyStatus = value;
-                OnPropertyChanged(nameof(BusyStatus));
-            }
-        }
-    }
+    [ObservableProperty]
+    private bool isBusy;
+
+    [ObservableProperty]
+    private string busyStatus;
 
     public string FileNameDisplay => !string.IsNullOrEmpty(FileName) ? Path.GetFileName(FileName) : "[New File]";
 
-    public MetaViewModel MetaViewModel
-    {
-        get => metaViewModel;
-        set
-        {
-            if (metaViewModel != value)
-            {
-                metaViewModel = value;
-                OnPropertyChanged(nameof(MetaViewModel));
-            }
-        }
-    }
+    [ObservableProperty]
+    private MetaViewModel metaViewModel;
 
     [RelayCommand]
     async Task NewFile()
@@ -228,14 +191,14 @@ public partial class MainViewModel
         }
         else
         {
-            RecentFiles.RemoveAll(f => fileName.Equals(f, System.StringComparison.OrdinalIgnoreCase));
+            RecentFiles.RemoveAll(f => FileName.Equals(f, System.StringComparison.OrdinalIgnoreCase));
             OnPropertyChanged(nameof(RecentFiles));
             MessageBox.Show($"The file {f} is no longer on disk. Removing from recent files list.",
                 "File Not Found", MessageBoxButton.OK, MessageBoxImage.Information);
         }
     }
 
-    public List<string> RecentFiles { get; } = new();
+    public List<string> RecentFiles { get; } = [];
 
     public MainViewModel(FileSystemService fileSystemService, DialogService dialogService, ConditionViewModelFactory conditionViewModelFactory, ActionViewModelFactory actionViewModelFactory)
     {
@@ -248,10 +211,12 @@ public partial class MainViewModel
             Task.Run(async () =>
             {
                 using var fs = fileSystemService.OpenFileForReadAccess(RECENT_FILE_NAME);
-                var files = await JsonSerializer.DeserializeAsync<IEnumerable<string>>(fs).ConfigureAwait(false);
-                RecentFiles.AddRange(files);
+                await foreach (var file in JsonSerializer.DeserializeAsyncEnumerable<string>(fs).ConfigureAwait(false))
+                {
+                    RecentFiles.Add(file);
+                }
                 while (RecentFiles.Count > RECENT_FILE_COUNT)
-                    RecentFiles.RemoveAt(RECENT_FILE_COUNT - 1);
+                    RecentFiles.RemoveAt(RecentFiles.Count - 1);
                 OnPropertyChanged(nameof(RecentFiles));
             });
         }

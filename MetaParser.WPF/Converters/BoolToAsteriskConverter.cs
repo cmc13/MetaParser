@@ -4,7 +4,7 @@ using System.Windows.Data;
 
 namespace MetaParser.WPF.Converters
 {
-    public class BoolToAsteriskConverter : IValueConverter
+    public sealed class BoolToAsteriskConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
