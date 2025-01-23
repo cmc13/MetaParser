@@ -1,6 +1,15 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks">
     <Style TargetType="Image" x:Key="DisabledImageStyle">
+        <Setter Property="Opacity" Value="1" />
+        <Style.Triggers>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Opacity" Value="0.5" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+    <Style TargetType="{x:Type iconPacks:PackIconBase}" x:Key="DisabledIconStyle">
         <Setter Property="Opacity" Value="1" />
         <Style.Triggers>
             <Trigger Property="IsEnabled" Value="False">
@@ -22,19 +31,35 @@
             </DrawingImage>
         </Image.Source>
     </Image>-->
-    
-    <Image x:Key="NewFileIcon" x:Shared="False" Source="Assets/Icons/NewFile_16x.png" Style="{StaticResource DisabledImageStyle}" />
-    <Image x:Key="OpenFileIcon" x:Shared="False" Source="Assets/Icons/OpenFile_16x.png" Style="{StaticResource DisabledImageStyle}" />
-    <Image x:Key="ImportFileIcon" x:Shared="False" Source="Assets/Icons/ImportFile_16x.png" Style="{StaticResource DisabledImageStyle}" />
-    <Image x:Key="SaveIcon" x:Shared="False" Source="Assets/Icons/Save_16x.png" Style="{StaticResource DisabledImageStyle}" />
-    <Image x:Key="SaveAsIcon" x:Shared="False" Source="Assets/Icons/SaveAs_16x.png" Style="{StaticResource DisabledImageStyle}" />
-    <Image x:Key="CutIcon" x:Shared="False" Source="Assets/Icons/Cut_16x.png" Style="{StaticResource DisabledImageStyle}" />
-    <Image x:Key="CopyIcon" x:Shared="False" Source="Assets/Icons/Copy_16x.png" Style="{StaticResource DisabledImageStyle}" />
-    <Image x:Key="PasteIcon" x:Shared="False" Source="Assets/Icons/Paste_16x.png" Style="{StaticResource DisabledImageStyle}" />
-    <Image x:Key="AddIcon" x:Shared="False" Source="Assets/Icons/Add_16x.png" Style="{StaticResource DisabledImageStyle}" />
-    <Image x:Key="RemoveIcon" x:Shared="False" Source="Assets/Icons/Remove_16x.png" Style="{StaticResource DisabledImageStyle}" />
-    <Image x:Key="MoveUpIcon" x:Shared="False" Source="Assets/Icons/MoveUp_16x.png" Style="{StaticResource DisabledImageStyle}" />
-    <Image x:Key="MoveDownIcon" x:Shared="False" Source="Assets/Icons/MoveDown_16x.png" Style="{StaticResource DisabledImageStyle}" />
-    <Image x:Key="HistoryIcon" x:Shared="False" Source="Assets/Icons/History_16x.png" Style="{StaticResource DisabledImageStyle}" />
-    <Image x:Key="CloseIcon" x:Shared="False" Source="Assets/Icons/Close_16x.png" Style="{StaticResource DisabledImageStyle}" />
+
+    <iconPacks:PackIconFontAwesome Kind="FileCirclePlusSolid" x:Key="NewFileIcon" x:Shared="False" Style="{StaticResource DisabledIconStyle}" />
+    <iconPacks:PackIconFontAwesome Kind="FolderOpenSolid" x:Key="OpenFileIcon" x:Shared="False" Style="{StaticResource DisabledIconStyle}" />
+    <iconPacks:PackIconFontAwesome Kind="FileImportSolid" x:Key="ImportFileIcon" x:Shared="False" Style="{StaticResource DisabledIconStyle}" />
+    <iconPacks:PackIconFontAwesome Kind="FloppyDiskSolid" x:Key="SaveIcon" x:Shared="False" Style="{StaticResource DisabledIconStyle}" />
+    <iconPacks:PackIconFontAwesome Kind="HardDriveSolid" x:Key="SaveAsIcon" x:Shared="False" Style="{StaticResource DisabledIconStyle}" />
+    <iconPacks:PackIconFontAwesome Kind="ScissorsSolid" x:Key="CutIcon" x:Shared="False" Style="{StaticResource DisabledIconStyle}" />
+    <iconPacks:PackIconFontAwesome Kind="CopySolid" x:Key="CopyIcon" x:Shared="False" Style="{StaticResource DisabledIconStyle}" />
+    <iconPacks:PackIconFontAwesome Kind="PasteSolid" x:Key="PasteIcon" x:Shared="False" Style="{StaticResource DisabledIconStyle}" />
+    <iconPacks:PackIconFontAwesome Kind="CirclePlusSolid" x:Key="AddIcon" x:Shared="False" Style="{StaticResource DisabledIconStyle}" />
+    <iconPacks:PackIconFontAwesome Kind="TrashCanSolid" x:Key="RemoveIcon" x:Shared="False" Style="{StaticResource DisabledIconStyle}" />
+    <iconPacks:PackIconFontAwesome Kind="ChevronUpSolid" x:Key="MoveUpIcon" x:Shared="False" Style="{StaticResource DisabledIconStyle}" />
+    <iconPacks:PackIconFontAwesome Kind="ChevronDownSolid" x:Key="MoveDownIcon" x:Shared="False" Style="{StaticResource DisabledIconStyle}" />
+    <iconPacks:PackIconFontAwesome Kind="ClockRotateLeftSolid" x:Key="HistoryIcon" x:Shared="False" Style="{StaticResource DisabledIconStyle}" />
+    <iconPacks:PackIconFontAwesome Kind="XmarkSolid" x:Key="CloseIcon" x:Shared="False" Style="{StaticResource DisabledIconStyle}" />
+    <iconPacks:PackIconFontAwesome Kind="CircleCheckSolid" x:Key="ValidateIcon" x:Shared="False" Style="{StaticResource DisabledIconStyle}" />
+    <iconPacks:PackIconFontAwesome Kind="UpRightFromSquareSolid" x:Key="OpenSiteIcon" x:Shared="False" Style="{StaticResource DisabledIconStyle}" />
+    <iconPacks:PackIconFontAwesome Kind="MinimizeSolid" x:Key="MinimizeIcon" x:Shared="False" Style="{StaticResource DisabledIconStyle}" />
+    <iconPacks:PackIconFontAwesome Kind="IndentSolid" x:Key="FormatIcon" x:Shared="False" Style="{StaticResource DisabledIconStyle}" />
+    <iconPacks:PackIconFontAwesome Kind="CircleExclamationSolid" x:Key="InvertIcon" x:Shared="False" Style="{StaticResource DisabledIconStyle}" />
+    <iconPacks:PackIconFontAwesome Kind="BoxOpenSolid" x:Key="UnwrapIcon" x:Shared="False" Style="{StaticResource DisabledIconStyle}" />
+    <iconPacks:PackIconFontAwesome Kind="MapSolid" x:Key="MapIcon" x:Shared="False" Style="{StaticResource DisabledIconStyle}" />
+    <iconPacks:PackIconFontAwesome Kind="MagnifyingGlassPlusSolid" x:Key="ZoomInIcon" x:Shared="False" Style="{StaticResource DisabledIconStyle}" />
+    <iconPacks:PackIconFontAwesome Kind="MagnifyingGlassMinusSolid" x:Key="ZoomOutIcon" x:Shared="False" Style="{StaticResource DisabledIconStyle}" />
+    <iconPacks:PackIconFontAwesome Kind="CircleXmarkSolid" x:Key="ZoomResetIcon" x:Shared="False" Style="{StaticResource DisabledIconStyle}" />
+    <iconPacks:PackIconFontAwesome Kind="MagnifyingGlassSolid" x:Key="SearchIcon" x:Shared="False" Style="{StaticResource DisabledIconStyle}" />
+    <iconPacks:PackIconFontAwesome Kind="TriangleExclamationSolid" x:Key="ErrorIcon" x:Shared="False" Style="{StaticResource DisabledIconStyle}" />
+    <iconPacks:PackIconFontAwesome Kind="CheckSolid" x:Key="CheckIcon" x:Shared="False" Style="{StaticResource DisabledIconStyle}" />
+    <Image x:Key="RegexIcon" x:Shared="False" Source="Assets/Icons/RegularExpression_16x.png" Style="{StaticResource DisabledImageStyle}" />
+    <Image x:Key="AllIcon" x:Shared="False" Source="Assets/Icons/All.png" Style="{StaticResource DisabledImageStyle}" />
+    <Image x:Key="AnyIcon" x:Shared="False" Source="Assets/Icons/Any.png" Style="{StaticResource DisabledImageStyle}" />
 </ResourceDictionary>

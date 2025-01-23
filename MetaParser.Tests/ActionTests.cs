@@ -225,8 +225,8 @@ public class ActionTests
     public void TableMetaAction_HasDataInDictionary_ReturnsDataInProperty(ActionType type, string key, Type valueType, string prop)
     {
         var m = typeof(SpecimenFactory).GetMethod(nameof(SpecimenFactory.Create), 1, System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public, null, new[] { typeof(ISpecimenBuilder) }, null);
-        m = m.MakeGenericMethod(new[] { valueType });
-        var value = m.Invoke(null, new[] { fixture });
+        m = m.MakeGenericMethod([valueType]);
+        var value = m.Invoke(null, [fixture]);
         var a = MetaAction.CreateMetaAction(type) as TableMetaAction;
         a.Data[key] = value;
 

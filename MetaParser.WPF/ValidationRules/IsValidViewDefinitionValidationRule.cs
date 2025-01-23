@@ -12,7 +12,7 @@ namespace MetaParser.WPF.ValidationRules
 
         private static XmlSchema LoadSchema()
         {
-            using var str = File.OpenRead("Assets/VTankView.xsd");
+            using var str = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("MetaParser.WPF.Assets.VTankView.xsd");
             var schema = XmlSchema.Read(str, null);
             return schema;
         }

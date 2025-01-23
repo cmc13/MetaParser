@@ -108,9 +108,7 @@
                     <Button Command="{Binding MetaViewModel.MoveUpCommand}" ToolTip="Move Rule Up" Content="{DynamicResource MoveUpIcon}" />
                     <Button Command="{Binding MetaViewModel.MoveDownCommand}" ToolTip="Move Rule Down" Content="{DynamicResource MoveDownIcon}" />
                     <Separator />
-                    <Button Command="{Binding MetaViewModel.ValidateCommand}" ToolTip="Validate Meta">
-                        <Image Source="Assets/Icons/ValidateDocument_16x.png" Style="{DynamicResource DisabledImageStyle}" />
-                    </Button>
+                    <Button Command="{Binding MetaViewModel.ValidateCommand}" ToolTip="Validate Meta" Content="{DynamicResource ValidateIcon}" />
                     <Separator />
                     <ComboBox ItemsSource="{Binding MetaViewModel.StateList}" SelectedItem="{Binding MetaViewModel.SelectedState}" MinWidth="75">
                         <ComboBox.Style>

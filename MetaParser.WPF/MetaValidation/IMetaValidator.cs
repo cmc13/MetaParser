@@ -328,7 +328,7 @@ public class ValidXMLViewValidator : IMetaValidator
 
     static ValidXMLViewValidator()
     {
-        using var str = File.OpenRead("Assets/VTankView.xsd");
+        using var str = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("MetaParser.WPF.Assets.VTankView.xsd");
         schema = XmlSchema.Read(str, null);
     }
 

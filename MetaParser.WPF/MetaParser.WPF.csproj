@@ -9,37 +9,9 @@
 
   <ItemGroup>
     <None Remove="Assets\derethmap.png" />
-    <None Remove="Assets\Icons\Add_16x.png" />
     <None Remove="Assets\Icons\All.png" />
-    <None Remove="Assets\Icons\Alloy_Cogwheel_Icon.ico" />
     <None Remove="Assets\Icons\Any.png" />
-    <None Remove="Assets\Icons\checkmark.ico" />
-    <None Remove="Assets\Icons\Close_16x.png" />
-    <None Remove="Assets\Icons\Copy_16x.png" />
-    <None Remove="Assets\Icons\Cut_16x.png" />
-    <None Remove="Assets\Icons\error.ico" />
-    <None Remove="Assets\Icons\FormatDocument_16x.png" />
-    <None Remove="Assets\Icons\History_16x.png" />
-    <None Remove="Assets\Icons\ImportFile_16x.png" />
-    <None Remove="Assets\Icons\Invert_16x.png" />
-    <None Remove="Assets\Icons\Map_16x.png" />
-    <None Remove="Assets\Icons\Minimize_16x.png" />
-    <None Remove="Assets\Icons\MoveDown_16x.png" />
-    <None Remove="Assets\Icons\MoveUp_16x.png" />
-    <None Remove="Assets\Icons\NewFile_16x.png" />
-    <None Remove="Assets\Icons\OpenFile_16x.png" />
-    <None Remove="Assets\Icons\Paste_16x.png" />
     <None Remove="Assets\Icons\RegularExpression_16x.png" />
-    <None Remove="Assets\Icons\Release_16x.png" />
-    <None Remove="Assets\Icons\Remove_16x.png" />
-    <None Remove="Assets\Icons\SaveAs_16x.png" />
-    <None Remove="Assets\Icons\Save_16x.png" />
-    <None Remove="Assets\Icons\Search_16x.png" />
-    <None Remove="Assets\Icons\ValidateDocument_16x.png" />
-    <None Remove="Assets\Icons\WebFile_16x.png" />
-    <None Remove="Assets\Icons\ZoomIn_16x.png" />
-    <None Remove="Assets\Icons\ZoomOriginalSize_16x.png" />
-    <None Remove="Assets\Icons\ZoomOut_16x.png" />
     <None Remove="Assets\VTankView.xsd" />
     <None Remove="Expressions\MetaExpressions.g4" />
   </ItemGroup>
@@ -49,32 +21,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Include="Assets\Icons\Search_16x.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Resource>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Resource Include="Assets\Icons\WebFile_16x.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Resource>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Resource Include="Assets\Icons\Invert_16x.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Resource>
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Antlr4.Runtime.Standard" Version="4.13.1" />
     <PackageReference Include="Antlr4BuildTasks" Version="12.8.0" />
-    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
     <PackageReference Include="Gu.Wpf.Geometry" Version="2.2.8" />
     <PackageReference Include="Extended.Wpf.Toolkit" Version="4.6.1" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
-    <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.122" />
-    <PackageReference Include="gong-wpf-dragdrop" Version="3.2.1" />
+    <PackageReference Include="MahApps.Metro.IconPacks.FontAwesome" Version="5.1.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.1" />
+    <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.135" />
+    <PackageReference Include="gong-wpf-dragdrop" Version="4.0.0" />
     <PackageReference Include="SharpClipboard" Version="3.5.2" />
     <PackageReference Include="WPFTextBoxAutoComplete" Version="1.0.5" />
   </ItemGroup>
@@ -87,93 +42,18 @@
     <Resource Include="Assets\derethmap.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Assets\Icons\Add_16x.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Resource>
     <Resource Include="Assets\Icons\All.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Assets\Icons\Alloy_Cogwheel_Icon.ico">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Assets\Icons\Any.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Assets\Icons\checkmark.ico">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Assets\Icons\Close_16x.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Assets\Icons\Copy_16x.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Assets\Icons\Cut_16x.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Assets\Icons\error.ico">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Assets\Icons\FormatDocument_16x.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Assets\Icons\History_16x.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Assets\Icons\ImportFile_16x.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Assets\Icons\Map_16x.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Assets\Icons\Minimize_16x.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Assets\Icons\MoveDown_16x.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Assets\Icons\MoveUp_16x.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Assets\Icons\NewFile_16x.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Assets\Icons\OpenFile_16x.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Assets\Icons\Paste_16x.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Resource>
     <Resource Include="Assets\Icons\RegularExpression_16x.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Assets\Icons\Release_16x.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Assets\Icons\Remove_16x.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Assets\Icons\SaveAs_16x.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Assets\Icons\Save_16x.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Assets\Icons\ValidateDocument_16x.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Assets\Icons\ZoomIn_16x.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Assets\Icons\ZoomOriginalSize_16x.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Assets\Icons\ZoomOut_16x.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Assets\VTankView.xsd">
+    <EmbeddedResource Include="Assets\VTankView.xsd">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Resource>
+    </EmbeddedResource>
   </ItemGroup>
 
 </Project>

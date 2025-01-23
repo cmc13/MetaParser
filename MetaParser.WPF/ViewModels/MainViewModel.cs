@@ -143,9 +143,11 @@ public partial class MainViewModel
                 {
                     try
                     {
-                        using var fs = fileSystemService.OpenFileForWriteAccess(FileName);
-                        await Formatters.MetaWriter.WriteMetaAsync(fs, MetaViewModel.Meta).ConfigureAwait(false);
+                        using var ms = new MemoryStream();
+                        await Formatters.MetaWriter.WriteMetaAsync(ms, MetaViewModel.Meta).ConfigureAwait(false);
                         MetaViewModel.Clean();
+
+                        await File.WriteAllBytesAsync(FileName, ms.ToArray());
                     }
                     catch (Exception ex)
                     {

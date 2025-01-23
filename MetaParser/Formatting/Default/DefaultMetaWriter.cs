@@ -30,7 +30,10 @@ public class DefaultMetaWriter : IMetaWriter
         await writer.WriteLineAsync(meta.Rules.Count.ToString()).ConfigureAwait(false);
 
         foreach (var rule in meta.Rules.OrderBy(r => r.State))
+        {
             await WriteRuleAsync(writer, rule).ConfigureAwait(false);
+            await writer.FlushAsync().ConfigureAwait(false);
+        }
     }
 
     public async Task WriteRuleAsync(TextWriter writer, Rule rule)

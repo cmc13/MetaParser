@@ -37,9 +37,7 @@
 
                         <TextBlock Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Right">Expression:</TextBlock>
                         <TextBox Grid.Column="1" Text="{Binding Expression, UpdateSourceTrigger=PropertyChanged}" Margin="2,0,0,0" />
-                        <Button Grid.Column="2" Margin="2,0,0,0" Command="{Binding LaunchExpressionHelpCommand}" ToolTip="VTank Expression Reference">
-                            <Image Source="../Assets/Icons/WebFile_16x.png" />
-                        </Button>
+                        <Button Grid.Column="2" Margin="2,0,0,0" Command="{Binding LaunchExpressionHelpCommand}" ToolTip="VTank Expression Reference" Content="{DynamicResource OpenSiteIcon}" />
                     </Grid>
                 </DataTemplate>
             </local:ActionDataTemplateSelector.ExpressionTemplate>
@@ -208,12 +206,8 @@
                             <DockPanel>
                                 <ToolBarTray DockPanel.Dock="Top" IsLocked="True">
                                     <ToolBar Band="1" BandIndex="1" ToolBar.OverflowMode="Never" Loaded="ToolBar_Loaded">
-                                        <Button Command="{Binding MinifyXMLCommand}" ToolTip="Remove Whitespace">
-                                            <Image Source="../Assets/Icons/Minimize_16x.png" />
-                                        </Button>
-                                        <Button Command="{Binding PrettifyXMLCommand}" ToolTip="Format XML">
-                                            <Image Source="../Assets/Icons/FormatDocument_16x.png" />
-                                        </Button>
+                                        <Button Command="{Binding MinifyXMLCommand}" ToolTip="Remove Whitespace" Content="{DynamicResource MinimizeIcon}" />
+                                        <Button Command="{Binding PrettifyXMLCommand}" ToolTip="Format XML" Content="{DynamicResource FormatIcon}" />
                                     </ToolBar>
                                 </ToolBarTray>
                                 <TextBox AcceptsReturn="True" AcceptsTab="True" Height="100" Margin="2,2,0,0" Name="txtXmlDefinition" BorderThickness="0" FontFamily="Consolas" ScrollViewer.VerticalScrollBarVisibility="Auto" TextWrapping="Wrap">
@@ -249,12 +243,8 @@
                                         <Button Command="{Binding CopyCommand}" ToolTip="Copy Selected Action" Content="{StaticResource CopyIcon}" />
                                         <Button Command="{Binding PasteCommand}" ToolTip="Paste Selected Action" Content="{StaticResource PasteIcon}" />
                                         <Separator />
-                                        <Button Command="{Binding WrapCommand}" ToolTip="Wrap in 'Do All' Block">
-                                            <Image Source="../Assets/Icons/All.png" Style="{StaticResource DisabledImageStyle}" />
-                                        </Button>
-                                        <Button Command="{Binding UnwrapCommand}" ToolTip="Unwrap">
-                                            <Image Source="../Assets/Icons/Release_16x.png" Style="{StaticResource DisabledImageStyle}" />
-                                        </Button>
+                                        <Button Command="{Binding WrapCommand}" ToolTip="Wrap in 'Do All' Block" Content="{StaticResource AllIcon}" />
+                                        <Button Command="{Binding UnwrapCommand}" ToolTip="Unwrap" Content="{StaticResource UnwrapIcon}" />
                                     </ToolBar>
                                 </ToolBarTray>
                                 <ListBox ItemsSource="{Binding ActionList}" SelectedItem="{Binding SelectedAction}" ScrollViewer.HorizontalScrollBarVisibility="Disabled" Height="75" dd:DragDrop.DropHandler="{Binding}" dd:DragDrop.IsDragSource="True" dd:DragDrop.IsDropTarget="True" Name="lstActions" BorderThickness="0">
@@ -313,7 +303,7 @@
                             </xctk:WatermarkTextBox>
                             <Button Grid.Column="1" Command="{Binding LoadNavCommand}">
                                 <StackPanel Orientation="Horizontal">
-                                    <Image Source="../Assets/Icons/ImportFile_16x.png" />
+                                    <ContentControl Content="{DynamicResource ImportFileIcon}" />
                                     <TextBlock>Load</TextBlock>
                                 </StackPanel>
                             </Button>

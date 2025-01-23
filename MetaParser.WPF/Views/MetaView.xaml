@@ -108,38 +108,14 @@
                                                 </MenuItem.ItemContainerStyle>
                                             </MenuItem>
                                             <MenuItem Header="Condition">
-                                                <MenuItem Header="Invert" Command="{Binding InvertConditionCommand}">
-                                                    <MenuItem.Icon>
-                                                        <Image Source="../Assets/Icons/Invert_16x.png" Style="{StaticResource DisabledImageStyle}" />
-                                                    </MenuItem.Icon>
-                                                </MenuItem>
-                                                <MenuItem Header="Wrap in 'All' Block" Command="{Binding WrapConditionInAllCommand}">
-                                                    <MenuItem.Icon>
-                                                        <Image Source="../Assets/Icons/All.png" Style="{StaticResource DisabledImageStyle}" />
-                                                    </MenuItem.Icon>
-                                                </MenuItem>
-                                                <MenuItem Header="Wrap in 'Any' Block" Command="{Binding WrapConditionInAnyCommand}">
-                                                    <MenuItem.Icon>
-                                                        <Image Source="../Assets/Icons/Any.png" Style="{StaticResource DisabledImageStyle}" />
-                                                    </MenuItem.Icon>
-                                                </MenuItem>
-                                                <MenuItem Header="Unwrap" Command="{Binding UnwrapConditionCommand}">
-                                                    <MenuItem.Icon>
-                                                        <Image Source="../Assets/Icons/Release_16x.png" Style="{StaticResource DisabledImageStyle}" />
-                                                    </MenuItem.Icon>
-                                                </MenuItem>
+                                                <MenuItem Header="Invert" Command="{Binding InvertConditionCommand}" Icon="{StaticResource InvertIcon}" />
+                                                <MenuItem Header="Wrap in 'All' Block" Command="{Binding WrapConditionInAllCommand}" Icon="{StaticResource AllIcon}" />
+                                                <MenuItem Header="Wrap in 'Any' Block" Command="{Binding WrapConditionInAnyCommand}" Icon="{StaticResource AnyIcon}" />
+                                                <MenuItem Header="Unwrap" Command="{Binding UnwrapConditionCommand}" Icon="{StaticResource UnwrapIcon}" />
                                             </MenuItem>
                                             <MenuItem Header="Action">
-                                                <MenuItem Header="Wrap in 'Do All' Block" Command="{Binding WrapActionInAllCommand}">
-                                                    <MenuItem.Icon>
-                                                        <Image Source="../Assets/Icons/All.png" Style="{StaticResource DisabledImageStyle}" />
-                                                    </MenuItem.Icon>
-                                                </MenuItem>
-                                                <MenuItem Header="Unwrap" Command="{Binding UnwrapActionCommand}">
-                                                    <MenuItem.Icon>
-                                                        <Image Source="../Assets/Icons/Release_16x.png" Style="{StaticResource DisabledImageStyle}" />
-                                                    </MenuItem.Icon>
-                                                </MenuItem>
+                                                <MenuItem Header="Wrap in 'Do All' Block" Command="{Binding WrapActionInAllCommand}" Icon="{StaticResource AllIcon}" />
+                                                <MenuItem Header="Unwrap" Command="{Binding UnwrapActionCommand}" Icon="{StaticResource UnwrapIcon}" />
                                             </MenuItem>
                                         </ContextMenu>
                                     </Border.ContextMenu>
@@ -337,16 +313,13 @@
                         </Grid.ColumnDefinitions>
 
                         <TextBlock Grid.Column="0" FontWeight="Bold" Margin="2" FontSize="14" Foreground="White">Validation Errors</TextBlock>
-                        <Button Grid.Column="1" Command="{Binding CloseValidationErrorsCommand}">
+                        <Button Grid.Column="1" Command="{Binding CloseValidationErrorsCommand}" Content="{StaticResource CloseIcon}" Foreground="White">
                             <Button.Style>
                                 <Style TargetType="Button">
                                     <Setter Property="BorderThickness" Value="0" />
                                     <Setter Property="Background" Value="Transparent" />
                                 </Style>
                             </Button.Style>
-                            <Button.Content>
-                                <Image Source="../Assets/Icons/Close_16x.png" />
-                            </Button.Content>
                         </Button>
                     </Grid>
                     <ListBox Grid.Row="1" ItemsSource="{Binding ValidationResults}" SelectedItem="{Binding SelectedValidationResult}" Background="Transparent">
@@ -365,14 +338,10 @@
                 <Grid>
                     <Grid.ContextMenu>
                         <ContextMenu>
-                            <MenuItem Header="Validate Meta" Command="{Binding ValidateCommand}">
-                                <MenuItem.Icon>
-                                    <Image Source="../Assets/Icons/ValidateDocument_16x.png" />
-                                </MenuItem.Icon>
-                            </MenuItem>
+                            <MenuItem Header="Validate Meta" Command="{Binding ValidateCommand}" Icon="{StaticResource ValidateIcon}" />
                         </ContextMenu>
                     </Grid.ContextMenu>
-                    <Image Source="../Assets/Icons/checkmark.ico" Height="16" Visibility="{Binding ValidationResults.Count, Converter={StaticResource ComparisonToVisibilityConverter}, ConverterParameter='=0'}" ToolTip="No Validation Errors Detected" />
+                    <ContentControl Content="{StaticResource CheckIcon}" Foreground="Green" Height="16" Visibility="{Binding ValidationResults.Count, Converter={StaticResource ComparisonToVisibilityConverter}, ConverterParameter='=0'}" ToolTip="No Validation Errors Detected" />
                     <ToggleButton Visibility="{Binding ValidationResults.Count, Converter={StaticResource ComparisonToVisibilityConverter}, ConverterParameter='>0'}" IsChecked="{Binding ShowValidationErrors}" Name="btnToggleValidationResults" Cursor="Hand">
                         <ToggleButton.ToolTip>
                             <TextBlock Text="{Binding ValidationResults.Count, StringFormat={}{0} Validation Errors}" />
@@ -383,7 +352,7 @@
                             </Style>
                         </ToggleButton.Style>
                         <StackPanel Orientation="Horizontal">
-                            <Image Source="../Assets/Icons/error.ico" Height="16" />
+                            <ContentControl Content="{StaticResource ErrorIcon}" Foreground="Red" />
                             <TextBlock Text="{Binding ValidationResults.Count}" />
                         </StackPanel>
                     </ToggleButton>

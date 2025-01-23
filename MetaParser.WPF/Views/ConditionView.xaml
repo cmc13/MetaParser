@@ -69,9 +69,7 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0" VerticalAlignment="Center">Expression:</TextBlock>
                                 <TextBox Grid.Column="1" Text="{Binding Expression, UpdateSourceTrigger=PropertyChanged}" Margin="2,0,0,0" />
-                                <Button Grid.Column="2" Margin="2,0,0,0" Command="{Binding LaunchExpressionHelpCommand}" ToolTip="VTank Expression Reference">
-                                    <Image Source="../Assets/Icons/WebFile_16x.png" />
-                                </Button>
+                                <Button Grid.Column="2" Margin="2,0,0,0" Command="{Binding LaunchExpressionHelpCommand}" ToolTip="VTank Expression Reference" Content="{DynamicResource OpenSiteIcon}" />
                             </Grid>
                         </DataTemplate>
                     </local:ConditionDataTemplateSelector.ExpressionTemplate>
@@ -125,7 +123,7 @@
                                 <xctk:WatermarkTextBox Grid.Column="1" Margin="2,0,0,0" Style="{StaticResource ErrorTemplate}">
                                     <xctk:WatermarkTextBox.Watermark>
                                         <StackPanel Orientation="Horizontal">
-                                            <Image Source="../Assets/Icons/RegularExpression_16x.png" />
+                                            <ContentControl Content="{StaticResource RegexIcon}" />
                                             <TextBlock Foreground="LightGray">Regex</TextBlock>
                                         </StackPanel>
                                     </xctk:WatermarkTextBox.Watermark>
@@ -158,7 +156,7 @@
                                 <xctk:WatermarkTextBox Grid.Row="0" Grid.Column="1" Margin="2" Style="{StaticResource ErrorTemplate}">
                                     <xctk:WatermarkTextBox.Watermark>
                                         <StackPanel Orientation="Horizontal">
-                                            <Image Source="../Assets/Icons/RegularExpression_16x.png" />
+                                            <ContentControl Content="{StaticResource RegexIcon}" />
                                             <TextBlock Foreground="LightGray">Regex</TextBlock>
                                         </StackPanel>
                                     </xctk:WatermarkTextBox.Watermark>
@@ -195,7 +193,7 @@
                                 <xctk:WatermarkTextBox Grid.Row="0" Grid.Column="1" Margin="2,0,0,0" Style="{StaticResource ErrorTemplate}">
                                     <xctk:WatermarkTextBox.Watermark>
                                         <StackPanel Orientation="Horizontal">
-                                            <Image Source="../Assets/Icons/RegularExpression_16x.png" />
+                                            <ContentControl Content="{StaticResource RegexIcon}" />
                                             <TextBlock Foreground="LightGray">Regex</TextBlock>
                                         </StackPanel>
                                     </xctk:WatermarkTextBox.Watermark>
@@ -322,18 +320,10 @@
                                                 <Button Command="{Binding CopyCommand}" ToolTip="Copy Selected Condition" Content="{StaticResource CopyIcon}" />
                                                 <Button Command="{Binding PasteCommand}" ToolTip="Paste Selected Condition" Content="{StaticResource PasteIcon}" />
                                                 <Separator />
-                                                <Button Command="{Binding WrapInAllCommand}" ToolTip="Wrap in 'All' Block">
-                                                    <Image Source="../Assets/Icons/All.png" Style="{StaticResource DisabledImageStyle}" />
-                                                </Button>
-                                                <Button Command="{Binding WrapInAnyCommand}" ToolTip="Wrap in 'Any' Block">
-                                                    <Image Source="../Assets/Icons/Any.png" Style="{StaticResource DisabledImageStyle}" />
-                                                </Button>
-                                                <Button Command="{Binding InvertCommand}" ToolTip="Invert">
-                                                    <Image Source="../Assets/Icons/Invert_16x.png" Style="{StaticResource DisabledImageStyle}" />
-                                                </Button>
-                                                <Button Command="{Binding UnwrapCommand}" ToolTip="Unwrap">
-                                                    <Image Source="../Assets/Icons/Release_16x.png" Style="{StaticResource DisabledImageStyle}" />
-                                                </Button>
+                                                <Button Command="{Binding WrapInAllCommand}" ToolTip="Wrap in 'All' Block" Content="{StaticResource AllIcon}" />
+                                                <Button Command="{Binding WrapInAnyCommand}" ToolTip="Wrap in 'Any' Block" Content="{StaticResource AnyIcon}" />
+                                                <Button Command="{Binding InvertCommand}" ToolTip="Invert" Content="{StaticResource InvertIcon}" />
+                                                <Button Command="{Binding UnwrapCommand}" ToolTip="Unwrap" Content="{StaticResource UnwrapIcon}" />
                                             </ToolBar>
                                         </ToolBarTray>
                                         <ListBox ItemsSource="{Binding ConditionList}"
@@ -396,10 +386,8 @@
                                             </Binding>
                                         </xctk:WatermarkTextBox.Text>
                                     </xctk:WatermarkTextBox>
-                                    
-                                    <Button Grid.Column="1" Command="{Binding ToggleMapCommand}" ToolTip="Toggle Map">
-                                        <Image Source="../Assets/Icons/Map_16x.png" />
-                                    </Button>
+
+                                    <Button Grid.Column="1" Command="{Binding ToggleMapCommand}" ToolTip="Toggle Map" Content="{StaticResource MapIcon}" />
                                 </Grid>
                                 <Popup x:Name="popMap"
                                        PlacementTarget="{Binding RelativeSource={RelativeSource AncestorType=Grid}}"
@@ -415,15 +403,9 @@
                                     <DockPanel>
                                         <ToolBarTray IsLocked="True" DockPanel.Dock="Top" ToolBar.OverflowMode="Never" Loaded="ToolBar_Loaded">
                                             <ToolBar Band="1" BandIndex="1">
-                                                <Button Command="fx:ZoomCommands.Increase" CommandTarget="{Binding ElementName=zoom}" ToolTip="Zoom In">
-                                                    <Image Source="../Assets/Icons/ZoomIn_16x.png" Style="{StaticResource DisabledImageStyle}" />
-                                                </Button>
-                                                <Button Command="fx:ZoomCommands.Decrease" CommandTarget="{Binding ElementName=zoom}" ToolTip="Zoom Out">
-                                                    <Image Source="../Assets/Icons/ZoomOut_16x.png" Style="{StaticResource DisabledImageStyle}" />
-                                                </Button>
-                                                <Button Command="fx:ZoomCommands.None" CommandTarget="{Binding ElementName=zoom}" ToolTip="Reset">
-                                                    <Image Source="../Assets/Icons/ZoomOriginalSize_16x.png" Style="{StaticResource DisabledImageStyle}" />
-                                                </Button>
+                                                <Button Command="fx:ZoomCommands.Increase" CommandTarget="{Binding ElementName=zoom}" ToolTip="Zoom In" Content="{StaticResource ZoomInIcon}" />
+                                                <Button Command="fx:ZoomCommands.Decrease" CommandTarget="{Binding ElementName=zoom}" ToolTip="Zoom Out" Content="{StaticResource ZoomOutIcon}" />
+                                                <Button Command="fx:ZoomCommands.None" CommandTarget="{Binding ElementName=zoom}" ToolTip="Reset" Content="{StaticResource ZoomResetIcon}" />
                                             </ToolBar>
                                         </ToolBarTray>
                                         <fx:Zoombox x:Name="zoom" IsManipulationEnabled="True">
@@ -519,9 +501,7 @@
                                                 <KeyBinding Command="{Binding SearchPortalsCommand}" Key="Enter" />
                                             </TextBox.InputBindings>
                                         </TextBox>
-                                        <Button Grid.Column="2" Grid.Row="0" Command="{Binding SearchPortalsCommand}" ToolTip="Search">
-                                            <Image Source="../Assets/Icons/Search_16x.png" />
-                                        </Button>
+                                        <Button Grid.Column="2" Grid.Row="0" Command="{Binding SearchPortalsCommand}" ToolTip="Search" Content="{StaticResource SearchIcon}" />
 
                                         <xctk:BusyIndicator Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="1" IsBusy="{Binding Searching}" BusyContent="Searching..." Margin="0,2,0,0">
                                             <ListView ItemsSource="{Binding Weenies}" Height="100" SelectedItem="{Binding SelectedPortal}">

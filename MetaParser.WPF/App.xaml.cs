@@ -39,6 +39,10 @@ public partial class App : Application
         {
             Properties["InitialFile"] = e.Args[0];
         }
+        else if (AppDomain.CurrentDomain.SetupInformation != null)
+        {
+            var i = 0;
+        }
 
         var window = serviceProvider.GetService<MainWindow>();
         window.Show();
