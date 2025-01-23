@@ -2,13 +2,13 @@
 using GongSolutions.Wpf.DragDrop;
 using MetaParser.Models;
 using MetaParser.WPF.MetaValidation;
+using MetaParser.WPF.Services;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
-using WK.Libraries.SharpClipboardNS;
 
 namespace MetaParser.WPF.ViewModels;
 
@@ -19,17 +19,20 @@ public partial class MetaViewModel
     private bool showValidationErrors = false;
     private MetaValidationResult selectedValidationResult = null;
     private static readonly IMetaValidator validator = new AggregateMetaValidator();
-    private readonly SharpClipboard clipboard = new();
     private readonly ConditionViewModelFactory conditionViewModelFactory;
     private readonly ActionViewModelFactory actionViewModelFactory;
+    private readonly ClipboardService clipboardService;
 
-    public MetaViewModel(ConditionViewModelFactory conditionViewModelFactory, ActionViewModelFactory actionViewModelFactory) : this(new(), conditionViewModelFactory, actionViewModelFactory) { }
+    public MetaViewModel(ConditionViewModelFactory conditionViewModelFactory, ActionViewModelFactory actionViewModelFactory, ClipboardService clipboardService)
+        : this(new(), conditionViewModelFactory, actionViewModelFactory, clipboardService)
+    {}
 
-    public MetaViewModel(Meta meta, ConditionViewModelFactory conditionViewModelFactory, ActionViewModelFactory actionViewModelFactory)
+    public MetaViewModel(Meta meta, ConditionViewModelFactory conditionViewModelFactory, ActionViewModelFactory actionViewModelFactory, ClipboardService clipboardService)
     {
         Meta = meta;
         this.conditionViewModelFactory = conditionViewModelFactory;
         this.actionViewModelFactory = actionViewModelFactory;
+        this.clipboardService = clipboardService;
         Dictionary<string, List<RuleViewModel>> rulesByState = new();
         foreach (var rule in meta.Rules)
         {
@@ -55,8 +58,8 @@ public partial class MetaViewModel
         Rules.CollectionChanged += Rules_CollectionChanged;
 
         bool? prevValue = null;
-        clipboard.MonitorClipboard = true;
-        clipboard.ClipboardChanged += (sender, e) =>
+
+        clipboardService.ClipboardChanged += (sender, e) =>
         {
             var canPaste = PasteCanExecute();
             if (canPaste != prevValue)
@@ -149,7 +152,7 @@ public partial class MetaViewModel
         {
             foreach (RuleViewModel r in e.NewItems)
             {
-                Meta.Rules.Add(r.Rule);
+                Meta.Rules.Insert(e.NewStartingIndex, r.Rule);
                 r.StateChanged += Vm_StateChanged;
                 r.PropertyChanged += Vm_PropertyChanged;
             }
@@ -220,8 +223,8 @@ public partial class MetaViewModel
         using var sw = new StringWriter();
         await Formatters.MetaWriter.WriteRuleAsync(sw, SelectedRule.Rule).ConfigureAwait(false);
         var ruleText = sw.ToString();
-        Clipboard.SetData(typeof(Rule).Name, ruleText);
-        PasteCommand.NotifyCanExecuteChanged();
+        clipboardService.SetData(typeof(Rule).Name, ruleText);
+        Application.Current.Dispatcher.Invoke(PasteCommand.NotifyCanExecuteChanged);
     }
 
     [RelayCommand(CanExecute = nameof(PasteCanExecute))]
@@ -236,7 +239,7 @@ public partial class MetaViewModel
         SelectedRule = vm;
     }
 
-    bool PasteCanExecute() => Clipboard.ContainsData(typeof(Rule).Name);
+    bool PasteCanExecute() => clipboardService.ContainsData(typeof(Rule).Name);
 
     [RelayCommand]
     void Add()

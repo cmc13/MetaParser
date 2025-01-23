@@ -37,6 +37,7 @@ public partial class MainViewModel
     private readonly DialogService dialogService;
     private readonly ConditionViewModelFactory conditionViewModelFactory;
     private readonly ActionViewModelFactory actionViewModelFactory;
+    private readonly ClipboardService clipboardService;
     private FileSystemWatcher fw = null;
     private Timer t = null;
 
@@ -98,7 +99,7 @@ public partial class MainViewModel
             return;
 
         // Initialize new meta
-        MetaViewModel = new(conditionViewModelFactory, actionViewModelFactory);
+        MetaViewModel = new(conditionViewModelFactory, actionViewModelFactory, clipboardService);
         FileName = null;
     }
 
@@ -202,12 +203,13 @@ public partial class MainViewModel
 
     public List<string> RecentFiles { get; } = [];
 
-    public MainViewModel(FileSystemService fileSystemService, DialogService dialogService, ConditionViewModelFactory conditionViewModelFactory, ActionViewModelFactory actionViewModelFactory)
+    public MainViewModel(FileSystemService fileSystemService, DialogService dialogService, ConditionViewModelFactory conditionViewModelFactory, ActionViewModelFactory actionViewModelFactory, ClipboardService clipboardService)
     {
         this.fileSystemService = fileSystemService;
         this.dialogService = dialogService;
         this.conditionViewModelFactory = conditionViewModelFactory;
         this.actionViewModelFactory = actionViewModelFactory;
+        this.clipboardService = clipboardService;
         if (fileSystemService.FileExists(RECENT_FILE_NAME))
         {
             Task.Run(async () =>
@@ -229,7 +231,7 @@ public partial class MainViewModel
                 OpenFile((string)Application.Current.Properties["InitialFile"]).GetAwaiter().GetResult();
         }
         else
-            MetaViewModel = new(conditionViewModelFactory, actionViewModelFactory);
+            MetaViewModel = new(conditionViewModelFactory, actionViewModelFactory, clipboardService);
     }
 
     private async Task OpenFile(string fileName)
@@ -246,7 +248,7 @@ public partial class MainViewModel
             }).ConfigureAwait(false);
 
             FileName = fileName;
-            MetaViewModel = new(m, conditionViewModelFactory, actionViewModelFactory);
+            MetaViewModel = new(m, conditionViewModelFactory, actionViewModelFactory, clipboardService);
         }
         catch (Exception ex)
         {

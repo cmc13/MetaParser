@@ -77,7 +77,7 @@ namespace MetaParser.WPF.ViewModels
             await Formatters.MetaWriter.WriteConditionAsync(sw, SelectedCondition.Condition).ConfigureAwait(false);
             var conditionText = sw.ToString();
             clipboardService.SetData(typeof(Models.Condition).Name, conditionText);
-            PasteCommand.NotifyCanExecuteChanged();
+            Application.Current.Dispatcher.Invoke(PasteCommand.NotifyCanExecuteChanged);
         }
 
         [RelayCommand(CanExecute = nameof(PasteCanExecute))]

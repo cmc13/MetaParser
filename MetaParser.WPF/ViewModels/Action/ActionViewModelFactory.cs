@@ -23,7 +23,7 @@ public class ActionViewModelFactory
         DestroyViewMetaAction c => new DestroyViewActionViewModel(c, meta),
         CreateViewMetaAction c => new CreateViewActionViewModel(c, meta),
         AllMetaAction c => new AllActionViewModel(c, meta, this, clipboardService),
-        EmbeddedNavRouteMetaAction c => new LoadEmbeddedNavRouteActionViewModel(c, meta),
+        EmbeddedNavRouteMetaAction c => new LoadEmbeddedNavRouteActionViewModel(c, meta, clipboardService),
         WatchdogSetMetaAction c => new WatchdogSetActionViewModel(c, meta),
         TableMetaAction c => new TableActionViewModel(c, meta),
         _ => new ActionViewModel(action, meta)

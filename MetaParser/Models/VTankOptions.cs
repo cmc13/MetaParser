@@ -12,10 +12,15 @@ public partial class BoolOption : ValidationAttribute
     [GeneratedRegex(@"^(true|false|\d+)$")]
     private static partial Regex BoolOptionRegex();
 
+    [GeneratedRegex(@"^getvar\[[a-zA-Z_][a-zA-Z0-9_]*\]$")]
+    private static partial Regex GetVarRegex();
+
     public override bool IsValid(object value)
     {
         if (value is string str)
         {
+            if (GetVarRegex().IsMatch(str))
+                return true;
             if (bool.TryParse(str, out _) || BoolOptionRegex().IsMatch(str))
                 return true;
         }
@@ -29,10 +34,15 @@ public partial class IntOption : ValidationAttribute
     [GeneratedRegex(@"^\d+$")]
     private static partial Regex IntOptionRegex();
 
+    [GeneratedRegex(@"^getvar\[[a-zA-Z_][a-zA-Z0-9_]*\]$")]
+    private static partial Regex GetVarRegex();
+
     public override bool IsValid(object value)
     {
         if (value is string str)
         {
+            if (GetVarRegex().IsMatch(str))
+                return true;
             if (IntOptionRegex().IsMatch(str) && int.TryParse(str, out _))
                 return true;
         }
@@ -46,10 +56,15 @@ public partial class DoubleOption : ValidationAttribute
     [GeneratedRegex(@"^[+\-]?(([1-9]\d*\.|\d?\.)(\d+([eE][+\-]?[0-9]+)|[0-9]+)|([1-9]\d*|0))$")]
     private static partial Regex DoubleOptionRegex();
 
+    [GeneratedRegex(@"^getvar\[[a-zA-Z_][a-zA-Z0-9_]*\]$")]
+    private static partial Regex GetVarRegex();
+
     public override bool IsValid(object value)
     {
         if (value is string str)
         {
+            if (GetVarRegex().IsMatch(str))
+                return true;
             if (DoubleOptionRegex().IsMatch(str) && double.TryParse(str, out _))
                 return true;
         }
@@ -63,10 +78,15 @@ public partial class BuffProfileOption : ValidationAttribute
     [GeneratedRegex(@"^[BPSAFLC]*$")]
     private static partial Regex BuffProfileOptionRegex();
 
+    [GeneratedRegex(@"^getvar\[[a-zA-Z_][a-zA-Z0-9_]*\]$")]
+    private static partial Regex GetVarRegex();
+
     public override bool IsValid(object value)
     {
         if (value is string str)
         {
+            if (GetVarRegex().IsMatch(str))
+                return true;
             if (BuffProfileOptionRegex().IsMatch(str))
             {
                 // Check if any characters appear more than once

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Windows;
 using WK.Libraries.SharpClipboardNS;
 
@@ -16,7 +17,13 @@ public sealed class ClipboardService
         clipboard.ClipboardChanged += Clipboard_ClipboardChanged;
     }
 
-    public void SetData(string format, object data) => Clipboard.SetData(format, data);
+    public void SetData(string format, object data)
+    {
+        Thread STAThread = new(() => Clipboard.SetData(format, data));
+        STAThread.SetApartmentState(ApartmentState.STA);
+        STAThread.Start();
+        STAThread.Join();
+    }
 
     public bool ContainsData(string format) => Clipboard.ContainsData(format);
 

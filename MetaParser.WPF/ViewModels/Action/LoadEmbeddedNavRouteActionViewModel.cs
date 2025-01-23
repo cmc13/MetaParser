@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.Input;
 using MetaParser.Formatting;
 using MetaParser.Models;
+using MetaParser.WPF.Services;
 using Microsoft.Win32;
 using System;
 using System.IO;
@@ -14,15 +15,17 @@ namespace MetaParser.WPF.ViewModels
         private string name;
         private readonly INavReader navReader = Formatters.NavReader;
         private readonly INavReader metafNavReader = Formatters.MetafNavReader;
+        private readonly ClipboardService clipboardService;
 
-        public LoadEmbeddedNavRouteActionViewModel(EmbeddedNavRouteMetaAction action, MetaViewModel meta) : base(action, meta)
+        public LoadEmbeddedNavRouteActionViewModel(EmbeddedNavRouteMetaAction action, MetaViewModel meta, ClipboardService clipboardService) : base(action, meta)
         {
             name = action.Data.name;
 
             if (action.Data.nav == null)
                 action.Data = (action.Data.name, new NavRoute() { Type = NavType.Circular });
-            nav = new NavRouteViewModel(action.Data.nav);
+            nav = new NavRouteViewModel(action.Data.nav, clipboardService);
             nav.PropertyChanged += Nav_PropertyChanged;
+            this.clipboardService = clipboardService;
         }
 
         [RelayCommand]
@@ -49,7 +52,7 @@ namespace MetaParser.WPF.ViewModels
                 });
 
                 ((EmbeddedNavRouteMetaAction)Action).Data = (Path.GetFileName(ofd.FileName), nav);
-                Nav = new NavRouteViewModel(nav);
+                Nav = new NavRouteViewModel(nav, clipboardService);
             }
         }
 

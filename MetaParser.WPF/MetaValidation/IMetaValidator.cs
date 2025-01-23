@@ -176,8 +176,8 @@ public class VTankOptionValidator : IMetaValidator
 
     private static IEnumerable<string> InvalidVTankOption(MetaAction c) => c switch
     {
-        GetVTOptionMetaAction gc when !VTankOptionsExtensions.TryParse(gc.Option, out _) => new[] { gc.Option },
-        SetVTOptionMetaAction sc when !VTankOptionsExtensions.TryParse(sc.Option, out _) => new[] { sc.Option },
+        GetVTOptionMetaAction gc when !VTankOptionsExtensions.TryParse(gc.Option, out _) => [gc.Option],
+        SetVTOptionMetaAction sc when !VTankOptionsExtensions.TryParse(sc.Option, out _) => [sc.Option],
         AllMetaAction ama => ama.Data.SelectMany(InvalidVTankOption),
         _ => Enumerable.Empty<string>()
     };

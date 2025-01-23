@@ -78,7 +78,7 @@ internal partial class AllActionViewModel : ActionViewModel, IDropTarget
         await Formatters.MetaWriter.WriteActionAsync(sw, SelectedAction.Action).ConfigureAwait(false);
         var actionText = sw.ToString();
         clipboardService.SetData(typeof(MetaAction).Name, actionText);
-        PasteCommand.NotifyCanExecuteChanged();
+        Application.Current.Dispatcher.Invoke(PasteCommand.NotifyCanExecuteChanged);
     }
 
     [RelayCommand(CanExecute = nameof(PasteCanExecute))]

@@ -1,18 +1,20 @@
 ﻿using MetaParser.Models;
+using MetaParser.WPF.Services;
 
 namespace MetaParser.WPF.ViewModels
 {
     public class NavRouteViewModel : BaseViewModel
     {
         private readonly NavRoute nav;
+        private readonly ClipboardService clipboardService;
         private BaseViewModel navViewModel;
 
-        public NavRouteViewModel(NavRoute nav)
+        public NavRouteViewModel(NavRoute nav, ClipboardService clipboardService)
         {
             if (nav.Type == NavType.Follow)
                 navViewModel = new NavFollowViewModel(nav.Data as NavFollow);
             else
-                navViewModel = new NavNodeListViewModel(nav);
+                navViewModel = new NavNodeListViewModel(nav, clipboardService);
             this.nav = nav;
 
             navViewModel.PropertyChanged += NavViewModel_PropertyChanged;
@@ -71,7 +73,7 @@ namespace MetaParser.WPF.ViewModels
                     else if (nav.Type == NavType.Follow)
                     {
                         nav.Data = null;
-                        NavViewModel = new NavNodeListViewModel(nav);
+                        NavViewModel = new NavNodeListViewModel(nav, clipboardService);
                     }
                     nav.Type = value;
                 }

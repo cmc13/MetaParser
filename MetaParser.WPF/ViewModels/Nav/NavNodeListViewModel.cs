@@ -1,12 +1,12 @@
 ﻿using CommunityToolkit.Mvvm.Input;
 using MetaParser.Models;
+using MetaParser.WPF.Services;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
-using WK.Libraries.SharpClipboardNS;
 
 namespace MetaParser.WPF.ViewModels;
 
@@ -14,12 +14,12 @@ public partial class NavNodeListViewModel : BaseViewModel
 {
     private NavNodeViewModel selectedNode;
     private NavRoute nav;
-    private readonly SharpClipboard clipboard = new();
+    private readonly ClipboardService clipboardService;
 
-    public NavNodeListViewModel(NavRoute nav)
+    public NavNodeListViewModel(NavRoute nav, ClipboardService clipboardService)
     {
         this.nav = nav;
-
+        this.clipboardService = clipboardService;
         if (nav.Data is List<NavNode> navNodes && navNodes != null)
         {
             foreach (var node in navNodes)
@@ -33,8 +33,8 @@ public partial class NavNodeListViewModel : BaseViewModel
         NavNodes.CollectionChanged += NavNodes_CollectionChanged;
 
         bool? prevValue = null;
-        clipboard.MonitorClipboard = true;
-        clipboard.ClipboardChanged += (sender, e) =>
+
+        clipboardService.ClipboardChanged += (sender, e) =>
         {
             var canPaste = PasteCanExecute();
             if (canPaste != prevValue)
@@ -77,8 +77,8 @@ public partial class NavNodeListViewModel : BaseViewModel
         await sw.WriteLineAsync(((int)SelectedNode.Type).ToString()).ConfigureAwait(false);
         await Formatters.NavWriter.WriteNavNodeAsync(sw, SelectedNode.Node).ConfigureAwait(false);
         var nodeText = sw.ToString();
-        Clipboard.SetData(typeof(NavNode).Name, nodeText);
-        PasteCommand.NotifyCanExecuteChanged();
+        clipboardService.SetData(typeof(NavNode).Name, nodeText);
+        Application.Current.Dispatcher.Invoke(PasteCommand.NotifyCanExecuteChanged);
     }
 
     [RelayCommand(CanExecute = nameof(PasteCanExecute))]
@@ -94,7 +94,7 @@ public partial class NavNodeListViewModel : BaseViewModel
         SelectedNode = vm;
     }
 
-    bool PasteCanExecute() => Clipboard.ContainsData(typeof(NavNode).Name);
+    bool PasteCanExecute() => clipboardService.ContainsData(typeof(NavNode).Name);
 
     private void NavNodes_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
     {
