@@ -4,7 +4,7 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
-    <ApplicationIcon>C:\Users\Cole\source\repos\MetaParser\MetaParser.WPF\Assets\Icons\Alloy_Cogwheel_Icon.ico</ApplicationIcon>
+    <ApplicationIcon>Assets\Icons\Alloy_Cogwheel_Icon.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
