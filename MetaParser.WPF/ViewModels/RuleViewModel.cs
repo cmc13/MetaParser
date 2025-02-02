@@ -129,6 +129,7 @@ namespace MetaParser.WPF.ViewModels
             OnPropertyChanged(nameof(SelectedConditionType));
             UnwrapConditionCommand.NotifyCanExecuteChanged();
             condition.PropertyChanged += Condition_PropertyChanged;
+            Rule.Condition = anyCond;
         }
 
         [RelayCommand(CanExecute = nameof(UnwrapConditionCanExecute))]
@@ -143,6 +144,7 @@ namespace MetaParser.WPF.ViewModels
                 OnPropertyChanged(nameof(SelectedConditionType));
                 UnwrapConditionCommand.NotifyCanExecuteChanged();
                 condition.PropertyChanged += Condition_PropertyChanged;
+                Rule.Condition = mc.Data[0];
             }
         }
 
@@ -162,6 +164,7 @@ namespace MetaParser.WPF.ViewModels
                 UnwrapActionCommand.NotifyCanExecuteChanged();
                 action.StateChanged += Action_StateChanged;
                 action.PropertyChanged += Action_PropertyChanged;
+                Rule.Action = ama.Data[0];
             }
         }
 
@@ -184,6 +187,7 @@ namespace MetaParser.WPF.ViewModels
             UnwrapActionCommand.NotifyCanExecuteChanged();
             action.StateChanged += Action_StateChanged;
             action.PropertyChanged += Action_PropertyChanged;
+            Rule.Action = allCond;
         }
 
         public MetaViewModel Meta { get; }
