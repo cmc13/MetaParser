@@ -181,8 +181,11 @@ internal partial class AllActionViewModel : ActionViewModel, IDropTarget
             OnPropertyChanged(nameof(Display));
             OnPropertyChanged(nameof(IsValid));
             IsDirty = true;
-            WrapCommand.NotifyCanExecuteChanged();
-            UnwrapCommand.NotifyCanExecuteChanged();
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                WrapCommand.NotifyCanExecuteChanged();
+                UnwrapCommand.NotifyCanExecuteChanged();
+            });
         }
         else if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Replace)
         {

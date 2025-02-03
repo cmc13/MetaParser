@@ -26,7 +26,7 @@
                 </Grid.ColumnDefinitions>
 
                 <TextBlock Grid.Column="0" VerticalAlignment="Center" Margin="2,0">State:</TextBlock>
-                <ComboBox Grid.Column="1" ItemsSource="{Binding Meta.StateList}" Text="{Binding State, UpdateSourceTrigger=PropertyChanged}" IsEditable="True" />
+                <ComboBox Grid.Column="1" ItemsSource="{Binding Meta.StateList}" Text="{Binding State, UpdateSourceTrigger=LostFocus}" IsEditable="True" />
             </Grid>
             <Grid>
                 <Grid.ColumnDefinitions>
