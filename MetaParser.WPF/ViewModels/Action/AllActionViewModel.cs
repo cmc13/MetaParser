@@ -3,6 +3,7 @@ using GongSolutions.Wpf.DragDrop;
 using MetaParser.Models;
 using MetaParser.WPF.Services;
 using System.Collections.ObjectModel;
+using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -12,7 +13,8 @@ namespace MetaParser.WPF.ViewModels;
 
 internal partial class AllActionViewModel : ActionViewModel, IDropTarget
 {
-    private readonly ObservableCollection<ActionViewModel> actionList = new();
+    private static readonly string ClipboardDataFormatName = typeof(MetaAction).FullName;
+    private readonly ObservableCollection<ActionViewModel> actionList = [];
     private ActionViewModel selectedAction;
     private readonly ActionViewModelFactory actionViewModelFactory;
     private readonly ClipboardService clipboardService;
@@ -57,7 +59,7 @@ internal partial class AllActionViewModel : ActionViewModel, IDropTarget
     [RelayCommand(CanExecute = nameof(ActionIsSelected))]
     void Remove()
     {
-        ActionList.Remove(SelectedAction);
+        Application.Current.Dispatcher.Invoke(() => ActionList.Remove(SelectedAction));
         SelectedAction = null;
     }
 
@@ -77,14 +79,14 @@ internal partial class AllActionViewModel : ActionViewModel, IDropTarget
         await sw.WriteLineAsync(((int)SelectedAction.Type).ToString());
         await Formatters.MetaWriter.WriteActionAsync(sw, SelectedAction.Action).ConfigureAwait(false);
         var actionText = sw.ToString();
-        clipboardService.SetData(typeof(MetaAction).Name, actionText);
+        clipboardService.SetData(ClipboardDataFormatName, actionText);
         Application.Current.Dispatcher.Invoke(PasteCommand.NotifyCanExecuteChanged);
     }
 
     [RelayCommand(CanExecute = nameof(PasteCanExecute))]
     async Task Paste()
     {
-        var actionText = (string)Clipboard.GetData(typeof(MetaAction).Name);
+        var actionText = (string)Clipboard.GetData(ClipboardDataFormatName);
         using var sr = new StringReader(actionText);
         var actionType = (ActionType)int.Parse(await sr.ReadLineAsync().ConfigureAwait(false));
         var action = MetaAction.CreateMetaAction(actionType);
@@ -94,7 +96,7 @@ internal partial class AllActionViewModel : ActionViewModel, IDropTarget
         SelectedAction = vm;
     }
 
-    bool PasteCanExecute() => clipboardService.ContainsData(typeof(MetaAction).Name);
+    bool PasteCanExecute() => clipboardService.ContainsData(ClipboardDataFormatName);
 
     [RelayCommand(CanExecute = nameof(MoveUpCanExecute))]
     void MoveUp()

@@ -12,6 +12,7 @@ namespace MetaParser.WPF.ViewModels;
 
 public partial class NavNodeListViewModel : BaseViewModel
 {
+    private static readonly string ClipboardDataFormatName = typeof(NavNode).FullName;
     private NavNodeViewModel selectedNode;
     private NavRoute nav;
     private readonly ClipboardService clipboardService;
@@ -77,14 +78,14 @@ public partial class NavNodeListViewModel : BaseViewModel
         await sw.WriteLineAsync(((int)SelectedNode.Type).ToString()).ConfigureAwait(false);
         await Formatters.NavWriter.WriteNavNodeAsync(sw, SelectedNode.Node).ConfigureAwait(false);
         var nodeText = sw.ToString();
-        clipboardService.SetData(typeof(NavNode).Name, nodeText);
+        clipboardService.SetData(ClipboardDataFormatName, nodeText);
         Application.Current.Dispatcher.Invoke(PasteCommand.NotifyCanExecuteChanged);
     }
 
     [RelayCommand(CanExecute = nameof(PasteCanExecute))]
     async Task Paste()
     {
-        var conditionText = (string)Clipboard.GetData(typeof(Models.NavNode).Name);
+        var conditionText = (string)Clipboard.GetData(ClipboardDataFormatName);
         using var sr = new StringReader(conditionText);
         var nodeType = (NavNodeType)int.Parse(await sr.ReadLineAsync().ConfigureAwait(false));
         var node = NavNode.Create(nodeType);
@@ -94,7 +95,7 @@ public partial class NavNodeListViewModel : BaseViewModel
         SelectedNode = vm;
     }
 
-    bool PasteCanExecute() => clipboardService.ContainsData(typeof(NavNode).Name);
+    bool PasteCanExecute() => clipboardService.ContainsData(ClipboardDataFormatName);
 
     private void NavNodes_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
     {

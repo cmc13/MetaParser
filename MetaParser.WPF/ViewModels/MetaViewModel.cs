@@ -15,6 +15,7 @@ namespace MetaParser.WPF.ViewModels;
 public partial class MetaViewModel
     : BaseViewModel, IDropTarget
 {
+    private static readonly string ClipboardDataFormatName = typeof(Rule).FullName;
     private RuleViewModel selectedRule = null;
     private bool showValidationErrors = false;
     private MetaValidationResult selectedValidationResult = null;
@@ -223,14 +224,14 @@ public partial class MetaViewModel
         using var sw = new StringWriter();
         await Formatters.MetaWriter.WriteRuleAsync(sw, SelectedRule.Rule).ConfigureAwait(false);
         var ruleText = sw.ToString();
-        clipboardService.SetData(typeof(Rule).Name, ruleText);
+        clipboardService.SetData(ClipboardDataFormatName, ruleText);
         Application.Current.Dispatcher.Invoke(PasteCommand.NotifyCanExecuteChanged);
     }
 
     [RelayCommand(CanExecute = nameof(PasteCanExecute))]
     async Task Paste()
     {
-        var ruleText = (string)Clipboard.GetData(typeof(Rule).Name);
+        var ruleText = (string)Clipboard.GetData(ClipboardDataFormatName);
         using var sr = new StringReader(ruleText);
         var rule = await Formatters.DefaultMetaReader.ReadRuleAsync(sr).ConfigureAwait(false);
         var vm = new RuleViewModel(rule, this, conditionViewModelFactory, actionViewModelFactory);
@@ -239,16 +240,16 @@ public partial class MetaViewModel
         SelectedRule = vm;
     }
 
-    bool PasteCanExecute() => clipboardService.ContainsData(typeof(Rule).Name);
+    bool PasteCanExecute() => clipboardService.ContainsData(ClipboardDataFormatName);
 
     [RelayCommand]
-    void Add()
+    void Add(string state)
     {
         var rule = new Rule()
         {
             Action = MetaAction.CreateMetaAction(ActionType.None),
             Condition = Models.Condition.CreateCondition(ConditionType.Always),
-            State = "Default"
+            State = state ?? "Default"
         };
 
         var vm = new RuleViewModel(rule, this, conditionViewModelFactory, actionViewModelFactory);
