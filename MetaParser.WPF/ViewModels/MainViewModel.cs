@@ -267,7 +267,7 @@ public partial class MainViewModel
             Application.Current.Dispatcher.Invoke(() =>
             {
                 foreach (var rule in m.Rules)
-                    MetaViewModel.Rules.Add(new(rule, MetaViewModel, conditionViewModelFactory, actionViewModelFactory));
+                    MetaViewModel.Rules.Add(new(rule, MetaViewModel, conditionViewModelFactory, actionViewModelFactory, clipboardService));
             });
         }
         catch (Exception ex)

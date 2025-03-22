@@ -37,7 +37,7 @@ public partial class MetaViewModel
         Dictionary<string, List<RuleViewModel>> rulesByState = new();
         foreach (var rule in meta.Rules)
         {
-            var vm = new RuleViewModel(rule, this, conditionViewModelFactory, actionViewModelFactory);
+            var vm = new RuleViewModel(rule, this, conditionViewModelFactory, actionViewModelFactory, clipboardService);
 
             List<RuleViewModel> list;
             if (!rulesByState.ContainsKey(rule.State))
@@ -234,7 +234,7 @@ public partial class MetaViewModel
         var ruleText = (string)Clipboard.GetData(ClipboardDataFormatName);
         using var sr = new StringReader(ruleText);
         var rule = await Formatters.DefaultMetaReader.ReadRuleAsync(sr).ConfigureAwait(false);
-        var vm = new RuleViewModel(rule, this, conditionViewModelFactory, actionViewModelFactory);
+        var vm = new RuleViewModel(rule, this, conditionViewModelFactory, actionViewModelFactory, clipboardService);
         var idx = FindIndexForState(vm.State);
         Rules.Insert(idx, vm);
         SelectedRule = vm;
@@ -252,7 +252,7 @@ public partial class MetaViewModel
             State = state ?? "Default"
         };
 
-        var vm = new RuleViewModel(rule, this, conditionViewModelFactory, actionViewModelFactory);
+        var vm = new RuleViewModel(rule, this, conditionViewModelFactory, actionViewModelFactory, clipboardService);
         var idx = FindIndexForState(vm.State);
         Rules.Insert(idx, vm);
         SelectedRule = vm;

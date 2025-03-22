@@ -92,11 +92,11 @@
                     <vra:ActionListItemDataTemplateSelector.SetStateTemplate>
                         <DataTemplate DataType="{x:Type vm:ActionViewModel}">
                             <TextBlock>
-                        <Run Text="{Binding Type, Mode=OneWay}" />
-                        <Run Text=": " />
-                        <Hyperlink Command="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=DataContext.Meta.GoToStateCommand}" CommandParameter="{Binding Data}">
-                            <Run Text="{Binding Data}" />
-                        </Hyperlink>
+                                <Run Text="{Binding Type, Mode=OneWay}" />
+                                <Run Text=": " />
+                                <Hyperlink Command="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=DataContext.Meta.GoToStateCommand}" CommandParameter="{Binding Data}">
+                                    <Run Text="{Binding Data}" />
+                                </Hyperlink>
                             </TextBlock>
                         </DataTemplate>
                     </vra:ActionListItemDataTemplateSelector.SetStateTemplate>
@@ -104,16 +104,16 @@
                         <DataTemplate DataType="{x:Type vm:CallStateActionViewModel}">
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock>
-                            <Run Text="Call:" />
-                            <Hyperlink Command="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=DataContext.Meta.GoToStateCommand}" CommandParameter="{Binding CallState}">
-                                <Run Text="{Binding CallState}" />
-                            </Hyperlink>
-                                </TextBlock>
-                                <TextBlock Margin="3,0,0,0">
-                            <Run Text="Return To:" />
-                            <Hyperlink Command="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=DataContext.Meta.GoToStateCommand}" CommandParameter="{Binding ReturnState}">
-                                <Run Text="{Binding ReturnState}" />
-                            </Hyperlink>
+                                    <Run Text="Call:" />
+                                    <Hyperlink Command="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=DataContext.Meta.GoToStateCommand}" CommandParameter="{Binding CallState}">
+                                        <Run Text="{Binding CallState}" />
+                                    </Hyperlink>
+                                        </TextBlock>
+                                        <TextBlock Margin="3,0,0,0">
+                                    <Run Text="Return To:" />
+                                    <Hyperlink Command="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=DataContext.Meta.GoToStateCommand}" CommandParameter="{Binding ReturnState}">
+                                        <Run Text="{Binding ReturnState}" />
+                                    </Hyperlink>
                                 </TextBlock>
                             </StackPanel>
                         </DataTemplate>
@@ -163,14 +163,14 @@
                     <vra:ActionListItemDataTemplateSelector.SetWatchdogTemplate>
                         <DataTemplate DataType="{x:Type vm:WatchdogSetActionViewModel}">
                             <TextBlock>
-                        <Run Text="{Binding Type, Mode=OneWay}" />
-                        <Run Text=":" />
-                        <Run Text="{Binding Range, Mode=OneWay, StringFormat={}{0}m}" />
-                        <Run Text="{Binding Time, Mode=OneWay, StringFormat={}{0}s}" />
-                        <Run Text="=>" />
-                            <Hyperlink Command="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=DataContext.Meta.GoToStateCommand}" CommandParameter="{Binding State}">
-                                <Run Text="{Binding State, Mode=OneWay}" />
-                            </Hyperlink>
+                                <Run Text="{Binding Type, Mode=OneWay}" />
+                                <Run Text=":" />
+                                <Run Text="{Binding Range, Mode=OneWay, StringFormat={}{0}m}" />
+                                <Run Text="{Binding Time, Mode=OneWay, StringFormat={}{0}s}" />
+                                <Run Text="=>" />
+                                <Hyperlink Command="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=DataContext.Meta.GoToStateCommand}" CommandParameter="{Binding State}">
+                                    <Run Text="{Binding State, Mode=OneWay}" />
+                                </Hyperlink>
                             </TextBlock>
                         </DataTemplate>
                     </vra:ActionListItemDataTemplateSelector.SetWatchdogTemplate>

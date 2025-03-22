@@ -1,6 +1,9 @@
 ﻿using CommunityToolkit.Mvvm.Input;
 using MetaParser.Models;
+using MetaParser.WPF.Services;
 using System;
+using System.IO;
+using System.Threading.Tasks;
 
 namespace MetaParser.WPF.ViewModels
 {
@@ -10,15 +13,17 @@ namespace MetaParser.WPF.ViewModels
         private ActionViewModel action;
         private readonly ConditionViewModelFactory conditionViewModelFactory;
         private readonly ActionViewModelFactory actionViewModelFactory;
+        private readonly ClipboardService clipboardService;
 
         public event EventHandler StateChanged;
 
-        public RuleViewModel(Rule rule, MetaViewModel meta, ConditionViewModelFactory conditionViewModelFactory, ActionViewModelFactory actionViewModelFactory)
+        public RuleViewModel(Rule rule, MetaViewModel meta, ConditionViewModelFactory conditionViewModelFactory, ActionViewModelFactory actionViewModelFactory, ClipboardService clipboardService)
         {
             Rule = rule;
             Meta = meta;
             this.conditionViewModelFactory = conditionViewModelFactory;
             this.actionViewModelFactory = actionViewModelFactory;
+            this.clipboardService = clipboardService;
             condition = conditionViewModelFactory.CreateViewModel(rule.Condition);
             action = actionViewModelFactory.CreateViewModel(rule.Action, meta);
             action.StateChanged += Action_StateChanged;
@@ -188,6 +193,26 @@ namespace MetaParser.WPF.ViewModels
             action.StateChanged += Action_StateChanged;
             action.PropertyChanged += Action_PropertyChanged;
             Rule.Action = allCond;
+        }
+
+        [RelayCommand]
+        async Task CopyCondition()
+        {
+            using var sw = new StringWriter();
+            await sw.WriteLineAsync(((int)Condition.Type).ToString());
+            await Formatters.MetaWriter.WriteConditionAsync(sw, Condition.Condition).ConfigureAwait(false);
+            var conditionText = sw.ToString();
+            clipboardService.SetData(typeof(Models.Condition).FullName, conditionText);
+        }
+
+        [RelayCommand]
+        async Task CopyAction()
+        {
+            using var sw = new StringWriter();
+            await sw.WriteLineAsync(((int)Action.Type).ToString());
+            await Formatters.MetaWriter.WriteActionAsync(sw, Action.Action).ConfigureAwait(false);
+            var actionText = sw.ToString();
+            clipboardService.SetData(typeof(MetaAction).FullName, actionText);
         }
 
         public MetaViewModel Meta { get; }

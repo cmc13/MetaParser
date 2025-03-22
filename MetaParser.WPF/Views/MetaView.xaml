@@ -62,7 +62,12 @@
                                         <GradientStop Offset="1" Color="DarkRed" />
                                     </LinearGradientBrush>
                                 </Border.Background>
-                                <TextBlock FontWeight="Bold" FontSize="16" Text="{Binding Name}" VerticalAlignment="Center" HorizontalAlignment="Left" TextAlignment="Center" Foreground="White" Margin="2,0,0,0" />
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock FontWeight="Bold" FontSize="16" Text="{Binding Name}" VerticalAlignment="Center" HorizontalAlignment="Left" TextAlignment="Center" Foreground="White" Margin="2,0,0,0" />
+                                    <Button Visibility="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=IsMouseOver, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                            Command="{Binding DataContext.AddCommand, Source={StaticResource Spy}}" CommandParameter="{Binding Name}"
+                                            Content="{StaticResource AddIcon}" Background="Transparent" VerticalAlignment="Center" BorderThickness="0" ToolTip="Add Rule to this State"/>
+                                </StackPanel>
                             </Border>
                         </DataTemplate>
                     </GroupStyle.HeaderTemplate>
@@ -91,6 +96,7 @@
                                 <Border Margin="5,2,2,2" CornerRadius="5" Padding="2">
                                     <Border.ContextMenu>
                                         <ContextMenu>
+                                            <MenuItem Header="Copy Rule" Command="{Binding DataContext.CopyCommand, Source={StaticResource Spy}}" Icon="{StaticResource CopyIcon}" />
                                             <MenuItem Header="Move To State" ItemsSource="{Binding Path=DataContext.StateList, Source={StaticResource Spy}}">
                                                 <MenuItem.ItemContainerStyle>
                                                     <Style TargetType="MenuItem">
@@ -112,10 +118,12 @@
                                                 <MenuItem Header="Wrap in 'All' Block" Command="{Binding WrapConditionInAllCommand}" Icon="{StaticResource AllIcon}" />
                                                 <MenuItem Header="Wrap in 'Any' Block" Command="{Binding WrapConditionInAnyCommand}" Icon="{StaticResource AnyIcon}" />
                                                 <MenuItem Header="Unwrap" Command="{Binding UnwrapConditionCommand}" Icon="{StaticResource UnwrapIcon}" />
+                                                <MenuItem Header="Copy Condition" Command="{Binding CopyConditionCommand}" Icon="{StaticResource CopyIcon}" />
                                             </MenuItem>
                                             <MenuItem Header="Action">
                                                 <MenuItem Header="Wrap in 'Do All' Block" Command="{Binding WrapActionInAllCommand}" Icon="{StaticResource AllIcon}" />
                                                 <MenuItem Header="Unwrap" Command="{Binding UnwrapActionCommand}" Icon="{StaticResource UnwrapIcon}" />
+                                                <MenuItem Header="Copy Action" Command="{Binding CopyActionCommand}" Icon="{StaticResource CopyIcon}" />
                                             </MenuItem>
                                         </ContextMenu>
                                     </Border.ContextMenu>

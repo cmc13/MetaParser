@@ -136,10 +136,10 @@
                         </Grid.RowDefinitions>
 
                         <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Right">Call State:</TextBlock>
-                        <ComboBox Grid.Row="0" Grid.Column="1" Text="{Binding CallState, UpdateSourceTrigger=PropertyChanged}" ItemsSource="{Binding Meta.StateList}" IsEditable="True" Margin="2,0,0,0" />
+                        <ComboBox Grid.Row="0" Grid.Column="1" Text="{Binding CallState, UpdateSourceTrigger=LostFocus}" ItemsSource="{Binding Meta.StateList}" IsEditable="True" Margin="2,0,0,0" />
 
                         <TextBlock Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Right">Return State:</TextBlock>
-                        <ComboBox Grid.Row="1" Grid.Column="1" Text="{Binding ReturnState, UpdateSourceTrigger=PropertyChanged}" ItemsSource="{Binding Meta.StateList}" IsEditable="True" Margin="2,2,0,0" />
+                        <ComboBox Grid.Row="1" Grid.Column="1" Text="{Binding ReturnState, UpdateSourceTrigger=LostFocus}" ItemsSource="{Binding Meta.StateList}" IsEditable="True" Margin="2,2,0,0" />
                     </Grid>
                 </DataTemplate>
             </local:ActionDataTemplateSelector.CallStateTemplate>
@@ -283,7 +283,7 @@
                         </Grid.ColumnDefinitions>
 
                         <TextBlock Grid.Column="0" Text="{Binding Type, StringFormat={}{0}:, Converter={StaticResource EnumToDescriptionConverter}}" HorizontalAlignment="Right" VerticalAlignment="Center" />
-                        <ComboBox Grid.Column="1" Text="{Binding Data, UpdateSourceTrigger=PropertyChanged}" IsEditable="True" ItemsSource="{Binding Meta.StateList}" Margin="2,0,0,0" />
+                        <ComboBox Grid.Column="1" Text="{Binding Data, UpdateSourceTrigger=LostFocus}" IsEditable="True" ItemsSource="{Binding Meta.StateList}" Margin="2,0,0,0" />
                     </Grid>
                 </DataTemplate>
             </local:ActionDataTemplateSelector.SetStateTemplate>

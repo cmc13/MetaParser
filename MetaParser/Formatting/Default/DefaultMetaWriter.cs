@@ -115,7 +115,7 @@ public class DefaultMetaWriter : IMetaWriter
         double d => writer.WriteLineAsync("d").ContinueWith(_ => writer.WriteLineAsync(d.ToString())),
         ViewString vs => writer.WriteLineAsync("ba")
                                 .ContinueWith(_ => writer.WriteLineAsync(vs.Length.ToString()))
-                                .ContinueWith(_ => writer.WriteLineAsync(vs.String)),
+                                .ContinueWith(_ => writer.WriteAsync(vs.String)),
         _ => throw new InvalidCastException("Invalid value type -- must be either int, string, double, or ViewString")
     };
 
