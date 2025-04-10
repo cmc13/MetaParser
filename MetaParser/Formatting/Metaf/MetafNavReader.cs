@@ -11,7 +11,7 @@ using static MetafRegex;
 
 public sealed partial class MetafNavReader : INavReader
 {
-    private static readonly Dictionary<string, Regex> NavNodeRegex = new()
+    private static readonly Dictionary<string, Regex> NavNodeRegex = new(8)
     {
         { "prt", PortalObsRegex() },
         { "rcl", RecallRegex() },
@@ -23,7 +23,7 @@ public sealed partial class MetafNavReader : INavReader
         { "jmp", JumpRegex() }
     };
 
-    private static readonly Dictionary<string, RecallSpellId> RecallSpellList = new()
+    private static readonly Dictionary<string, RecallSpellId> RecallSpellList = new(26)
     {
         { "Primary Portal Recall", RecallSpellId.PrimaryPortalRecall },
         { "Secondary Portal Recall", RecallSpellId.SecondaryPortalRecall },

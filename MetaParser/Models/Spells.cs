@@ -4,7 +4,7 @@ namespace MetaParser.Models;
 
 public static class Spells
 {
-    public static Dictionary<int, string> SpellList = new()
+    public static readonly Dictionary<int, string> SpellList = new(6078)
     {
         { 4916, "A'mun Pyramid Portal Exit" },
         { 4915, "A'mun Pyramid Portal Sending" },

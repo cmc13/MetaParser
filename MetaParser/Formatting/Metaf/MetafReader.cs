@@ -27,7 +27,7 @@ public sealed partial class MetafReader : IMetaReader
         }
     }
 
-    private static readonly Dictionary<string, Regex> ConditionListRegex = new()
+    private static readonly Dictionary<string, Regex> ConditionListRegex = new(16)
     {
         { "NoMobsInDist",           DistanceRegex() },
         { "Expr",                   SingleStringRegex() },
@@ -46,7 +46,7 @@ public sealed partial class MetafReader : IMetaReader
         { "MobsInDist_Name",        MobsInDist_NameRegex() },
         { "SecsOnSpellGE",          SecsOnSpellGERegex() }
     };
-    private static readonly Dictionary<string, Regex> ActionListRegex = new()
+    private static readonly Dictionary<string, Regex> ActionListRegex = new(11)
     {
         { "EmbedNav",       EmbedNavRegex() },
         { "Chat",           SingleStringRegex() },
@@ -61,7 +61,7 @@ public sealed partial class MetafReader : IMetaReader
         { "SetWatchdog",    SetWatchdogRegex() }
     };
 
-    private static readonly Dictionary<string, ConditionType> ConditionList = new()
+    private static readonly Dictionary<string, ConditionType> ConditionList = new(25)
     {
         { "Expr",                   ConditionType.Expression },
         { "ChatCapture",            ConditionType.ChatMessageCapture },
@@ -90,7 +90,7 @@ public sealed partial class MetafReader : IMetaReader
         { "BuPercentGE",            ConditionType.BurdenPercentGE },
     };
 
-    private static readonly Dictionary<string, ActionType> ActionList = new()
+    private static readonly Dictionary<string, ActionType> ActionList = new(15)
     {
         { "None",               ActionType.None },
         { "EmbedNav",           ActionType.EmbeddedNavRoute },

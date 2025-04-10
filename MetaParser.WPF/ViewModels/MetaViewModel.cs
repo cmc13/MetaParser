@@ -34,14 +34,14 @@ public partial class MetaViewModel
         this.conditionViewModelFactory = conditionViewModelFactory;
         this.actionViewModelFactory = actionViewModelFactory;
         this.clipboardService = clipboardService;
-        Dictionary<string, List<RuleViewModel>> rulesByState = new();
+        Dictionary<string, List<RuleViewModel>> rulesByState = [];
         foreach (var rule in meta.Rules)
         {
             var vm = new RuleViewModel(rule, this, conditionViewModelFactory, actionViewModelFactory, clipboardService);
 
             List<RuleViewModel> list;
             if (!rulesByState.ContainsKey(rule.State))
-                list = rulesByState[rule.State] = new();
+                list = rulesByState[rule.State] = [];
             else
                 list = rulesByState[rule.State];
 

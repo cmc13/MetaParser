@@ -258,7 +258,7 @@ public class DuplicateViewNameValidator : IMetaValidator
     public IEnumerable<MetaValidationResult> ValidateMeta(Meta meta)
     {
         var viewNames = new Dictionary<string, int>();
-        var viewRules = new Dictionary<Rule, List<string>>();
+        var viewRules = new Dictionary<Rule, List<string>>(meta.Rules.Count);
 
         foreach (var rule in meta.Rules)
         {
